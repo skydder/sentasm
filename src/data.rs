@@ -4,26 +4,42 @@ pub enum AsmError {
 }
 
 pub struct Token<'a> {
-    seq: Vec<&'a str>,
+    seq: &'a str,
     location: usize,
+    len: usize,
 }
 
 impl<'a> Token<'a> {
-    // too ad hoc!!
     pub fn tokenize(s: &'a str) -> Self {
-        // todo: make this function general
-        Self {
-            seq: s.split_whitespace().collect::<Vec<&str>>(),
+        let mut new = Self {
+            seq: s,
             location: 0,
-        }
+            len: 0
+        };
+
+        new.len = new.calculate_len();
+        new
     }
 
-    pub fn inspect(&self) -> &'a str {
-        return self.seq[self.location];
+    pub fn inspect(&mut self) -> &'a str {
+        return &self.seq[self.location..self.location + self.len];
+    }
+
+    fn calculate_len(&self) -> usize {
+        let mut len = 0;
+        while !self.seq.chars().nth(self.location + len).unwrap_or(' ').is_whitespace() {
+            len += 1;
+        }
+        len
     }
 
     pub fn next(&mut self) {
-        self.location += 1;
+        self.location += self.len;
+        while self.seq.chars().nth(self.location).unwrap_or('a').is_whitespace() {
+            self.location += 1;
+        }
+        self.len = self.calculate_len();
+
     }
 }
 
@@ -38,7 +54,7 @@ impl Verb {
         let verb = match token.inspect() {
             "add" => Ok(Self::Add),
             "substract" => Ok(Self::Substract),
-            s => Err(AsmError::SyntaxError(format!("expected a verb, but found '{}'", s)))
+            s => Err(AsmError::SyntaxError(format!(":{}: expected a verb, but found '{}'", token.location + 1, s)))
         }?;
         token.next();
         Ok(verb)
@@ -48,7 +64,7 @@ impl Verb {
 #[derive(Debug)]
 pub enum Object {
     Reg,
-    Imm,
+    Imm(i64),
 }
 
 impl Object {
@@ -56,8 +72,8 @@ impl Object {
         let obj = match token.inspect() {
             "eax" => Ok(Self::Reg),
             s => match s.parse::<i64>() {
-                Ok(_) => Ok(Self::Imm),
-                Err(_) => Err(AsmError::SyntaxError(format!("expected object, but found {}", s)))
+                Ok(num) => Ok(Self::Imm(num)),
+                Err(_) => Err(AsmError::SyntaxError(format!(":{}: expected object, but found {}", token.location + 1, s)))
             }
         }?;
     
@@ -76,7 +92,7 @@ impl Preposition {
         let prep = match token.inspect() {
             "to" => Ok(Self::To),
             "from" => Ok(Self::From),
-            s => Err(AsmError::SyntaxError(format!("expected object, but found {}", s)))
+            s => Err(AsmError::SyntaxError(format!(":{}: expected object, but found {}", token.location + 1, s)))
         }?;
         token.next();
         Ok(prep)
@@ -86,9 +102,9 @@ impl Preposition {
 type PrepositionPhrase = (Preposition, Object);
 
 
-fn read_preposition_phrase<'a>(mut token: Token<'a>) -> Result<PrepositionPhrase, AsmError> {
-    let prep = Preposition::read(&mut token)?;
-    let object = Object::read(&mut token)?;
+fn read_preposition_phrase<'a>(token: &mut Token<'a>) -> Result<PrepositionPhrase, AsmError> {
+    let prep = Preposition::read(token)?;
+    let object = Object::read(token)?;
     Ok((prep, object))
 }
 
@@ -102,7 +118,8 @@ impl Sentence {
     pub fn read<'a>(mut token: Token<'a>) -> Result<Self, AsmError> {
         let verb = Verb::read(&mut token)?;
         let object = Object::read(&mut token)?;
-        let pp = read_preposition_phrase(token)?;
+        let pp = read_preposition_phrase(&mut token)?;
+        assert!(token.seq.len() == token.location + token.len);
         Ok(Sentence { verb: verb, object: object, prepositional_phrases: pp })
     }
 
@@ -116,7 +133,7 @@ impl Sentence {
                 let pp = format!("to {:?}", po);
                 Ok(format!("{v} {o:?} {pp}", v = "add", o = o, pp = pp))
             },
-            
+
             Sentence {
                 verb: Verb::Substract,
                 object: o,
@@ -126,7 +143,7 @@ impl Sentence {
                 Ok(format!("{v} {o:?} {pp}", v = "substract", o = o, pp = pp))
             },
     
-            _ => Err(AsmError::SyntaxError("expected add instruction, but found other".to_string()))?
+            _ => Err(AsmError::SyntaxError("expected  instruction, but found other".to_string()))?
         }
         
     }
