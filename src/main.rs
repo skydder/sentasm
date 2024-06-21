@@ -1,25 +1,29 @@
 // this code is a rough sketch
 mod data;
-use data::{AsmError, Parse, Sentence, Token};
+use data::{codegen, AsmError, Parse, Sentence, Token};
 
 fn main() -> Result<(), AsmError> {
     let add = "add 1 to eax\n";
-    println!("{}", codegen(add)?);
+    println!("{}", compile(add)?);
 
     let sub = "substract 1 from ax\n";
-    println!("{}", codegen(sub)?);
+    println!("{}", compile(sub)?);
 
     let mul = "multiply eax by ebx\n";
-    println!("{}", codegen(mul)?);
+    println!("{}", compile(mul)?);
 
-    // let div = "divide eax by ebx\n";
-    // println!("{}", codegen(div)?);
+    let div = "divide eax \n";
+    println!("{}", compile(div)?);
+
+    let mov = "move 1 to eax\n";
+    println!("{}", compile(mov)?);
 
     Ok(())
 }
 
-fn codegen<'a>(s: &'a str) -> Result<String, AsmError> {
+fn compile<'a>(s: &'a str) -> Result<String, AsmError> {
     let mut token = Token::tokenize(s);
-    let code = format!("\t{}", Sentence::parse(&mut token)?.codegen()?);
+    let mut sentence = Sentence::parse(&mut token)?;
+    let code = format!("\t{}", codegen(&mut sentence)?);
     Ok(code)
 }

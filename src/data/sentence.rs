@@ -1,27 +1,14 @@
-use crate::data::Parse;
-use crate::{AsmError, Token};
+use super::{AsmError, Parse, Token};
 
-use std::collections::{BTreeMap, HashMap};
-use std::{default, fmt};
+use std::collections::HashMap;
+use std::fmt;
 
-#[derive(Debug)]
-enum Verb {
+pub(crate) enum Verb {
     Add,
     Substract,
     Multiply,
     Divide,
-}
-
-impl fmt::Display for Verb {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let verb = match self {
-            Verb::Add => "add",
-            Verb::Substract => "sub",
-            Verb::Multiply => "imul",
-            Verb::Divide => "idiv"
-        };
-        write!(f, "{}", verb)
-    }
+    Move,
 }
 
 impl Parse for Verb {
@@ -37,14 +24,18 @@ impl Parse for Verb {
             "substract" => {
                 token.next();
                 Ok(Self::Substract)
-            },
+            }
             "multiply" => {
                 token.next();
                 Ok(Self::Multiply)
-            },
+            }
             "divide" => {
                 token.next();
                 Ok(Self::Divide)
+            }
+            "move" => {
+                token.next();
+                Ok(Self::Move)
             }
 
             s => Err(AsmError::SyntaxError(format!(
@@ -56,7 +47,6 @@ impl Parse for Verb {
     }
 }
 
-#[derive(Debug)]
 pub enum Register {
     // general purpose regiser
     AL,
@@ -275,8 +265,7 @@ impl fmt::Display for Register {
     }
 }
 
-#[derive(Debug)]
-pub enum Object {
+pub(crate) enum Object {
     Reg(Register),
     Imm(i64),
 }
@@ -307,8 +296,8 @@ impl fmt::Display for Object {
     }
 }
 
-// #[derive(PartialEq, Eq)]
-enum Preposition {
+#[derive(PartialEq, Eq, Hash)]
+pub(crate) enum Preposition {
     To,
     From,
     By,
@@ -323,15 +312,15 @@ impl Parse for Preposition {
             "to" => {
                 token.next();
                 Ok(Self::To)
-            },
+            }
             "from" => {
                 token.next();
                 Ok(Self::From)
-            },
+            }
             "by" => {
                 token.next();
                 Ok(Self::By)
-            },
+            }
             s => Err(AsmError::SyntaxError(format!(
                 ":{}: expected object, but found {}",
                 token.location() + 1,
@@ -343,33 +332,34 @@ impl Parse for Preposition {
 
 type PrepositionPhrase = (Preposition, Object);
 
-// struct PrepositionPhrases {
-//     phrases: BTreeMap<Preposition, Object>,  
-// }
-
-// impl Parse for PrepositionPhrases {
-//     fn parse(token: &mut Token) -> Result<Self, AsmError>
-//         where
-//             Self: Sized {
-//         let mut map:BTreeMap<Preposition, Object> = BTreeMap::new();             
-//         while token.len != 0 {
-//             let (prep, obj) = read_preposition_phrase(token)?;
-//             map.insert(prep, obj);
-//         }
-//         todo!(;)
-//     }
-// }
-
 fn read_preposition_phrase<'a>(token: &mut Token<'a>) -> Result<PrepositionPhrase, AsmError> {
     let prep = Preposition::parse(token)?;
     let object = Object::parse(token)?;
     Ok((prep, object))
 }
 
+pub(crate) struct PrepositionPhrases {
+    pub(crate) phrases: HashMap<Preposition, Object>,
+}
+
+impl Parse for PrepositionPhrases {
+    fn parse(token: &mut Token) -> Result<Self, AsmError>
+    where
+        Self: Sized,
+    {
+        let mut map: HashMap<Preposition, Object> = HashMap::new();
+        while token.len != 0 {
+            let (prep, obj) = read_preposition_phrase(token)?;
+            map.insert(prep, obj);
+        }
+        Ok(Self { phrases: map })
+    }
+}
+
 pub struct Sentence {
-    verb: Verb,
-    object: Object,
-    prepositional_phrases: PrepositionPhrase,
+    pub(crate) verb: Verb,
+    pub(crate) object: Object,
+    pub(crate) prepositional_phrases: PrepositionPhrases,
 }
 
 impl Parse for Sentence {
@@ -379,52 +369,13 @@ impl Parse for Sentence {
     {
         let verb = Verb::parse(token)?;
         let object = Object::parse(token)?;
-        let pp = read_preposition_phrase(token)?;
+        let pps = PrepositionPhrases::parse(token)?;
         assert!(token.seq.len() == token.location() + token.len);
         assert!(token.len == 0);
         Ok(Sentence {
             verb: verb,
             object: object,
-            prepositional_phrases: pp,
+            prepositional_phrases: pps,
         })
-    }
-}
-
-impl Sentence {
-    pub fn codegen<'a>(self) -> Result<String, AsmError> {
-        match self {
-            Sentence {
-                verb: Verb::Add,
-                object: o,
-                prepositional_phrases: (Preposition::To, po),
-            } => {
-                Ok(format!("{v} {po}, {o}", v = "add", o = o, po = po))
-            },
-            Sentence {
-                verb: Verb::Substract,
-                object: o,
-                prepositional_phrases: (Preposition::From, po),
-            } => {
-                Ok(format!("{v} {po}, {o}", v = "sub", o = o, po = po))
-            },
-            Sentence {
-                verb: Verb::Multiply,
-                object: Object::Reg(r1),
-                prepositional_phrases: (Preposition::By, Object::Reg(r2)),
-            } => {
-                Ok(format!("{v} {o}, {po}", v = "imul", o = r1, po = r2))
-            },
-            // Sentence {
-            //     verb: Verb::Divide,
-            //     object: Object::Reg(r1),
-            //     prepositional_phrases: () ,
-            // } => {
-            //     Ok(format!("{v} {o}", v = "idiv", o = r1))
-            // }
-
-            _ => Err(AsmError::SyntaxError(
-                "expected  instruction, but found other".to_string(),
-            ))?,
-        }
     }
 }
