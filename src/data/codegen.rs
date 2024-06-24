@@ -37,7 +37,7 @@ fn sub_instruction(o: &Object, pps: &mut PrepositionPhrases) -> Result<String, A
 fn mul_instruction(o: &Object, pps: &mut PrepositionPhrases) -> Result<String, AsmError> {
     if !pps.phrases.contains_key(&Preposition::By) {
         Err(AsmError::SyntaxError(
-            "add instruction needs to clause".to_string(),
+            "mul instruction needs to clause".to_string(),
         ))
     } else {
         let by = pps.phrases.remove(&Preposition::By).unwrap();
@@ -54,7 +54,7 @@ fn div_instruction(o: &Object, pps: &mut PrepositionPhrases) -> Result<String, A
 fn mov_instruction(o: &Object, pps: &mut PrepositionPhrases) -> Result<String, AsmError> {
     if !pps.phrases.contains_key(&Preposition::To) {
         Err(AsmError::SyntaxError(
-            "add instruction needs to clause".to_string(),
+            "move instruction needs to clause".to_string(),
         ))
     } else {
         let to = pps.phrases.remove(&Preposition::To).unwrap();
