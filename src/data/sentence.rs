@@ -3,6 +3,7 @@ use super::{AsmError, Parse, Token};
 use std::collections::HashMap;
 use std::fmt;
 
+type Label<'a> = &'a str;
 pub(crate) enum Verb {
     Add,
     Substract,
@@ -11,40 +12,9 @@ pub(crate) enum Verb {
     Move,
 }
 
-impl Parse for Verb {
-    fn parse(token: &mut Token) -> Result<Self, AsmError>
-    where
-        Self: Sized,
-    {
-        match token.inspect() {
-            "add" => {
-                token.next();
-                Ok(Self::Add)
-            }
-            "substract" => {
-                token.next();
-                Ok(Self::Substract)
-            }
-            "multiply" => {
-                token.next();
-                Ok(Self::Multiply)
-            }
-            "divide" => {
-                token.next();
-                Ok(Self::Divide)
-            }
-            "move" => {
-                token.next();
-                Ok(Self::Move)
-            }
-
-            s => Err(AsmError::SyntaxError(format!(
-                ":{}: expected a verb, but found '{}'",
-                token.location() + 1,
-                s
-            ))),
-        }
-    }
+pub(crate) enum Object {
+    Reg(Register),
+    Imm(i64),
 }
 
 pub enum Register {
@@ -115,9 +85,126 @@ pub enum Register {
     R15, //  quadword
 }
 
+#[derive(PartialEq, Eq, Hash)]
+pub(crate) enum Preposition {
+    To,
+    From,
+    By,
+}
+
+pub enum Sentence<'a> {
+    Sentence {
+        verb: Verb,
+        object: Object,
+        prepositional_phrases: PrepositionPhrases,
+    },
+    Label(Label<'a>)
+
+}
+
+pub(crate) enum TokenKind<'a> {
+    Verb(Verb),
+    Object(Object),
+    Preposition(Preposition),
+    Label(Label<'a>)
+}
+
+impl<'a> Token<'a> {
+    pub(crate) fn inspect(&self) ->TokenKind {
+        let tok = self._inspect();
+        if let Ok(v) = Verb::parse(tok) {
+            TokenKind::Verb(v)
+        } else if let Ok(o) = Object::parse(tok) {
+            TokenKind:: Object(o)
+        } else  if let Ok(pp) = Preposition::parse(tok) {
+            TokenKind:: Preposition(pp)
+        } else {
+            TokenKind::Label(tok)
+        }
+    }
+}
+
+impl<'a> TokenKind<'a> {
+    fn expect_verb(self) -> Result<Verb, AsmError> {
+        if let Self::Verb(v) = self {
+            Ok(v)
+        } else {
+            Err(AsmError::SyntaxError(format!(
+                "expected a verb, but found other"
+                
+            )))
+        }
+    }
+    fn expect_object(self) -> Result<Object, AsmError> {
+        if let Self::Object(o) = self {
+            Ok(o)
+        } else {
+            Err(AsmError::SyntaxError(format!(
+                "expected an object, but found other"
+                
+            )))
+        }
+    }
+    
+    fn expect_preposition(self) -> Result<Preposition, AsmError> {
+        if let Self::Preposition(pp) = self {
+            Ok(pp)
+        } else {
+            Err(AsmError::SyntaxError(format!(
+                "expected a preposition, but found other"
+                
+            )))
+        }
+    }
+
+    fn expect_label(self) -> Result<Label<'a>, AsmError> {
+        if let Self::Label(l) = self {
+            Ok(l)
+        } else {
+            Err(AsmError::SyntaxError(format!(
+                "expected a verb, but found other"
+            )))
+        }
+    }
+}
+
+impl Parse for Verb {
+    fn parse<'a>(token: &'a str) -> Result<Self, AsmError>
+    where
+        Self: Sized,
+    {
+        match token {
+            "add" => {
+                Ok(Self::Add)
+            }
+            "substract" => {
+                
+                Ok(Self::Substract)
+            }
+            "multiply" => {
+                
+                Ok(Self::Multiply)
+            }
+            "divide" => {
+                
+                Ok(Self::Divide)
+            }
+            "move" => {
+                
+                Ok(Self::Move)
+            }
+
+            s => Err(AsmError::SyntaxError(format!(
+                "expected a verb, but found '{}'",
+                s
+            ))),
+        }
+    }
+}
+
 impl Parse for Register {
-    fn parse(token: &mut Token) -> Result<Register, AsmError> {
-        let reg = match token.inspect() {
+    fn parse<'a>(token: &'a str) -> Result<Register, AsmError> {
+        match token{
             "al" => Ok(Self::AL),
             "bl" => Ok(Self::BL),
             "cl" => Ok(Self::CL),
@@ -186,10 +273,7 @@ impl Parse for Register {
                 "expected object, but found {}",
                 s
             ))),
-        }?;
-        // bit inefficient
-        token.next();
-        Ok(reg)
+        }
     }
 }
 
@@ -265,20 +349,15 @@ impl fmt::Display for Register {
     }
 }
 
-pub(crate) enum Object {
-    Reg(Register),
-    Imm(i64),
-}
-
 impl Parse for Object {
-    fn parse(token: &mut Token) -> Result<Self, AsmError>
+    fn parse<'a>(token: &'a str) -> Result<Self, AsmError>
     where
         Self: Sized,
     {
-        match token.inspect() {
+        // little weird?
+        match token{
             s => match s.parse::<i64>() {
                 Ok(num) => {
-                    token.next();
                     Ok(Self::Imm(num))
                 }
                 Err(_) => Ok(Self::Reg(Register::parse(token)?)),
@@ -296,86 +375,72 @@ impl fmt::Display for Object {
     }
 }
 
-#[derive(PartialEq, Eq, Hash)]
-pub(crate) enum Preposition {
-    To,
-    From,
-    By,
-}
-
 impl Parse for Preposition {
-    fn parse(token: &mut Token) -> Result<Self, AsmError>
+    fn parse<'a>(token: &'a str) -> Result<Self, AsmError>
     where
         Self: Sized,
     {
-        match token.inspect() {
+        match token {
             "to" => {
-                token.next();
+                
                 Ok(Self::To)
             }
             "from" => {
-                token.next();
+                
                 Ok(Self::From)
             }
             "by" => {
-                token.next();
+                
                 Ok(Self::By)
             }
             s => Err(AsmError::SyntaxError(format!(
-                ":{}: expected object, but found {}",
-                token.location() + 1,
+                "expected object, but found {}",
                 s
             ))),
         }
     }
 }
 
-type PrepositionPhrase = (Preposition, Object);
-
-fn read_preposition_phrase<'a>(token: &mut Token<'a>) -> Result<PrepositionPhrase, AsmError> {
-    let prep = Preposition::parse(token)?;
-    let object = Object::parse(token)?;
-    Ok((prep, object))
-}
-
 pub(crate) struct PrepositionPhrases {
     pub(crate) phrases: HashMap<Preposition, Object>,
 }
 
-impl Parse for PrepositionPhrases {
+impl PrepositionPhrases {
     fn parse(token: &mut Token) -> Result<Self, AsmError>
     where
         Self: Sized,
     {
         let mut map: HashMap<Preposition, Object> = HashMap::new();
         while token.len != 0 {
-            let (prep, obj) = read_preposition_phrase(token)?;
+            let prep = token.inspect().expect_preposition()?;
+            token.next();
+            let obj = token.inspect().expect_object()?;
+            token.next();
             map.insert(prep, obj);
         }
         Ok(Self { phrases: map })
     }
 }
 
-pub struct Sentence {
-    pub(crate) verb: Verb,
-    pub(crate) object: Object,
-    pub(crate) prepositional_phrases: PrepositionPhrases,
-}
-
-impl Parse for Sentence {
-    fn parse(token: &mut Token) -> Result<Self, AsmError>
+impl<'a> Sentence<'a> {
+    pub fn parse(token: &'a mut Token) -> Result<Self, AsmError>
     where
         Self: Sized,
     {
-        let verb = Verb::parse(token)?;
-        let object = Object::parse(token)?;
+        if let Ok(verb) = token.inspect().expect_verb(){
+        token.next();
+        let object = token.inspect().expect_object()?;
+        token.next();
         let pps = PrepositionPhrases::parse(token)?;
         assert!(token.seq.len() == token.location() + token.len);
         assert!(token.len == 0);
-        Ok(Sentence {
+        Ok(Self::Sentence {
             verb: verb,
             object: object,
             prepositional_phrases: pps,
         })
+    } else {
+        Ok(Self::Label(token.inspect().expect_label()?))
     }
+}
 }

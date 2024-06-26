@@ -16,7 +16,7 @@ impl<'a> Token<'a> {
         new
     }
 
-    pub fn inspect(&mut self) -> &'a str {
+    pub(crate) fn _inspect(&self) -> &'a str {
         return &self.seq[self.location..self.location + self.len];
     }
 
@@ -34,7 +34,7 @@ impl<'a> Token<'a> {
         len
     }
 
-    pub fn next(&mut self) {
+    pub(crate) fn next(&mut self) {
         self.location += self.len;
         while self
             .seq

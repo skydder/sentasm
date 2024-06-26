@@ -5,7 +5,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::fmt::Write;
 
-use data::{codegen, AsmError, Parse, Sentence, Token};
+use data::{codegen, AsmError, Sentence, Token};
 
 fn main() -> Result<(), AsmError> {
     println!("{}", compile_file(BufReader::new(File::open(read_args()?).unwrap()))?);
