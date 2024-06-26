@@ -5,6 +5,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::fmt::Write;
 
+use data::sentence::Paragraph;
 use data::{codegen, AsmError, Parse, Sentence, Token};
 
 fn main() -> Result<(), AsmError> {
@@ -22,19 +23,17 @@ fn read_args() -> Result<String, AsmError> {
 }
 
 fn compile<'a>(s: &'a str) -> Result<String, AsmError> {
-    let mut token = Token::tokenize(s);
-    let mut sentence = Sentence::parse(&mut token)?;
-    let code = format!("\t{}", codegen(&mut sentence)?);
+    let code = codegen(Paragraph::parse(s)?)?;
     Ok(code)
 }
 
-fn compile_file<R>(reader: R) -> Result<String, AsmError> 
+fn compile_file<R>(mut reader: R) -> Result<String, AsmError> 
 where R: BufRead
 {
     let mut code :String = String::new();
-    for line_result in reader.lines() {
-        let line = line_result.unwrap();
-        writeln!(code, "{}", compile(&line)?).unwrap();
-    }
+    // let mut sourse :String = String::new();
+    // reader.read_to_string(&mut sourse).unwrap();
+
+    // code.push_str(&compile(&code)?);
     Ok(code)
 }

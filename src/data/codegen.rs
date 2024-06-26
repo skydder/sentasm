@@ -1,6 +1,6 @@
-use super::{AsmError, Object, Preposition, PrepositionPhrases, Sentence, Verb};
+use super::{sentence::Paragraph, AsmError, Object, Preposition, PrepositionPhrases, Sentence, Verb};
 
-pub fn codegen(s: &mut Sentence) -> Result<String, AsmError> {
+pub fn codegen_instruction(s: &mut Sentence) -> Result<String, AsmError> {
     match s.verb {
         Verb::Add => add_instruction(&s.object, &mut s.prepositional_phrases),
         Verb::Substract => sub_instruction(&s.object, &mut s.prepositional_phrases),
@@ -61,4 +61,12 @@ fn mov_instruction(o: &Object, pps: &mut PrepositionPhrases) -> Result<String, A
         assert!(pps.phrases.is_empty());
         Ok(format!("mov {dest}, {src}", dest = to, src = o))
     }
+}
+
+pub fn codegen(p: Paragraph) -> Result<String, AsmError> {
+    let mut code = format!("{}:\n", p.title);
+    for mut s in p.content.into_iter() {
+        code.push_str(&format!("\t{}", codegen_instruction(&mut s)?));  
+    }
+    Ok(code)
 }

@@ -1,7 +1,7 @@
-use super::{AsmError, Parse, Token};
+use super::{token, AsmError, Parse, Token};
 
 use std::collections::HashMap;
-use std::fmt;
+use std::fmt::{self, write};
 
 pub(crate) enum Verb {
     Add,
@@ -275,14 +275,14 @@ impl Parse for Object {
     where
         Self: Sized,
     {
-        match token.inspect() {
-            s => match s.parse::<i64>() {
-                Ok(num) => {
-                    token.next();
-                    Ok(Self::Imm(num))
-                }
-                Err(_) => Ok(Self::Reg(Register::parse(token)?)),
-            },
+        let tok = token.inspect();
+        if let Ok(i) = tok.parse::<i64>() {
+            token.next();
+            Ok(Self::Imm(i))
+        } else if let Ok(reg) = Register::parse(token) {
+            Ok(Self::Reg(reg))
+        } else {
+            Err(AsmError::SyntaxError(format!("expected object, but found {}", tok)))
         }
     }
 }
@@ -377,5 +377,23 @@ impl Parse for Sentence {
             object: object,
             prepositional_phrases: pps,
         })
+    }
+}
+
+pub struct Paragraph {
+    pub(crate) title: String,
+    pub(crate) content: Vec<Sentence>,
+}
+
+impl Paragraph {
+    pub fn parse<'a>(s: Vec<&'a str>) -> Result<Self, AsmError> {
+        let title = s[1];
+        
+        
+        let mut content:Vec<Sentence> = Vec::new();
+        for line in s.into_iter() {
+            content.push(Sentence::parse(&mut Token::tokenize(line))?);
+        }
+        Ok(Self { title: title.to_string(), content: content })
     }
 }
