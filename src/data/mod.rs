@@ -13,7 +13,7 @@ pub enum AsmError {
 }
 
 pub trait Parse {
-    fn parse<'a>(token:  &'a str) -> Result<Self, AsmError>
+    fn parse<'a>(token: &'a str) -> Result<Self, AsmError>
     where
         Self: Sized;
 }

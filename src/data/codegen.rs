@@ -1,20 +1,24 @@
 use super::{AsmError, Object, Preposition, PrepositionPhrases, Sentence, Verb};
 
 pub fn codegen(s: &mut Sentence) -> Result<String, AsmError> {
-    if let Sentence::Sentence { verb, object, prepositional_phrases } = s{
-       match verb {
-        Verb::Add => add_instruction(object, prepositional_phrases),
-        Verb::Substract => sub_instruction(object,prepositional_phrases),
-        Verb::Multiply => mul_instruction(object, prepositional_phrases),
-        Verb::Divide => div_instruction(object, prepositional_phrases),
-        Verb::Move => mov_instruction(object, prepositional_phrases),
-    }
-    }else if let Sentence::Label(l) = s {
-        Ok(format!("{}:",l))
+    if let Sentence::Sentence {
+        verb,
+        object,
+        prepositional_phrases,
+    } = s
+    {
+        match verb {
+            Verb::Add => add_instruction(object, prepositional_phrases),
+            Verb::Substract => sub_instruction(object, prepositional_phrases),
+            Verb::Multiply => mul_instruction(object, prepositional_phrases),
+            Verb::Divide => div_instruction(object, prepositional_phrases),
+            Verb::Move => mov_instruction(object, prepositional_phrases),
+        }
+    } else if let Sentence::LabelDefinition(l) = s {
+        Ok(format!("{}:", l))
     } else {
         Err(AsmError::SyntaxError(format!("something is wrong")))
     }
-    
 }
 
 fn add_instruction(o: &Object, pps: &mut PrepositionPhrases) -> Result<String, AsmError> {

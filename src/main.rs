@@ -1,14 +1,17 @@
 // this code is a rough sketch
 mod data;
 
+use std::fmt::Write;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use std::fmt::Write;
 
 use data::{codegen, AsmError, Sentence, Token};
 
 fn main() -> Result<(), AsmError> {
-    println!("{}", compile_file(BufReader::new(File::open(read_args()?).unwrap()))?);
+    println!(
+        "{}",
+        compile_file(BufReader::new(File::open(read_args()?).unwrap()))?
+    );
     Ok(())
 }
 
@@ -28,10 +31,11 @@ fn compile<'a>(s: &'a str) -> Result<String, AsmError> {
     Ok(code)
 }
 
-fn compile_file<R>(reader: R) -> Result<String, AsmError> 
-where R: BufRead
+fn compile_file<R>(reader: R) -> Result<String, AsmError>
+where
+    R: BufRead,
 {
-    let mut code :String = String::new();
+    let mut code: String = String::new();
     for line_result in reader.lines() {
         let line = line_result.unwrap();
         writeln!(code, "{}", compile(&line)?).unwrap();

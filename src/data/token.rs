@@ -16,7 +16,7 @@ impl<'a> Token<'a> {
         new
     }
 
-    pub(crate) fn _inspect(&self) -> &'a str {
+    pub fn _inspect(&self) -> &'a str {
         return &self.seq[self.location..self.location + self.len];
     }
 
@@ -43,6 +43,11 @@ impl<'a> Token<'a> {
             .unwrap_or('a')
             .is_whitespace()
         {
+            if self.seq.chars().nth(self.location).unwrap_or(' ') == '[' {
+                while self.seq.chars().nth(self.location).unwrap_or(']') == ']' {}
+                self.location += 1;
+                break;
+            }
             self.location += 1;
         }
         self.len = self.calculate_len();
