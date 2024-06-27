@@ -7,12 +7,17 @@ pub fn codegen(s: &mut Sentence) -> Result<String, AsmError> {
         prepositional_phrases,
     } = s
     {
+        let mut obj = if let Some(o) = object {
+            Ok(o)
+        } else {
+            Err(AsmError::SyntaxError(format!("expected object, but there is no object")))
+        }?;
         match verb {
-            Verb::Add => add_instruction(object, prepositional_phrases),
-            Verb::Substract => sub_instruction(object, prepositional_phrases),
-            Verb::Multiply => mul_instruction(object, prepositional_phrases),
-            Verb::Divide => div_instruction(object, prepositional_phrases),
-            Verb::Move => mov_instruction(object, prepositional_phrases),
+            Verb::Add => add_instruction(obj, prepositional_phrases),
+            Verb::Substract => sub_instruction(obj, prepositional_phrases),
+            Verb::Multiply => mul_instruction(obj, prepositional_phrases),
+            Verb::Divide => div_instruction(obj, prepositional_phrases),
+            Verb::Move => mov_instruction(obj, prepositional_phrases),
         }
     } else if let Sentence::LabelDefinition(l) = s {
         Ok(format!("{}:", l))

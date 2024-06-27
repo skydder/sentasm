@@ -101,7 +101,7 @@ pub(crate) enum Preposition {
 pub enum Sentence<'a> {
     Sentence {
         verb: Verb,
-        object: Object,
+        object: Option<Object>,
         prepositional_phrases: PrepositionPhrases,
     },
     LabelDefinition(Label<'a>),
@@ -166,6 +166,13 @@ impl<'a> TokenKind<'a> {
             Err(AsmError::SyntaxError(format!(
                 "expected a verb, but found other"
             )))
+        }
+    }
+    fn is_object(self) -> bool {
+        if let Self::Object(o) = self {
+            true
+        } else {
+            false
         }
     }
 }
@@ -444,7 +451,11 @@ impl<'a> Sentence<'a> {
     {
         if let Ok(verb) = token.inspect().expect_verb() {
             token.next();
-            let object = token.inspect().expect_object()?;
+            let object = if  token.inspect().is_object() {
+                Some(token.inspect().expect_object()?)
+            } else {
+                None
+            };
             token.next();
             let pps = PrepositionPhrases::parse(token)?;
             assert!(token.seq.len() == token.location() + token.len);
