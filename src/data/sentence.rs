@@ -10,9 +10,16 @@ pub(crate) enum Verb {
     Multiply,
     Divide,
     Move,
+
+    // intransitive verbs
+    Return,
+    Leave,
+    NoOperation,
+    SystemCall,
+    Halt,
 }
 
-struct Memory {
+pub(crate) struct Memory {
     base: Register, // Option<Register>,
                     // Index: Option<Register>,
                     // Scale: Option<u8>
@@ -169,7 +176,7 @@ impl<'a> TokenKind<'a> {
         }
     }
     fn is_object(self) -> bool {
-        if let Self::Object(o) = self {
+        if let Self::Object(_) = self {
             true
         } else {
             false
@@ -188,6 +195,11 @@ impl Parse for Verb {
             "multiply" => Ok(Self::Multiply),
             "divide" => Ok(Self::Divide),
             "move" => Ok(Self::Move),
+            "return" => Ok(Self::Return),
+            "halt" => Ok(Self::Halt),
+            "leave" => Ok(Self::Leave),
+            "no-operation" => Ok(Self::NoOperation),
+            "systemcall" => Ok(Self::SystemCall),
 
             s => Err(AsmError::SyntaxError(format!(
                 "expected a verb, but found '{}'",
@@ -451,7 +463,7 @@ impl<'a> Sentence<'a> {
     {
         if let Ok(verb) = token.inspect().expect_verb() {
             token.next();
-            let object = if  token.inspect().is_object() {
+            let object = if token.inspect().is_object() {
                 Some(token.inspect().expect_object()?)
             } else {
                 None

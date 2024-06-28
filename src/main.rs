@@ -27,8 +27,7 @@ fn read_args() -> Result<String, AsmError> {
 fn compile<'a>(s: &'a str) -> Result<String, AsmError> {
     let mut token = Token::tokenize(s);
     let mut sentence = Sentence::parse(&mut token)?;
-    let code = format!("\t{}", codegen(&mut sentence)?);
-    Ok(code)
+    codegen(&mut sentence)
 }
 
 fn compile_file<R>(reader: R) -> Result<String, AsmError>
