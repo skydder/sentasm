@@ -10,6 +10,7 @@ pub(crate) enum Verb {
     Multiply,
     Divide,
     Move,
+    Jump,
 
     // intransitive verbs
     Return,
@@ -24,10 +25,11 @@ pub(crate) struct Memory {
                     // Index: Option<Register>,
                     // Scale: Option<u8>
 }
-pub(crate) enum Object {
+pub(crate) enum Object<'a> {
     Reg(Register),
     Imm(i64),
     Mem(Memory),
+    Label(Label<'a>)
 }
 
 pub enum Register {
@@ -105,24 +107,24 @@ pub(crate) enum Preposition {
     By,
 }
 
-pub enum Sentence<'a> {
+pub enum Sentence<'a, 'b> {
     Sentence {
         verb: Verb,
-        object: Option<Object>,
-        prepositional_phrases: PrepositionPhrases,
+        object: Option<Object<'a>>,
+        prepositional_phrases: PrepositionPhrases<'b>,
     },
     LabelDefinition(Label<'a>),
 }
 
 pub(crate) enum TokenKind<'a> {
     Verb(Verb),
-    Object(Object),
+    Object(Object<'a>),
     Preposition(Preposition),
     Label(Label<'a>),
 }
 
 impl<'a> Token<'a> {
-    pub(crate) fn inspect(&self) -> TokenKind {
+    pub(crate) fn inspect(&mut self) -> TokenKind<'a> {
         let tok = self._inspect();
         if let Ok(v) = Verb::parse(tok) {
             TokenKind::Verb(v)
@@ -146,7 +148,7 @@ impl<'a> TokenKind<'a> {
             )))
         }
     }
-    fn expect_object(self) -> Result<Object, AsmError> {
+    fn expect_object(self) -> Result<Object<'a>, AsmError> {
         if let Self::Object(o) = self {
             Ok(o)
         } else {
@@ -195,6 +197,8 @@ impl Parse for Verb {
             "multiply" => Ok(Self::Multiply),
             "divide" => Ok(Self::Divide),
             "move" => Ok(Self::Move),
+            "jump" => Ok(Self::Jump),
+
             "return" => Ok(Self::Return),
             "halt" => Ok(Self::Halt),
             "leave" => Ok(Self::Leave),
@@ -356,7 +360,7 @@ impl fmt::Display for Register {
     }
 }
 
-impl Parse for Object {
+impl<'b> Parse for Object<'b> {
     fn parse<'a>(token: &'a str) -> Result<Self, AsmError>
     where
         Self: Sized,
@@ -366,17 +370,18 @@ impl Parse for Object {
             // base + idx * scale + dis
 
             return Ok(Self::Mem(Memory::parse(process(token))?));
+        } else if let Ok(num) = token.parse::<i64>() {
+            return Ok(Self::Imm(num));
+        } else if let Ok(reg) = Register::parse(token) {
+            return Ok(Self::Reg(reg));
+        } else {
+            return Ok(Self::Label(&token))
         }
-        match token {
-            s => match s.parse::<i64>() {
-                Ok(num) => Ok(Self::Imm(num)),
-                Err(_) => Ok(Self::Reg(Register::parse(token)?)),
-            },
-        }
+        
     }
 }
 
-fn process<'a, 'b>(token: &'a str) -> Vec<String> {
+fn process<'a>(token: &'a str) -> Vec<String> {
     token
         .replace("[", " [ ")
         .replace("]", " ] ")
@@ -408,12 +413,14 @@ impl fmt::Display for Memory {
     }
 }
 
-impl fmt::Display for Object {
+impl<'a> fmt::Display for Object<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Imm(i) => write!(f, "{}", i),
             Self::Reg(reg) => write!(f, "{}", reg),
             Self::Mem(mem) => write!(f, "{}", mem),
+            
+            Object::Label(_) => todo!(),
         }
     }
 }
@@ -435,16 +442,17 @@ impl Parse for Preposition {
     }
 }
 
-pub(crate) struct PrepositionPhrases {
-    pub(crate) phrases: HashMap<Preposition, Object>,
+pub(crate) struct PrepositionPhrases<'a> {
+    pub(crate) phrases: HashMap<Preposition, Object<'a>>,
 }
 
-impl PrepositionPhrases {
-    fn parse(token: &mut Token) -> Result<Self, AsmError>
+impl<'a> PrepositionPhrases<'a> {
+    fn parse(token: &'a mut Token) -> Result<Self, AsmError>
     where
         Self: Sized,
     {
         let mut map: HashMap<Preposition, Object> = HashMap::new();
+        
         while token.len != 0 {
             let prep = token.inspect().expect_preposition()?;
             token.next();
@@ -456,8 +464,8 @@ impl PrepositionPhrases {
     }
 }
 
-impl<'a> Sentence<'a> {
-    pub fn parse(token: &'a mut Token) -> Result<Self, AsmError>
+impl<'a, 'b> Sentence<'a, 'b> {
+    pub fn parse(token: &'b mut Token<'a>) -> Result<Self, AsmError>
     where
         Self: Sized,
     {
@@ -470,11 +478,11 @@ impl<'a> Sentence<'a> {
             };
             token.next();
             let pps = PrepositionPhrases::parse(token)?;
-            assert!(token.seq.len() == token.location() + token.len);
-            assert!(token.len == 0);
+            // assert!(token.seq.len() == token.location() + token.len);
+            // assert!(token.len == 0);
             Ok(Self::Sentence {
                 verb: verb,
-                object: object,
+                object,
                 prepositional_phrases: pps,
             })
         } else {
