@@ -12,8 +12,7 @@ pub fn codegen(s: &mut Sentence) -> Result<String, AsmError> {
             Verb::Multiply => mul_instruction(obj, prepositional_phrases),
             Verb::Divide => div_instruction(obj, prepositional_phrases),
             Verb::Move => mov_instruction(obj, prepositional_phrases),
-            Verb::Jump => jmp_instruction(obj, prepositional_phrases),
-            _ => Err(AsmError::SyntaxError(format!("something is wrong"))),
+            _ => Err(AsmError::SyntaxError(format!("something is wrong?"))),
         },
         Sentence::Sentence {
             verb,
@@ -79,18 +78,22 @@ fn mov_instruction(o: &Object, pps: &mut PrepositionPhrases) -> Result<String, A
 }
 
 fn vi_instructions(v: &mut Verb, pps: &mut PrepositionPhrases) -> Result<String, AsmError> {
-    assert!(pps.phrases.is_empty());
     match v {
         Verb::Return => Ok(format!("\tret")),
         Verb::Leave => Ok(format!("\tleave")),
         Verb::NoOperation => Ok(format!("\tnop")),
         Verb::SystemCall => Ok(format!("\tsyscall")),
         Verb::Halt => Ok(format!("\thlt")),
+        Verb::Jump => {
+            let to = pps.phrases.remove(&Preposition::To).unwrap();
+            assert!(pps.phrases.is_empty());
+            Ok(format!("\tjmp {dest}", dest = to))
+        }
         _ => Err(AsmError::SyntaxError(format!("something is wrong"))),
     }
 }
 
-fn jmp_instruction(o: &Object, pps: &mut PrepositionPhrases) -> Result<String, AsmError> {
-    assert!(pps.phrases.is_empty());
-    Ok(format!("\tjmp {dest}", dest = o))
-}
+// fn jmp_instruction(o: &Object, pps: &mut PrepositionPhrases) -> Result<String, AsmError> {
+//     assert!(pps.phrases.is_empty());
+//     Ok(format!("\tjmp {dest}", dest = o))
+// }

@@ -1,7 +1,8 @@
+#[derive(Debug)]
 pub struct Token<'a> {
-    pub seq: &'a str,
+    pub(crate) seq: &'a str,
     location: usize,
-    pub len: usize,
+    pub(crate) len: usize,
 }
 
 impl<'a> Token<'a> {
@@ -16,7 +17,7 @@ impl<'a> Token<'a> {
         new
     }
 
-    pub fn _inspect(&self) -> &'a str {
+    pub(crate) fn _inspect(&self) -> &'a str {
         return &self.seq[self.location..self.location + self.len];
     }
 
@@ -51,9 +52,10 @@ impl<'a> Token<'a> {
             self.location += 1;
         }
         self.len = self.calculate_len();
+        println!("{:?}", self)
     }
 
-    pub fn location(&self) -> usize {
-        self.location
+    pub fn is_end(&self) -> bool {
+        self.len == 0
     }
 }

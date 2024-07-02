@@ -1,4 +1,4 @@
-use super::{AsmError, Parse, Token};
+use super::{AsmError, Token};
 
 use std::collections::HashMap;
 use std::fmt;
@@ -25,11 +25,12 @@ pub(crate) struct Memory {
                     // Index: Option<Register>,
                     // Scale: Option<u8>
 }
+
 pub(crate) enum Object<'a> {
     Reg(Register),
     Imm(i64),
     Mem(Memory),
-    Label(Label<'a>)
+    Label(Label<'a>),
 }
 
 pub enum Register {
@@ -100,7 +101,7 @@ pub enum Register {
     R15, //  quadword
 }
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Debug)]
 pub(crate) enum Preposition {
     To,
     From,
@@ -120,20 +121,26 @@ pub(crate) enum TokenKind<'a> {
     Verb(Verb),
     Object(Object<'a>),
     Preposition(Preposition),
-    Label(Label<'a>),
+    LabelDef(Label<'a>),
+    EOL,
 }
 
 impl<'a> Token<'a> {
-    pub(crate) fn inspect(&mut self) -> TokenKind<'a> {
+    pub(crate) fn inspect(&mut self) -> Result<TokenKind<'a>, AsmError> {
         let tok = self._inspect();
-        if let Ok(v) = Verb::parse(tok) {
-            TokenKind::Verb(v)
+        println!("{:?} ; {} ", self, tok);
+        if let Some(v) = Verb::parse(tok) {
+            Ok(TokenKind::Verb(v))
         } else if let Ok(o) = Object::parse(tok) {
-            TokenKind::Object(o)
-        } else if let Ok(pp) = Preposition::parse(tok) {
-            TokenKind::Preposition(pp)
+            Ok(TokenKind::Object(o))
+        } else if let Some(pp) = Preposition::parse(tok) {
+            Ok(TokenKind::Preposition(pp))
+        } else if tok.ends_with(':') {
+            Ok(TokenKind::LabelDef(tok))
+        } else if self.is_end() {
+            Ok(TokenKind::EOL)
         } else {
-            TokenKind::Label(tok)
+            Err(AsmError::SyntaxError(format!("unexpected token")))
         }
     }
 }
@@ -168,122 +175,108 @@ impl<'a> TokenKind<'a> {
         }
     }
 
-    fn expect_label(self) -> Result<Label<'a>, AsmError> {
-        if let Self::Label(l) = self {
+    fn expect_label_def(self) -> Result<Label<'a>, AsmError> {
+        if let Self::LabelDef(l) = self {
             Ok(l)
         } else {
             Err(AsmError::SyntaxError(format!(
-                "expected a verb, but found other"
+                "expected a label_def, but found other"
             )))
-        }
-    }
-    fn is_object(self) -> bool {
-        if let Self::Object(_) = self {
-            true
-        } else {
-            false
         }
     }
 }
 
-impl Parse for Verb {
-    fn parse<'a>(token: &'a str) -> Result<Self, AsmError>
+impl Verb {
+    fn parse<'a>(token: &'a str) -> Option<Self>
     where
         Self: Sized,
     {
         match token {
-            "add" => Ok(Self::Add),
-            "substract" => Ok(Self::Substract),
-            "multiply" => Ok(Self::Multiply),
-            "divide" => Ok(Self::Divide),
-            "move" => Ok(Self::Move),
-            "jump" => Ok(Self::Jump),
+            "add" => Some(Self::Add),
+            "substract" => Some(Self::Substract),
+            "multiply" => Some(Self::Multiply),
+            "divide" => Some(Self::Divide),
+            "move" => Some(Self::Move),
+            "jump" => Some(Self::Jump),
 
-            "return" => Ok(Self::Return),
-            "halt" => Ok(Self::Halt),
-            "leave" => Ok(Self::Leave),
-            "no-operation" => Ok(Self::NoOperation),
-            "systemcall" => Ok(Self::SystemCall),
-
-            s => Err(AsmError::SyntaxError(format!(
-                "expected a verb, but found '{}'",
-                s
-            ))),
+            "return" => Some(Self::Return),
+            "halt" => Some(Self::Halt),
+            "leave" => Some(Self::Leave),
+            "no-operation" => Some(Self::NoOperation),
+            "systemcall" => Some(Self::SystemCall),
+            _ => None,
         }
     }
 }
 
-impl Parse for Register {
-    fn parse<'a>(token: &'a str) -> Result<Register, AsmError> {
+impl Register {
+    fn parse<'a>(token: &'a str) -> Option<Self> {
         match token {
-            "al" => Ok(Self::AL),
-            "bl" => Ok(Self::BL),
-            "cl" => Ok(Self::CL),
-            "dl" => Ok(Self::DL),
-            "dil" => Ok(Self::DIL),
-            "sil" => Ok(Self::SIL),
-            "bpl" => Ok(Self::BPL),
-            "spl" => Ok(Self::SPL),
-            "r8b" => Ok(Self::R8B),
-            "r9b" => Ok(Self::R9B),
-            "r10b" => Ok(Self::R10B),
-            "r11b" => Ok(Self::R11B),
-            "r12b" => Ok(Self::R12B),
-            "r13b" => Ok(Self::R13B),
-            "r14b" => Ok(Self::R14B),
-            "r15b" => Ok(Self::R15B),
-            "ax" => Ok(Self::AX),
-            "bx" => Ok(Self::BX),
-            "cx" => Ok(Self::CX),
-            "dx" => Ok(Self::DX),
-            "di" => Ok(Self::DI),
-            "si" => Ok(Self::SI),
-            "bp" => Ok(Self::BP),
-            "sp" => Ok(Self::SP),
-            "r8w" => Ok(Self::R8W),
-            "r9w" => Ok(Self::R9W),
-            "r10w" => Ok(Self::R10W),
-            "r11w" => Ok(Self::R11W),
-            "r12w" => Ok(Self::R12W),
-            "r13w" => Ok(Self::R13W),
-            "r14w" => Ok(Self::R14W),
-            "r15w" => Ok(Self::R15W),
-            "eax" => Ok(Self::EAX),
-            "ebx" => Ok(Self::EBX),
-            "ecx" => Ok(Self::ECX),
-            "edx" => Ok(Self::EDX),
-            "edi" => Ok(Self::EDI),
-            "esi" => Ok(Self::ESI),
-            "ebp" => Ok(Self::EBP),
-            "esp" => Ok(Self::ESP),
-            "r8d" => Ok(Self::R8D),
-            "r9d" => Ok(Self::R9D),
-            "r10d" => Ok(Self::R10D),
-            "r11d" => Ok(Self::R11D),
-            "r12d" => Ok(Self::R12D),
-            "r13d" => Ok(Self::R13D),
-            "r14d" => Ok(Self::R14D),
-            "r15d" => Ok(Self::R15D),
-            "rax" => Ok(Self::RAX),
-            "rbx" => Ok(Self::RBX),
-            "rcx" => Ok(Self::RCX),
-            "rdx" => Ok(Self::RDX),
-            "rdi" => Ok(Self::RDI),
-            "rsi" => Ok(Self::RSI),
-            "rbp" => Ok(Self::RBP),
-            "rsp" => Ok(Self::RSP),
-            "r8" => Ok(Self::R8),
-            "r9" => Ok(Self::R9),
-            "r10" => Ok(Self::R10),
-            "r11" => Ok(Self::R11),
-            "r12" => Ok(Self::R12),
-            "r13" => Ok(Self::R13),
-            "r14" => Ok(Self::R14),
-            "r15" => Ok(Self::R15),
-            s => Err(AsmError::SyntaxError(format!(
-                "expected object, but found {}",
-                s
-            ))),
+            "al" => Some(Self::AL),
+            "bl" => Some(Self::BL),
+            "cl" => Some(Self::CL),
+            "dl" => Some(Self::DL),
+            "dil" => Some(Self::DIL),
+            "sil" => Some(Self::SIL),
+            "bpl" => Some(Self::BPL),
+            "spl" => Some(Self::SPL),
+            "r8b" => Some(Self::R8B),
+            "r9b" => Some(Self::R9B),
+            "r10b" => Some(Self::R10B),
+            "r11b" => Some(Self::R11B),
+            "r12b" => Some(Self::R12B),
+            "r13b" => Some(Self::R13B),
+            "r14b" => Some(Self::R14B),
+            "r15b" => Some(Self::R15B),
+            "ax" => Some(Self::AX),
+            "bx" => Some(Self::BX),
+            "cx" => Some(Self::CX),
+            "dx" => Some(Self::DX),
+            "di" => Some(Self::DI),
+            "si" => Some(Self::SI),
+            "bp" => Some(Self::BP),
+            "sp" => Some(Self::SP),
+            "r8w" => Some(Self::R8W),
+            "r9w" => Some(Self::R9W),
+            "r10w" => Some(Self::R10W),
+            "r11w" => Some(Self::R11W),
+            "r12w" => Some(Self::R12W),
+            "r13w" => Some(Self::R13W),
+            "r14w" => Some(Self::R14W),
+            "r15w" => Some(Self::R15W),
+            "eax" => Some(Self::EAX),
+            "ebx" => Some(Self::EBX),
+            "ecx" => Some(Self::ECX),
+            "edx" => Some(Self::EDX),
+            "edi" => Some(Self::EDI),
+            "esi" => Some(Self::ESI),
+            "ebp" => Some(Self::EBP),
+            "esp" => Some(Self::ESP),
+            "r8d" => Some(Self::R8D),
+            "r9d" => Some(Self::R9D),
+            "r10d" => Some(Self::R10D),
+            "r11d" => Some(Self::R11D),
+            "r12d" => Some(Self::R12D),
+            "r13d" => Some(Self::R13D),
+            "r14d" => Some(Self::R14D),
+            "r15d" => Some(Self::R15D),
+            "rax" => Some(Self::RAX),
+            "rbx" => Some(Self::RBX),
+            "rcx" => Some(Self::RCX),
+            "rdx" => Some(Self::RDX),
+            "rdi" => Some(Self::RDI),
+            "rsi" => Some(Self::RSI),
+            "rbp" => Some(Self::RBP),
+            "rsp" => Some(Self::RSP),
+            "r8" => Some(Self::R8),
+            "r9" => Some(Self::R9),
+            "r10" => Some(Self::R10),
+            "r11" => Some(Self::R11),
+            "r12" => Some(Self::R12),
+            "r13" => Some(Self::R13),
+            "r14" => Some(Self::R14),
+            "r15" => Some(Self::R15),
+            _ => None,
         }
     }
 }
@@ -360,8 +353,8 @@ impl fmt::Display for Register {
     }
 }
 
-impl<'b> Parse for Object<'b> {
-    fn parse<'a>(token: &'a str) -> Result<Self, AsmError>
+impl<'b> Object<'b> {
+    fn parse(token: &'b str) -> Result<Self, AsmError>
     where
         Self: Sized,
     {
@@ -372,12 +365,15 @@ impl<'b> Parse for Object<'b> {
             return Ok(Self::Mem(Memory::parse(process(token))?));
         } else if let Ok(num) = token.parse::<i64>() {
             return Ok(Self::Imm(num));
-        } else if let Ok(reg) = Register::parse(token) {
+        } else if let Some(reg) = Register::parse(token) {
             return Ok(Self::Reg(reg));
+        } else if !(token.ends_with(':') | token.is_empty() | Preposition::is_prep(token)) {
+            return Ok(Self::Label(&token));
         } else {
-            return Ok(Self::Label(&token))
+            Err(AsmError::SyntaxError(format!(
+                "expected object, but found others"
+            )))
         }
-        
     }
 }
 
@@ -397,7 +393,7 @@ fn process<'a>(token: &'a str) -> Vec<String> {
 
 impl Memory {
     fn parse(token: Vec<String>) -> Result<Self, AsmError> {
-        if let Ok(reg) = Register::parse(&token[1]) {
+        if let Some(reg) = Register::parse(&token[1]) {
             return Ok(Memory { base: reg });
         } else {
             Err(AsmError::SyntaxError(format!(
@@ -419,26 +415,26 @@ impl<'a> fmt::Display for Object<'a> {
             Self::Imm(i) => write!(f, "{}", i),
             Self::Reg(reg) => write!(f, "{}", reg),
             Self::Mem(mem) => write!(f, "{}", mem),
-            
-            Object::Label(_) => todo!(),
+
+            Self::Label(label) => write!(f, "{}", label),
         }
     }
 }
 
-impl Parse for Preposition {
-    fn parse<'a>(token: &'a str) -> Result<Self, AsmError>
+impl Preposition {
+    fn parse<'a>(token: &'a str) -> Option<Self>
     where
         Self: Sized,
     {
         match token {
-            "to" => Ok(Self::To),
-            "from" => Ok(Self::From),
-            "by" => Ok(Self::By),
-            s => Err(AsmError::SyntaxError(format!(
-                "expected object, but found {}",
-                s
-            ))),
+            "to" => Some(Self::To),
+            "from" => Some(Self::From),
+            "by" => Some(Self::By),
+            _ => None,
         }
+    }
+    fn is_prep(token: &str) -> bool {
+        Self::parse(token).is_some()
     }
 }
 
@@ -452,11 +448,11 @@ impl<'a> PrepositionPhrases<'a> {
         Self: Sized,
     {
         let mut map: HashMap<Preposition, Object> = HashMap::new();
-        
-        while token.len != 0 {
-            let prep = token.inspect().expect_preposition()?;
+
+        while !token.is_end() {
+            let prep = token.inspect()?.expect_preposition()?;
             token.next();
-            let obj = token.inspect().expect_object()?;
+            let obj = token.inspect()?.expect_object()?;
             token.next();
             map.insert(prep, obj);
         }
@@ -469,14 +465,16 @@ impl<'a, 'b> Sentence<'a, 'b> {
     where
         Self: Sized,
     {
-        if let Ok(verb) = token.inspect().expect_verb() {
+        if let Ok(verb) = token.inspect()?.expect_verb() {
             token.next();
-            let object = if token.inspect().is_object() {
-                Some(token.inspect().expect_object()?)
+
+            let object = if let Ok(obj) = token.inspect()?.expect_object() {
+                token.next();
+                Some(obj)
             } else {
                 None
             };
-            token.next();
+
             let pps = PrepositionPhrases::parse(token)?;
             // assert!(token.seq.len() == token.location() + token.len);
             // assert!(token.len == 0);
@@ -486,7 +484,7 @@ impl<'a, 'b> Sentence<'a, 'b> {
                 prepositional_phrases: pps,
             })
         } else {
-            Ok(Self::LabelDefinition(token.inspect().expect_label()?))
+            Ok(Self::LabelDefinition(token.inspect()?.expect_label_def()?))
         }
     }
 }

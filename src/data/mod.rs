@@ -11,9 +11,3 @@ pub(crate) use sentence::{Object, Preposition, PrepositionPhrases, Verb};
 pub enum AsmError {
     SyntaxError(String),
 }
-
-pub trait Parse {
-    fn parse<'a>(token: &'a str) -> Result<Self, AsmError>
-    where
-        Self: Sized;
-}
