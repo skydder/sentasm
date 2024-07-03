@@ -1,3 +1,5 @@
+use crate::data::sentence::Keyword;
+
 use super::{AsmError, Object, Preposition, PrepositionPhrases, Sentence, Verb};
 
 pub fn codegen(s: &mut Sentence) -> Result<String, AsmError> {
@@ -30,9 +32,15 @@ fn add_instruction(o: &Object, pps: &mut PrepositionPhrases) -> Result<String, A
             "add instruction needs to clause".to_string(),
         ))
     } else {
+        let verb = match pps.phrases.remove(&Preposition::As) {
+            Some(Object::Keyword(Keyword::DoublePrecisionFloat)) => Ok("addsd"),
+            Some(Object::Keyword(Keyword::SinglePrecisionFloat)) => Ok("addss"),
+            None => Ok("add"),
+            _ => Err(AsmError::SyntaxError(format!("as only takes key word")))
+        }?;
         let to = pps.phrases.remove(&Preposition::To).unwrap();
         assert!(pps.phrases.is_empty());
-        Ok(format!("\tadd {dest}, {src}", dest = to, src = o))
+        Ok(format!("\t{verb} {dest}, {src}", verb = verb, dest = to, src = o))
     }
 }
 

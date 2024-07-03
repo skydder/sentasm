@@ -10,3 +10,4 @@ leave
 halt
 no-operation
 jump to main
+add xmm0 to xmm1 as double-precision-float

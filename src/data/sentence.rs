@@ -31,6 +31,7 @@ pub(crate) enum Object<'a> {
     Imm(i64),
     Mem(Memory),
     Label(Label<'a>),
+    Keyword(Keyword)
 }
 
 pub enum Register {
@@ -99,6 +100,15 @@ pub enum Register {
     R13,
     R14,
     R15, //  quadword
+
+    XMM0,
+    XMM1,
+    XMM2,
+    XMM3,
+    XMM4,
+    XMM5,
+    XMM6,
+    XMM7,
 }
 
 #[derive(PartialEq, Eq, Hash, Debug)]
@@ -106,6 +116,12 @@ pub(crate) enum Preposition {
     To,
     From,
     By,
+    As,
+}
+
+pub(crate) enum Keyword {
+    SinglePrecisionFloat,
+    DoublePrecisionFloat,
 }
 
 pub enum Sentence<'a, 'b> {
@@ -276,11 +292,28 @@ impl Register {
             "r13" => Some(Self::R13),
             "r14" => Some(Self::R14),
             "r15" => Some(Self::R15),
+            "xmm0" => Some(Self::XMM0),
+            "xmm1" => Some(Self::XMM1),
+            "xmm2" => Some(Self::XMM2),
+            "xmm3" => Some(Self::XMM3),
+            "xmm4" => Some(Self::XMM4),
+            "xmm5" => Some(Self::XMM5),
+            "xmm6" => Some(Self::XMM6),
+            "xmm7" => Some(Self::XMM7),
             _ => None,
         }
     }
 }
 
+impl Keyword {
+    fn parse<'a>(token: &'a str) ->  Option<Self> {
+        match token {
+            "single-precision-float" => Some(Self::SinglePrecisionFloat),
+            "double-precision-float" => Some(Self::DoublePrecisionFloat),
+            _ => None,
+        }
+    }
+}
 impl fmt::Display for Register {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let reg = match self {
@@ -348,6 +381,14 @@ impl fmt::Display for Register {
             Register::R13 => "r13",
             Register::R14 => "r14",
             Register::R15 => "r15",
+            Register::XMM0 => "xmm0",
+            Register::XMM1 => "xmm1",
+            Register::XMM2 => "xmm2",
+            Register::XMM3 => "xmm3",
+            Register::XMM4 => "xmm4",
+            Register::XMM5 => "xmm5",
+            Register::XMM6 => "xmm6",
+            Register::XMM7 => "xmm7",
         };
         write!(f, "{}", reg)
     }
@@ -367,6 +408,8 @@ impl<'b> Object<'b> {
             return Ok(Self::Imm(num));
         } else if let Some(reg) = Register::parse(token) {
             return Ok(Self::Reg(reg));
+        } else if let Some(key) = Keyword::parse(token) {
+            return Ok(Self::Keyword(key));
         } else if !(token.ends_with(':') | token.is_empty() | Preposition::is_prep(token)) {
             return Ok(Self::Label(&token));
         } else {
@@ -415,8 +458,8 @@ impl<'a> fmt::Display for Object<'a> {
             Self::Imm(i) => write!(f, "{}", i),
             Self::Reg(reg) => write!(f, "{}", reg),
             Self::Mem(mem) => write!(f, "{}", mem),
-
             Self::Label(label) => write!(f, "{}", label),
+            Self::Keyword(_) => write!(f, ""),
         }
     }
 }
@@ -430,6 +473,7 @@ impl Preposition {
             "to" => Some(Self::To),
             "from" => Some(Self::From),
             "by" => Some(Self::By),
+            "as" => Some(Self::As),
             _ => None,
         }
     }
