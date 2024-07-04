@@ -11,6 +11,15 @@ pub(crate) enum Verb {
     Divide,
     Move,
     Jump,
+    And,
+    Or, 
+    Xor,
+    Not,
+    Negate,
+    ShiftRight,
+    ShiftLeft,
+    Call,
+
 
     // intransitive verbs
     Return,
@@ -117,11 +126,21 @@ pub(crate) enum Preposition {
     From,
     By,
     As,
+    With,
+    If, // unofficial
 }
 
 pub(crate) enum Keyword {
-    SinglePrecisionFloat,
     DoublePrecisionFloat,
+    SinglePrecisionFloat,
+    Signed,
+    ZeroExtened,
+    E,
+    G,
+    L,
+    NE,
+    GE,
+    LE,
 }
 
 pub enum Sentence<'a, 'b> {
@@ -147,12 +166,12 @@ impl<'a> Token<'a> {
         println!("{:?} ; {} ", self, tok);
         if let Some(v) = Verb::parse(tok) {
             Ok(TokenKind::Verb(v))
-        } else if let Ok(o) = Object::parse(tok) {
+        } else if let Some(o) = Object::parse(tok) {
             Ok(TokenKind::Object(o))
         } else if let Some(pp) = Preposition::parse(tok) {
             Ok(TokenKind::Preposition(pp))
         } else if tok.ends_with(':') {
-            Ok(TokenKind::LabelDef(tok))
+            Ok(TokenKind::LabelDef(tok.strip_suffix(':').unwrap()))
         } else if self.is_end() {
             Ok(TokenKind::EOL)
         } else {
@@ -214,6 +233,14 @@ impl Verb {
             "divide" => Some(Self::Divide),
             "move" => Some(Self::Move),
             "jump" => Some(Self::Jump),
+            "and" => Some(Self::And),
+            "or" => Some(Self::Or),
+            "xor" =>  Some(Self::Xor),
+            "not" => Some(Self::Not),
+            "negate" => Some(Self::Negate),
+            "shift-right" => Some(Self::ShiftRight),
+            "shift-left" =>Some(Self::ShiftLeft),
+            "call" => Some(Verb::Call),
 
             "return" => Some(Self::Return),
             "halt" => Some(Self::Halt),
@@ -310,10 +337,19 @@ impl Keyword {
         match token {
             "single-precision-float" => Some(Self::SinglePrecisionFloat),
             "double-precision-float" => Some(Self::DoublePrecisionFloat),
+            "signed" =>  Some(Self::Signed),
+            "zero-extended" => Some(Self::ZeroExtened),
+            "=" => Some(Self::E),
+            "!=" => Some(Self::NE),
+            "<" => Some(Self::L),
+            "<=" => Some(Self::LE),
+            ">" => Some(Self::G),
+            ">=" => Some(Self::GE),
             _ => None,
         }
     }
 }
+
 impl fmt::Display for Register {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let reg = match self {
@@ -395,27 +431,28 @@ impl fmt::Display for Register {
 }
 
 impl<'b> Object<'b> {
-    fn parse(token: &'b str) -> Result<Self, AsmError>
+    fn parse(token: &'b str) -> Option<Self>
     where
         Self: Sized,
     {
         // little weird?
         if token.starts_with('[') {
             // base + idx * scale + dis
-
-            return Ok(Self::Mem(Memory::parse(process(token))?));
+            if let Some(mem) = Memory::parse(process(token)) {
+                return Some(Self::Mem(mem));
+            } else {
+                return None;
+            }
         } else if let Ok(num) = token.parse::<i64>() {
-            return Ok(Self::Imm(num));
+            return Some(Self::Imm(num));
         } else if let Some(reg) = Register::parse(token) {
-            return Ok(Self::Reg(reg));
+            return Some(Self::Reg(reg));
         } else if let Some(key) = Keyword::parse(token) {
-            return Ok(Self::Keyword(key));
+            return Some(Self::Keyword(key));
         } else if !(token.ends_with(':') | token.is_empty() | Preposition::is_prep(token)) {
-            return Ok(Self::Label(&token));
+            return Some(Self::Label(&token));
         } else {
-            Err(AsmError::SyntaxError(format!(
-                "expected object, but found others"
-            )))
+            None
         }
     }
 }
@@ -435,13 +472,11 @@ fn process<'a>(token: &'a str) -> Vec<String> {
 }
 
 impl Memory {
-    fn parse(token: Vec<String>) -> Result<Self, AsmError> {
+    fn parse(token: Vec<String>) -> Option<Self> {
         if let Some(reg) = Register::parse(&token[1]) {
-            return Ok(Memory { base: reg });
+            return Some(Memory { base: reg });
         } else {
-            Err(AsmError::SyntaxError(format!(
-                "expected register, but found other",
-            )))
+            None
         }
     }
 }
@@ -474,6 +509,8 @@ impl Preposition {
             "from" => Some(Self::From),
             "by" => Some(Self::By),
             "as" => Some(Self::As),
+            "with" => Some(Self::With),
+            "if" => Some(Self::If),
             _ => None,
         }
     }
