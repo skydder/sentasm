@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::fmt;
 
 type Label<'a> = &'a str;
+# [derive(Debug)]
 pub(crate) enum Verb {
     Add,
     Substract,
@@ -19,6 +20,7 @@ pub(crate) enum Verb {
     ShiftRight,
     ShiftLeft,
     Call,
+    Compare,
 
 
     // intransitive verbs
@@ -29,12 +31,14 @@ pub(crate) enum Verb {
     Halt,
 }
 
+#[derive(Debug)]
 pub(crate) struct Memory {
     base: Register, // Option<Register>,
                     // Index: Option<Register>,
                     // Scale: Option<u8>
 }
 
+#[derive(Debug)]
 pub(crate) enum Object<'a> {
     Reg(Register),
     Imm(i64),
@@ -42,7 +46,7 @@ pub(crate) enum Object<'a> {
     Label(Label<'a>),
     Keyword(Keyword)
 }
-
+#[derive(Debug)]
 pub enum Register {
     // general purpose regiser
     AL,
@@ -130,6 +134,7 @@ pub(crate) enum Preposition {
     If, // unofficial
 }
 
+#[derive(Debug)]
 pub(crate) enum Keyword {
     DoublePrecisionFloat,
     SinglePrecisionFloat,
@@ -152,6 +157,7 @@ pub enum Sentence<'a, 'b> {
     LabelDefinition(Label<'a>),
 }
 
+# [derive(Debug)]
 pub(crate) enum TokenKind<'a> {
     Verb(Verb),
     Object(Object<'a>),
@@ -163,7 +169,7 @@ pub(crate) enum TokenKind<'a> {
 impl<'a> Token<'a> {
     pub(crate) fn inspect(&mut self) -> Result<TokenKind<'a>, AsmError> {
         let tok = self._inspect();
-        println!("{:?} ; {} ", self, tok);
+        // println!("{:?} ; {} ", self, tok);
         if let Some(v) = Verb::parse(tok) {
             Ok(TokenKind::Verb(v))
         } else if let Some(o) = Object::parse(tok) {
@@ -186,7 +192,7 @@ impl<'a> TokenKind<'a> {
             Ok(v)
         } else {
             Err(AsmError::SyntaxError(format!(
-                "expected a verb, but found other"
+                "expected a verb, but found other: {:?}", self
             )))
         }
     }
@@ -195,7 +201,7 @@ impl<'a> TokenKind<'a> {
             Ok(o)
         } else {
             Err(AsmError::SyntaxError(format!(
-                "expected an object, but found other"
+                "expected a verb, but found other: {:?}", self
             )))
         }
     }
@@ -205,7 +211,7 @@ impl<'a> TokenKind<'a> {
             Ok(pp)
         } else {
             Err(AsmError::SyntaxError(format!(
-                "expected a preposition, but found other"
+                "expected a verb, but found other: {:?}", self
             )))
         }
     }
@@ -215,7 +221,7 @@ impl<'a> TokenKind<'a> {
             Ok(l)
         } else {
             Err(AsmError::SyntaxError(format!(
-                "expected a label_def, but found other"
+                "expected a verb, but found other: {:?}", self
             )))
         }
     }
@@ -241,6 +247,7 @@ impl Verb {
             "shift-right" => Some(Self::ShiftRight),
             "shift-left" =>Some(Self::ShiftLeft),
             "call" => Some(Verb::Call),
+            "compare" =>  Some(Self::Compare),
 
             "return" => Some(Self::Return),
             "halt" => Some(Self::Halt),
@@ -564,8 +571,10 @@ impl<'a, 'b> Sentence<'a, 'b> {
                 object,
                 prepositional_phrases: pps,
             })
+        } else if let Ok(label) = token.inspect()?.expect_label_def(){
+            Ok(Self::LabelDefinition(label))
         } else {
-            Ok(Self::LabelDefinition(token.inspect()?.expect_label_def()?))
+            Err(AsmError::SyntaxError(format!("something is wrong")))
         }
     }
 }

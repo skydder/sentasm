@@ -20,6 +20,7 @@ pub fn codegen(s: &mut Sentence) -> Result<String, AsmError> {
             Verb::ShiftLeft => shl_instruction(obj, prepositional_phrases),
             Verb::ShiftRight => shr_instruction(obj, prepositional_phrases),
             Verb::Call => call_instruction(obj, prepositional_phrases),
+            Verb::Compare => cmp_instruction(obj, prepositional_phrases),
             _ => Err(AsmError::SyntaxError(format!("something is wrong?"))),
         },
         Sentence::Sentence {
@@ -51,6 +52,18 @@ fn add_instruction(o: &Object, pps: &mut PrepositionPhrases) -> Result<String, A
         let suffix = as_processer(pps)?;
         assert!(pps.phrases.is_empty());
         Ok(format!("\tadd{suffix} {dest}, {src}", suffix = suffix, dest = to, src = o))
+    }
+}
+fn cmp_instruction(o: &Object, pps: &mut PrepositionPhrases) -> Result<String, AsmError> {
+    if !pps.phrases.contains_key(&Preposition::To) {
+        Err(AsmError::SyntaxError(
+            "add instruction needs to clause".to_string(),
+        ))
+    } else {
+        let to = pps.phrases.remove(&Preposition::To).unwrap();
+        let suffix = as_processer(pps)?;
+        assert!(pps.phrases.is_empty());
+        Ok(format!("\tcmp{suffix} {dest}, {src}", suffix = suffix, dest = o, src = to))
     }
 }
 

@@ -52,7 +52,7 @@ impl<'a> Token<'a> {
             self.location += 1;
         }
         self.len = self.calculate_len();
-        println!("{:?}", self)
+        // println!("{:?}", self)
     }
 
     pub fn is_end(&self) -> bool {

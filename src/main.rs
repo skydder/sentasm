@@ -8,6 +8,8 @@ use std::io::{BufRead, BufReader};
 use data::{codegen, AsmError, Sentence, Token};
 
 fn main() -> Result<(), AsmError> {
+    println!(".intel_syntax noprefix");
+    println!(".global main");
     println!(
         "{}",
         compile_file(BufReader::new(File::open(read_args()?).unwrap()))?
