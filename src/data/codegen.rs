@@ -2,6 +2,16 @@ use crate::data::sentence::Keyword;
 
 use super::{AsmError, Object, Preposition, PrepositionPhrases, Sentence, Verb};
 
+macro_rules! check_if {
+    ($cond: expr, $msg:expr) => {
+        if $cond {
+            Ok(())
+        } else {
+            Err(AsmError::SyntaxError($msg))
+        }?
+    };
+}
+
 pub fn codegen(s: &mut Sentence) -> Result<String, AsmError> {
     match s {
         Sentence::Sentence {
@@ -33,8 +43,8 @@ pub fn codegen(s: &mut Sentence) -> Result<String, AsmError> {
     }
 }
 
-fn as_processer<'a>(pps: &mut PrepositionPhrases) -> Result<&'a str, AsmError> {
-    match pps.phrases.remove(&Preposition::As) {
+fn as_processer<'a>(pps: &PrepositionPhrases) -> Result<&'a str, AsmError> {
+    match pps.consume(Preposition::As) {
         Some(Object::Keyword(Keyword::DoublePrecisionFloat)) => Ok("sd"),
         Some(Object::Keyword(Keyword::SinglePrecisionFloat)) => Ok("ss"),
         None => Ok(""),
@@ -43,113 +53,79 @@ fn as_processer<'a>(pps: &mut PrepositionPhrases) -> Result<&'a str, AsmError> {
 }
 
 fn add_instruction(o: &Object, pps: &mut PrepositionPhrases) -> Result<String, AsmError> {
-    if !pps.phrases.contains_key(&Preposition::To) {
-        Err(AsmError::SyntaxError(
-            "add instruction needs to clause".to_string(),
-        ))
-    } else {
-        let to = pps.phrases.remove(&Preposition::To).unwrap();
-        let suffix = as_processer(pps)?;
-        assert!(pps.phrases.is_empty());
-        Ok(format!("\tadd{suffix} {dest}, {src}", suffix = suffix, dest = to, src = o))
-    }
+    check_if!(pps.have(Preposition::To), "add instruction requires 'to' phrase".to_string());
+    let to = pps.consume(Preposition::To).unwrap();
+    let suffix = as_processer(pps)?;
+    check_if!(pps.have_no_phrases(), "add instruction accepts just 'to' and 'as'".to_string());
+    Ok(format!("\tadd{suffix} {dest}, {src}", suffix = suffix, dest = to, src = o))
 }
 fn cmp_instruction(o: &Object, pps: &mut PrepositionPhrases) -> Result<String, AsmError> {
-    if !pps.phrases.contains_key(&Preposition::To) {
-        Err(AsmError::SyntaxError(
-            "add instruction needs to clause".to_string(),
-        ))
-    } else {
-        let to = pps.phrases.remove(&Preposition::To).unwrap();
-        let suffix = as_processer(pps)?;
-        assert!(pps.phrases.is_empty());
-        Ok(format!("\tcmp{suffix} {dest}, {src}", suffix = suffix, dest = o, src = to))
-    }
+    check_if!(pps.have(Preposition::To), "compare instruction requires 'to' phrase".to_string());
+    let to = pps.consume(Preposition::To).unwrap();
+    let suffix = as_processer(pps)?;
+    check_if!(pps.have_no_phrases(), "compare instruction accepts just 'to' and 'as'".to_string());
+    Ok(format!("\tcmp{suffix} {dest}, {src}", suffix = suffix, dest = o, src = to))
 }
 
 fn sub_instruction(o: &Object, pps: &mut PrepositionPhrases) -> Result<String, AsmError> {
-    if !pps.phrases.contains_key(&Preposition::From) {
-        Err(AsmError::SyntaxError(
-            "sub instruction needs to clause".to_string(),
-        ))
-    } else {
-        let from = pps.phrases.remove(&Preposition::From).unwrap();
-        let suffix = as_processer(pps)?;
-        assert!(pps.phrases.is_empty());
-        Ok(format!("\tsub{suffix} {dest}, {src}", suffix = suffix, dest = from, src = o))
-    }
+    check_if!(pps.have(Preposition::From), "substract instruction requires 'from' phrase".to_string());
+    let from = pps.consume(Preposition::From).unwrap();
+    let suffix = as_processer(pps)?;
+    check_if!(pps.have_no_phrases(), "substract instruction accepts just 'from' and 'as'".to_string());
+    Ok(format!("\tsub{suffix} {dest}, {src}", suffix = suffix, dest = from, src = o))
+
 }
 
 fn mul_instruction(o: &Object, pps: &mut PrepositionPhrases) -> Result<String, AsmError> {
-    if !pps.phrases.contains_key(&Preposition::By) {
-        Err(AsmError::SyntaxError(
-            "mul instruction needs to clause".to_string(),
-        ))
-    } else {
-        let by = pps.phrases.remove(&Preposition::By).unwrap();
-        assert!(pps.phrases.is_empty());
-        Ok(format!("\timul {dest}, {src}", dest = o, src = by))
-    }
+    check_if!(pps.have(Preposition::By), "multiply instruction requires 'by' phrase".to_string());
+    let by = pps.consume(Preposition::By).unwrap();
+    check_if!(pps.have_no_phrases(), "multiply instruction accepts just 'by'".to_string());
+    Ok(format!("\timul {dest}, {src}", dest = o, src = by))
 }
 
 fn shr_instruction(o: &Object, pps: &mut PrepositionPhrases) -> Result<String, AsmError> {
-    if !pps.phrases.contains_key(&Preposition::By) {
-        Err(AsmError::SyntaxError(
-            "shr instruction needs to clause".to_string(),
-        ))
-    } else {
-        let by = pps.phrases.remove(&Preposition::By).unwrap();
-        assert!(pps.phrases.is_empty());
-        Ok(format!("\tshr {dest}, {src}", dest = o, src = by))
-    }
+    check_if!(pps.have(Preposition::By), "shift_right instruction requires 'By' phrase".to_string());
+    let by = pps.consume(Preposition::By).unwrap();
+    check_if!(pps.have_no_phrases(), "shift_right instruction accepts just 'by'".to_string());
+    Ok(format!("\tshr {dest}, {src}", dest = o, src = by))
 }
 
 fn shl_instruction(o: &Object, pps: &mut PrepositionPhrases) -> Result<String, AsmError> {
-    if !pps.phrases.contains_key(&Preposition::By) {
-        Err(AsmError::SyntaxError(
-            "shl instruction needs to clause".to_string(),
-        ))
-    } else {
-        let by = pps.phrases.remove(&Preposition::By).unwrap();
-        assert!(pps.phrases.is_empty());
-        Ok(format!("\tshl {dest}, {src}", dest = o, src = by))
-    }
+    check_if!(pps.have(Preposition::By), "shift_left instruction requires 'By' phrase".to_string());
+    let by = pps.consume(Preposition::By).unwrap();
+    check_if!(pps.have_no_phrases(), "shift_left instruction accepts just 'by'".to_string());
+    Ok(format!("\tshl {dest}, {src}", dest = o, src = by))
 }
 
 fn div_instruction(o: &Object, pps: &mut PrepositionPhrases) -> Result<String, AsmError> {
-    assert!(pps.phrases.is_empty());
+    check_if!(pps.have_no_phrases(), "divide instruction doesn't accept any phrases".to_string());
     Ok(format!("\tidiv {dest}", dest = o))
 }
 
 fn not_instruction(o: &Object, pps: &mut PrepositionPhrases) -> Result<String, AsmError> {
-    assert!(pps.phrases.is_empty());
+    check_if!(pps.have_no_phrases(), "not instruction doesn't accept any phrases".to_string());
     Ok(format!("\tnot {dest}", dest = o))
 }
 
 fn call_instruction(o: &Object, pps: &mut PrepositionPhrases) -> Result<String, AsmError> {
-    assert!(pps.phrases.is_empty());
+    check_if!(pps.have_no_phrases(), "call instruction doesn't accept any phrases".to_string());
     Ok(format!("\tcall {dest}", dest = o))
 }
 
 fn negate_instruction(o: &Object, pps: &mut PrepositionPhrases) -> Result<String, AsmError> {
-    assert!(pps.phrases.is_empty());
+    check_if!(pps.have_no_phrases(), "negate instruction doesn't accept any phrases".to_string());
     Ok(format!("\tneg {dest}", dest = o))
 }
 
 fn mov_instruction(o: &Object, pps: &mut PrepositionPhrases) -> Result<String, AsmError> {
-    if !pps.phrases.contains_key(&Preposition::To) {
-        Err(AsmError::SyntaxError(
-            "move instruction needs to clause".to_string(),
-        ))
-    } else {
-        let to = pps.phrases.remove(&Preposition::To).unwrap();
-        assert!(pps.phrases.is_empty());
-        Ok(format!("\tmov {dest}, {src}", dest = to, src = o))
-    }
+    check_if!(pps.have(Preposition::To), "move instruction requires 'to' phrase".to_string());
+    let to = pps.consume(Preposition::To).unwrap();
+    check_if!(pps.have_no_phrases(), "move instruction accepts just 'to'".to_string());
+    Ok(format!("\tmov {dest}, {src}", dest = to, src = o))
 }
 
-fn jmp_if_processer<'a>(pps: &mut PrepositionPhrases) -> Result<&'a str, AsmError> {
-    match pps.phrases.remove(&Preposition::If) {
+fn jmp_if_processer<'a>(pps: &PrepositionPhrases) -> Result<&'a str, AsmError> {
+    match pps.consume(Preposition::If) {
         Some(Object::Keyword(Keyword::NE)) => Ok("jne"),
         Some(Object::Keyword(Keyword::E)) => Ok("je"),
         Some(Object::Keyword(Keyword::G)) => Ok("jg"),
@@ -169,9 +145,9 @@ fn vi_instructions(v: &mut Verb, pps: &mut PrepositionPhrases) -> Result<String,
         Verb::SystemCall => Ok(format!("\tsyscall")),
         Verb::Halt => Ok(format!("\thlt")),
         Verb::Jump => {
-            let to = pps.phrases.remove(&Preposition::To).unwrap();
+            let to = pps.consume(Preposition::To).unwrap();
             let verb = jmp_if_processer(pps)?;
-            assert!(pps.phrases.is_empty());
+            check_if!(pps.have_no_phrases(), "jump instruction accepts just 'to'".to_string());
             Ok(format!("\t{verb} {dest}", dest = to))
         }
         _ => Err(AsmError::SyntaxError(format!("something is wrong"))),
@@ -185,13 +161,8 @@ fn logical_binary_instruction(verb: &Verb, o: &Object, pps: &mut PrepositionPhra
         Verb::Xor => Some("xor"),
         _ => None
     }.unwrap();
-    if !pps.phrases.contains_key(&Preposition::With) {
-        Err(AsmError::SyntaxError(
-            "mul instruction needs to clause".to_string(),
-        ))
-    } else {
-        let by = pps.phrases.remove(&Preposition::With).unwrap();
-        assert!(pps.phrases.is_empty());
-        Ok(format!("\t{verb} {dest}, {src}", verb = v, dest = o, src = by))
-    }
+    check_if!(pps.have(Preposition::With), "logical opeation instructions require 'With' phrase".to_string());
+    let by = pps.consume(Preposition::With).unwrap();
+    check_if!(pps.have_no_phrases(), "logical opeation instructions accept just 'with'".to_string());
+    Ok(format!("\t{verb} {dest}, {src}", verb = v, dest = o, src = by))
 }

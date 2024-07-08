@@ -1,5 +1,6 @@
 use super::{AsmError, Token};
 
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
 
@@ -527,7 +528,7 @@ impl Preposition {
 }
 
 pub(crate) struct PrepositionPhrases<'a> {
-    pub(crate) phrases: HashMap<Preposition, Object<'a>>,
+    phrases: RefCell<HashMap<Preposition, Object<'a>>>,
 }
 
 impl<'a> PrepositionPhrases<'a> {
@@ -544,7 +545,19 @@ impl<'a> PrepositionPhrases<'a> {
             token.next();
             map.insert(prep, obj);
         }
-        Ok(Self { phrases: map })
+        Ok(Self { phrases: RefCell::new(map) })
+    }
+
+    pub(crate) fn consume(&self, pp: Preposition) -> Option<Object> {
+        self.phrases.borrow_mut().remove(&pp)
+    }
+
+    pub(crate) fn have(&self, pp: Preposition) -> bool {
+        self.phrases.borrow().contains_key(&pp)
+    }
+
+    pub(crate) fn have_no_phrases(&self) -> bool {
+        self.phrases.borrow().is_empty()
     }
 }
 
