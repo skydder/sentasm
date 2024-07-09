@@ -1,8 +1,9 @@
-use super::{AsmError, Token};
+use super::{AsmError, Token, TokenLocation};
 
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
+use std::panic::Location;
 
 type Label<'a> = &'a str;
 # [derive(Debug)]
@@ -159,7 +160,7 @@ pub enum Sentence<'a, 'b> {
 }
 
 # [derive(Debug)]
-pub(crate) enum TokenKind<'a> {
+pub(crate) enum _TokenKind<'a> {
     Verb(Verb),
     Object(Object<'a>),
     Preposition(Preposition),
@@ -167,62 +168,75 @@ pub(crate) enum TokenKind<'a> {
     EOL,
 }
 
+pub(crate) struct TokenKind<'a> {
+    token: _TokenKind<'a>,
+    location: TokenLocation<'a>
+}
+
 impl<'a> Token<'a> {
     pub(crate) fn inspect(&mut self) -> Result<TokenKind<'a>, AsmError> {
         let tok = self._inspect();
         // println!("{:?} ; {} ", self, tok);
         if let Some(v) = Verb::parse(tok) {
-            Ok(TokenKind::Verb(v))
+            Ok(TokenKind::new(_TokenKind::Verb(v), self.location))
         } else if let Some(o) = Object::parse(tok) {
-            Ok(TokenKind::Object(o))
+            Ok(TokenKind::new(_TokenKind::Object(o),self.location))
         } else if let Some(pp) = Preposition::parse(tok) {
-            Ok(TokenKind::Preposition(pp))
+            Ok(TokenKind::new(_TokenKind::Preposition(pp), self.location))
         } else if tok.ends_with(':') {
-            Ok(TokenKind::LabelDef(tok.strip_suffix(':').unwrap()))
+            Ok(TokenKind::new(_TokenKind::LabelDef(tok.strip_suffix(':').unwrap()), self.location))
         } else if self.is_end() {
-            Ok(TokenKind::EOL)
+            Ok(TokenKind::new(_TokenKind::EOL, self.location))
         } else {
-            Err(AsmError::SyntaxError(format!("unexpected token")))
+            Err(AsmError::SyntaxError(self.location, format!("unexpected token")))
         }
     }
 }
 
 impl<'a> TokenKind<'a> {
-    fn expect_verb(self) -> Result<Verb, AsmError> {
-        if let Self::Verb(v) = self {
+    fn new(token:_TokenKind, loc: TokenLocation<'a>) -> Self {
+        Self { token: token, location: loc}
+    }
+
+    fn expect_verb(self) -> Result<Verb, AsmError<'a>> {
+        if let _TokenKind::Verb(v) = self.token {
             Ok(v)
         } else {
-            Err(AsmError::SyntaxError(format!(
-                "expected a verb, but found other: {:?}", self
+            Err(AsmError::SyntaxError(self.location,
+                format!(
+                "expected a verb, but found other: {:?}", self.token
             )))
         }
     }
-    fn expect_object(self) -> Result<Object<'a>, AsmError> {
-        if let Self::Object(o) = self {
+    fn expect_object(self) -> Result<Object<'a>, AsmError<'a>> {
+        if let _TokenKind::Object(o) = self.token {
             Ok(o)
         } else {
-            Err(AsmError::SyntaxError(format!(
-                "expected a verb, but found other: {:?}", self
+            Err(AsmError::SyntaxError(self.location,
+                format!(
+                "expected a verb, but found other: {:?}", self.token
             )))
         }
     }
 
-    fn expect_preposition(self) -> Result<Preposition, AsmError> {
-        if let Self::Preposition(pp) = self {
+    fn expect_preposition(self) -> Result<Preposition, AsmError<'a>> {
+        if let _TokenKind::Preposition(pp) = self.token {
             Ok(pp)
         } else {
-            Err(AsmError::SyntaxError(format!(
-                "expected a verb, but found other: {:?}", self
+            Err(AsmError::SyntaxError(self.location,
+                format!(
+                "expected a verb, but found other: {:?}", self.token
             )))
         }
     }
 
-    fn expect_label_def(self) -> Result<Label<'a>, AsmError> {
-        if let Self::LabelDef(l) = self {
+    fn expect_label_def(self) -> Result<Label<'a>, AsmError<'a>> {
+        if let _TokenKind::LabelDef(l) = self.token {
             Ok(l)
         } else {
-            Err(AsmError::SyntaxError(format!(
-                "expected a verb, but found other: {:?}", self
+            Err(AsmError::SyntaxError(self.location,
+                format!(
+                "expected a verb, but found other: {:?}", self.token
             )))
         }
     }
@@ -532,7 +546,7 @@ pub(crate) struct PrepositionPhrases<'a> {
 }
 
 impl<'a> PrepositionPhrases<'a> {
-    fn parse(token: &'a mut Token) -> Result<Self, AsmError>
+    fn parse(token: &'a mut Token) -> Result<Self, AsmError<'a>>
     where
         Self: Sized,
     {
@@ -562,7 +576,7 @@ impl<'a> PrepositionPhrases<'a> {
 }
 
 impl<'a, 'b> Sentence<'a, 'b> {
-    pub fn parse(token: &'b mut Token<'a>) -> Result<Self, AsmError>
+    pub fn parse(token: &'b mut Token<'a>) -> Result<Self, AsmError<'b>>
     where
         Self: Sized,
     {
@@ -587,7 +601,7 @@ impl<'a, 'b> Sentence<'a, 'b> {
         } else if let Ok(label) = token.inspect()?.expect_label_def(){
             Ok(Self::LabelDefinition(label))
         } else {
-            Err(AsmError::SyntaxError(format!("something is wrong")))
+            Err(AsmError::SyntaxError(token.location,format!("something is wrong")))
         }
     }
 }
