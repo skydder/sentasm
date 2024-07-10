@@ -152,11 +152,11 @@ pub(crate) enum Keyword {
 
 pub enum Sentence<'a, 'b> {
     Sentence {
-        verb: Verb,
-        object: Option<Object<'a>>,
+        verb: TokenInfo<'a, Verb>,
+        object: Option<TokenInfo<'a, Object<'a>>>,
         prepositional_phrases: PrepositionPhrases<'b>,
     },
-    LabelDefinition(Label<'a>),
+    LabelDefinition(TokenInfo<'a, Label<'a>>),
 }
 
 # [derive(Debug)]
@@ -168,6 +168,20 @@ pub(crate) enum _TokenKind<'a> {
     EOL,
 }
 
+
+pub(crate) struct TokenInfo<'a, T> {
+    pub(crate) location: TokenLocation<'a>,
+    pub(crate) data: T
+}
+
+impl<'a, T> TokenInfo<'a, T> {
+    pub(crate) fn new(loc: TokenLocation<'a>, data: T) -> Self {
+        Self {
+            location: loc,
+            data
+        }
+    }
+}
 pub(crate) struct TokenKind<'a> {
     token: _TokenKind<'a>,
     location: TokenLocation<'a>
@@ -194,13 +208,13 @@ impl<'a> Token<'a> {
 }
 
 impl<'a> TokenKind<'a> {
-    fn new(token:_TokenKind, loc: TokenLocation<'a>) -> Self {
-        Self { token: token, location: loc}
+    fn new(token:_TokenKind<'a>, loc: TokenLocation<'a>) -> Self {
+        Self { token, location: loc}
     }
 
-    fn expect_verb(self) -> Result<Verb, AsmError<'a>> {
+    fn expect_verb(self) -> Result<TokenInfo<'a, Verb>, AsmError<'a>> {
         if let _TokenKind::Verb(v) = self.token {
-            Ok(v)
+            Ok(TokenInfo::new(self.location, v))
         } else {
             Err(AsmError::SyntaxError(self.location,
                 format!(
@@ -208,9 +222,9 @@ impl<'a> TokenKind<'a> {
             )))
         }
     }
-    fn expect_object(self) -> Result<Object<'a>, AsmError<'a>> {
+    fn expect_object(self) -> Result<TokenInfo<'a, Object<'a>>, AsmError<'a>> {
         if let _TokenKind::Object(o) = self.token {
-            Ok(o)
+            Ok(TokenInfo::new(self.location, o))
         } else {
             Err(AsmError::SyntaxError(self.location,
                 format!(
@@ -219,9 +233,9 @@ impl<'a> TokenKind<'a> {
         }
     }
 
-    fn expect_preposition(self) -> Result<Preposition, AsmError<'a>> {
+    fn expect_preposition(self) -> Result<TokenInfo<'a, Preposition>, AsmError<'a>> {
         if let _TokenKind::Preposition(pp) = self.token {
-            Ok(pp)
+            Ok(TokenInfo::new(self.location, pp))
         } else {
             Err(AsmError::SyntaxError(self.location,
                 format!(
@@ -230,9 +244,9 @@ impl<'a> TokenKind<'a> {
         }
     }
 
-    fn expect_label_def(self) -> Result<Label<'a>, AsmError<'a>> {
+    fn expect_label_def(self) -> Result<TokenInfo<'a, Label<'a>>, AsmError<'a>> {
         if let _TokenKind::LabelDef(l) = self.token {
-            Ok(l)
+            Ok(TokenInfo::new(self.location, l))
         } else {
             Err(AsmError::SyntaxError(self.location,
                 format!(
@@ -542,7 +556,7 @@ impl Preposition {
 }
 
 pub(crate) struct PrepositionPhrases<'a> {
-    phrases: RefCell<HashMap<Preposition, Object<'a>>>,
+    phrases: RefCell<HashMap<Preposition, TokenInfo<'a, Object<'a>>>>,
 }
 
 impl<'a> PrepositionPhrases<'a> {
@@ -550,19 +564,19 @@ impl<'a> PrepositionPhrases<'a> {
     where
         Self: Sized,
     {
-        let mut map: HashMap<Preposition, Object> = HashMap::new();
+        let mut map: HashMap<Preposition, TokenInfo<'a, Object<'a>>> = HashMap::new();
 
         while !token.is_end() {
             let prep = token.inspect()?.expect_preposition()?;
             token.next();
             let obj = token.inspect()?.expect_object()?;
             token.next();
-            map.insert(prep, obj);
+            map.insert(prep.data, obj);
         }
         Ok(Self { phrases: RefCell::new(map) })
     }
 
-    pub(crate) fn consume(&self, pp: Preposition) -> Option<Object> {
+    pub(crate) fn consume(&self, pp: Preposition) -> Option<TokenInfo<'a, Object<'a>>> {
         self.phrases.borrow_mut().remove(&pp)
     }
 
@@ -576,7 +590,7 @@ impl<'a> PrepositionPhrases<'a> {
 }
 
 impl<'a, 'b> Sentence<'a, 'b> {
-    pub fn parse(token: &'b mut Token<'a>) -> Result<Self, AsmError<'b>>
+    pub fn parse(mut token: Token<'a>) -> Result<Self, AsmError<'b>>
     where
         Self: Sized,
     {
@@ -590,7 +604,7 @@ impl<'a, 'b> Sentence<'a, 'b> {
                 None
             };
 
-            let pps = PrepositionPhrases::parse(token)?;
+            let pps = PrepositionPhrases::parse(&mut token)?;
             // assert!(token.seq.len() == token.location() + token.len);
             // assert!(token.len == 0);
             Ok(Self::Sentence {

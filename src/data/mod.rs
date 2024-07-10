@@ -7,7 +7,7 @@ pub use codegen::codegen;
 pub use sentence::Sentence;
 pub use token::{Token, TokenLocation};
 
-pub(crate) use sentence::{Object, Preposition, PrepositionPhrases, Verb};
+pub(crate) use sentence::{Object, Preposition, PrepositionPhrases, Verb, TokenInfo};
 
 #[derive(Debug)]
 pub enum AsmError<'a> {

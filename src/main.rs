@@ -28,9 +28,9 @@ fn compile(file:&str) -> Result<(), AsmError>{
     let mut code: String = String::new();
     for (ln, line_result) in BufReader::new(File::open(file).unwrap()).lines().enumerate() {
         let line = line_result.unwrap();
-        let mut token = Token::tokenize(&line, TokenLocation::new(file, ln, 0));
-        let mut sentence = Sentence::parse(&mut token)?;
-        code.push_str(&codegen(&mut sentence)?);
+        let token = Token::tokenize(&line.clone(), TokenLocation::new(file, ln, 0));
+        let sentence = Sentence::parse(token)?;
+        code.push_str(&codegen(sentence)?);
     }
 
     println!(".intel_syntax noprefix");

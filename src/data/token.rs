@@ -1,6 +1,6 @@
 use core::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct TokenLocation<'a> {
     flie_name: &'a str,
     line: usize,
@@ -26,10 +26,10 @@ pub struct Token<'a> {
 }
 
 impl<'a> Token<'a> {
-    pub fn tokenize(s: &'a str, location:TokenLocation) -> Self {
+    pub fn tokenize(s: &'a str, location:TokenLocation<'a>) -> Self {
         let mut new = Self {
             seq: s,
-            location: location,
+            location,
             len: 0,
         };
 
