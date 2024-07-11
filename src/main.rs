@@ -4,11 +4,11 @@ mod data;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
-use data::{codegen, AsmError, Sentence, Token, TokenLocation};
+use data::{AsmError, Token, TokenLocation, compile};
 
 fn main() {
     match read_args() {
-        Ok(file) => compile(&file).unwrap_or_else(|error| println!("{}", error)),
+        Ok(file) => compile_file(&file),
         Err(error) => println!("{}", error)
     }
     
@@ -24,17 +24,21 @@ fn read_args<'a>() -> Result<String, AsmError<'a>> {
 }
 
 
-fn compile(file:&str) -> Result<(), AsmError>{
+fn compile_file(file:&str) {
     let mut code: String = String::new();
     for (ln, line_result) in BufReader::new(File::open(file).unwrap()).lines().enumerate() {
-        let line = line_result.unwrap();
-        let token = Token::tokenize(&line.clone(), TokenLocation::new(file, ln, 0));
-        let sentence = Sentence::parse(token)?;
-        code.push_str(&codegen(sentence)?);
+        let line = line_result.unwrap().clone();
+        let token = Box::new(Token::tokenize(&line, TokenLocation::new(file, ln, 0)));
+        match compile(&token, &mut code) {
+            Ok(_) => (),
+            Err(e) => {
+                println!("{}", e);
+                return;
+            }
+        };
     }
 
     println!(".intel_syntax noprefix");
     println!(".global main");
     println!("{}", code);
-    Ok(())
 }

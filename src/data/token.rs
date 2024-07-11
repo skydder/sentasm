@@ -1,4 +1,4 @@
-use core::fmt;
+use core::{fmt, cell::RefCell};
 
 #[derive(Debug, Clone, Copy)]
 pub struct TokenLocation<'a> {
@@ -15,30 +15,30 @@ impl<'a> TokenLocation<'a> {
 
 impl<'a> fmt::Display for TokenLocation<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f,"")
+        write!(f,"{}({}:{})", self.flie_name, self.line, self.column)
     }
 }
 #[derive(Debug)]
 pub struct Token<'a> {
     pub(crate) seq: &'a str,
-    pub(crate) location: TokenLocation<'a>,
-    pub(crate) len: usize,
+    pub(crate) location: RefCell<TokenLocation<'a>>,
+    pub(crate) len: RefCell<usize>,
 }
 
 impl<'a> Token<'a> {
     pub fn tokenize(s: &'a str, location:TokenLocation<'a>) -> Self {
-        let mut new = Self {
+        let new = Self {
             seq: s,
-            location,
-            len: 0,
+            location: RefCell::new(location),
+            len: RefCell::new(0),
         };
 
-        new.len = new.calculate_len();
+        *new.len.borrow_mut() = new.calculate_len();
         new
     }
 
     pub(crate) fn _inspect(&self) -> &'a str {
-        return &self.seq[self.location.column..self.location.column + self.len];
+        return &self.seq[self.location.borrow().column..self.location.borrow().column + *self.len.borrow()];
     }
 
     fn calculate_len(&self) -> usize {
@@ -46,7 +46,7 @@ impl<'a> Token<'a> {
         while !self
             .seq
             .chars()
-            .nth(self.location.column + len)
+            .nth(self.location.borrow().column + len)
             .unwrap_or(' ')
             .is_whitespace()
         {
@@ -55,27 +55,27 @@ impl<'a> Token<'a> {
         len
     }
 
-    pub(crate) fn next(&mut self) {
-        self.location.column += self.len;
+    pub(crate) fn next(&self) {
+        self.location.borrow_mut().column += *self.len.borrow();
         while self
             .seq
             .chars()
-            .nth(self.location.column)
+            .nth(self.location.borrow().column)
             .unwrap_or('a')
             .is_whitespace()
         {
-            if self.seq.chars().nth(self.location.column).unwrap_or(' ') == '[' {
-                while self.seq.chars().nth(self.location.column).unwrap_or(']') == ']' {}
-                self.location.column += 1;
+            if self.seq.chars().nth(self.location.borrow().column).unwrap_or(' ') == '[' {
+                while self.seq.chars().nth(self.location.borrow().column).unwrap_or(']') == ']' {}
+                self.location.borrow_mut().column += 1;
                 break;
             }
-            self.location.column += 1;
+            self.location.borrow_mut().column += 1;
         }
-        self.len = self.calculate_len();
+        *self.len.borrow_mut() = self.calculate_len();
         // println!("{:?}", self)
     }
 
     pub fn is_end(&self) -> bool {
-        self.len == 0
+        *self.len.borrow() == 0
     }
 }

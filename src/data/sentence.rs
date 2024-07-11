@@ -150,13 +150,13 @@ pub(crate) enum Keyword {
     LE,
 }
 
-pub enum Sentence<'a, 'b> {
+pub enum Sentence<'a> {
     Sentence {
-        verb: TokenInfo<'a, Verb>,
-        object: Option<TokenInfo<'a, Object<'a>>>,
-        prepositional_phrases: PrepositionPhrases<'b>,
+        verb: Box<(Verb, TokenLocation<'a>)>,
+        object: Option<Box<(Object<'a>, TokenLocation<'a>)>>,
+        prepositional_phrases: PrepositionPhrases<'a>,
     },
-    LabelDefinition(TokenInfo<'a, Label<'a>>),
+    LabelDefinition(Box<(Label<'a>, TokenLocation<'a>)>),
 }
 
 # [derive(Debug)]
@@ -168,41 +168,27 @@ pub(crate) enum _TokenKind<'a> {
     EOL,
 }
 
-
-pub(crate) struct TokenInfo<'a, T> {
-    pub(crate) location: TokenLocation<'a>,
-    pub(crate) data: T
-}
-
-impl<'a, T> TokenInfo<'a, T> {
-    pub(crate) fn new(loc: TokenLocation<'a>, data: T) -> Self {
-        Self {
-            location: loc,
-            data
-        }
-    }
-}
 pub(crate) struct TokenKind<'a> {
     token: _TokenKind<'a>,
     location: TokenLocation<'a>
 }
 
 impl<'a> Token<'a> {
-    pub(crate) fn inspect(&mut self) -> Result<TokenKind<'a>, AsmError> {
+    pub(crate) fn inspect(&self) -> Result<TokenKind<'a>, AsmError> {
         let tok = self._inspect();
         // println!("{:?} ; {} ", self, tok);
         if let Some(v) = Verb::parse(tok) {
-            Ok(TokenKind::new(_TokenKind::Verb(v), self.location))
+            Ok(TokenKind::new(_TokenKind::Verb(v), *self.location.borrow()))
         } else if let Some(o) = Object::parse(tok) {
-            Ok(TokenKind::new(_TokenKind::Object(o),self.location))
+            Ok(TokenKind::new(_TokenKind::Object(o),*self.location.borrow()))
         } else if let Some(pp) = Preposition::parse(tok) {
-            Ok(TokenKind::new(_TokenKind::Preposition(pp), self.location))
+            Ok(TokenKind::new(_TokenKind::Preposition(pp), *self.location.borrow()))
         } else if tok.ends_with(':') {
-            Ok(TokenKind::new(_TokenKind::LabelDef(tok.strip_suffix(':').unwrap()), self.location))
+            Ok(TokenKind::new(_TokenKind::LabelDef(tok.strip_suffix(':').unwrap()), *self.location.borrow()))
         } else if self.is_end() {
-            Ok(TokenKind::new(_TokenKind::EOL, self.location))
+            Ok(TokenKind::new(_TokenKind::EOL, *self.location.borrow()))
         } else {
-            Err(AsmError::SyntaxError(self.location, format!("unexpected token")))
+            Err(AsmError::SyntaxError(*self.location.borrow(), format!("unexpected token")))
         }
     }
 }
@@ -212,9 +198,9 @@ impl<'a> TokenKind<'a> {
         Self { token, location: loc}
     }
 
-    fn expect_verb(self) -> Result<TokenInfo<'a, Verb>, AsmError<'a>> {
+    fn expect_verb(self) -> Result<(Verb, TokenLocation<'a>), AsmError<'a>> {
         if let _TokenKind::Verb(v) = self.token {
-            Ok(TokenInfo::new(self.location, v))
+            Ok((v, self.location))
         } else {
             Err(AsmError::SyntaxError(self.location,
                 format!(
@@ -222,9 +208,9 @@ impl<'a> TokenKind<'a> {
             )))
         }
     }
-    fn expect_object(self) -> Result<TokenInfo<'a, Object<'a>>, AsmError<'a>> {
+    fn expect_object(self) -> Result<(Object<'a>, TokenLocation<'a>), AsmError<'a>> {
         if let _TokenKind::Object(o) = self.token {
-            Ok(TokenInfo::new(self.location, o))
+            Ok((o, self.location))
         } else {
             Err(AsmError::SyntaxError(self.location,
                 format!(
@@ -233,9 +219,9 @@ impl<'a> TokenKind<'a> {
         }
     }
 
-    fn expect_preposition(self) -> Result<TokenInfo<'a, Preposition>, AsmError<'a>> {
+    fn expect_preposition(self) -> Result<(Preposition, TokenLocation<'a>), AsmError<'a>> {
         if let _TokenKind::Preposition(pp) = self.token {
-            Ok(TokenInfo::new(self.location, pp))
+            Ok((pp, self.location))
         } else {
             Err(AsmError::SyntaxError(self.location,
                 format!(
@@ -244,9 +230,9 @@ impl<'a> TokenKind<'a> {
         }
     }
 
-    fn expect_label_def(self) -> Result<TokenInfo<'a, Label<'a>>, AsmError<'a>> {
+    fn expect_label_def(self) -> Result<(Label<'a>, TokenLocation<'a>), AsmError<'a>> {
         if let _TokenKind::LabelDef(l) = self.token {
-            Ok(TokenInfo::new(self.location, l))
+            Ok((l, self.location))
         } else {
             Err(AsmError::SyntaxError(self.location,
                 format!(
@@ -556,27 +542,27 @@ impl Preposition {
 }
 
 pub(crate) struct PrepositionPhrases<'a> {
-    phrases: RefCell<HashMap<Preposition, TokenInfo<'a, Object<'a>>>>,
+    phrases: RefCell<HashMap<Preposition, (Object<'a>, TokenLocation<'a>)>>,
 }
 
 impl<'a> PrepositionPhrases<'a> {
-    fn parse(token: &'a mut Token) -> Result<Self, AsmError<'a>>
+    fn parse(token: &'a Token) -> Result<Self, AsmError<'a>>
     where
         Self: Sized,
     {
-        let mut map: HashMap<Preposition, TokenInfo<'a, Object<'a>>> = HashMap::new();
+        let mut map: HashMap<Preposition, (Object<'a>, TokenLocation<'a>)> = HashMap::new();
 
         while !token.is_end() {
             let prep = token.inspect()?.expect_preposition()?;
             token.next();
             let obj = token.inspect()?.expect_object()?;
             token.next();
-            map.insert(prep.data, obj);
+            map.insert(prep.0, obj);
         }
         Ok(Self { phrases: RefCell::new(map) })
     }
 
-    pub(crate) fn consume(&self, pp: Preposition) -> Option<TokenInfo<'a, Object<'a>>> {
+    pub(crate) fn consume(&self, pp: Preposition) -> Option<(Object<'a>, TokenLocation<'a>)> {
         self.phrases.borrow_mut().remove(&pp)
     }
 
@@ -589,33 +575,42 @@ impl<'a> PrepositionPhrases<'a> {
     }
 }
 
-impl<'a, 'b> Sentence<'a, 'b> {
-    pub fn parse(mut token: Token<'a>) -> Result<Self, AsmError<'b>>
+impl<'a> Sentence<'a> {
+    pub fn parse(token: &'a Token<'a>) -> Result<Self, AsmError<'a>>
     where
         Self: Sized,
     {
-        if let Ok(verb) = token.inspect()?.expect_verb() {
-            token.next();
-
-            let object = if let Ok(obj) = token.inspect()?.expect_object() {
+        match token.inspect() {
+            Ok(TokenKind { token: _TokenKind::Verb(verb), location }) => {
                 token.next();
-                Some(obj)
-            } else {
-                None
-            };
+                // let object = if let Ok(obj) = token.inspect()?.expect_object() {
+                //     token.next();
+                //     Some(Box::new(obj))
+                // } else {
+                //     None
+                // };
+                let object =  match token.inspect()?.expect_object().ok() {
+                    Some(obj) => {
+                        token.next();
+                        Some(Box::new(obj))
+                    },
+                    None => None
+                };
 
-            let pps = PrepositionPhrases::parse(&mut token)?;
-            // assert!(token.seq.len() == token.location() + token.len);
-            // assert!(token.len == 0);
-            Ok(Self::Sentence {
-                verb: verb,
-                object,
-                prepositional_phrases: pps,
-            })
-        } else if let Ok(label) = token.inspect()?.expect_label_def(){
-            Ok(Self::LabelDefinition(label))
-        } else {
-            Err(AsmError::SyntaxError(token.location,format!("something is wrong")))
+                
+                
+                            // assert!(token.seq.len() == token.location() + token.len);
+                            // assert!(token.len == 0);
+                Ok(Self::Sentence {
+                    verb: Box::new((verb, location)),
+                    object: object,
+                    prepositional_phrases: PrepositionPhrases::parse(&token)?,
+                })
+            }
+            Ok(TokenKind{ token: _TokenKind::LabelDef(label), location}) => {
+                Ok(Self::LabelDefinition(Box::new((label, location))))
+            }
+            _ => Err(AsmError::SyntaxError(*token.location.borrow(),format!("something is wrong")))
         }
     }
 }
