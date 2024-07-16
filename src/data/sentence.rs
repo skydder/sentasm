@@ -3,7 +3,6 @@ use super::{AsmError, Token, TokenLocation};
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fmt;
-use std::panic::Location;
 
 type Label<'a> = &'a str;
 # [derive(Debug)]
@@ -157,6 +156,7 @@ pub enum Sentence<'a> {
         prepositional_phrases: PrepositionPhrases<'a>,
     },
     LabelDefinition(Box<(Label<'a>, TokenLocation<'a>)>),
+    Null,
 }
 
 # [derive(Debug)]
@@ -185,6 +185,8 @@ impl<'a> Token<'a> {
             Ok(TokenKind::new(_TokenKind::Preposition(pp), *self.location.borrow()))
         } else if tok.ends_with(':') {
             Ok(TokenKind::new(_TokenKind::LabelDef(tok.strip_suffix(':').unwrap()), *self.location.borrow()))
+        } else if tok.starts_with('<') & tok.starts_with('<') {
+            Ok(TokenKind::new(_TokenKind::LabelDef(&tok[1..tok.len() - 1]), *self.location.borrow()))
         } else if self.is_end() {
             Ok(TokenKind::new(_TokenKind::EOL, *self.location.borrow()))
         } else {
@@ -471,8 +473,8 @@ impl<'b> Object<'b> {
             return Some(Self::Reg(reg));
         } else if let Some(key) = Keyword::parse(token) {
             return Some(Self::Keyword(key));
-        } else if !(token.ends_with(':') | token.is_empty() | Preposition::is_prep(token)) {
-            return Some(Self::Label(&token));
+        } else if !(token.ends_with(':') | token.is_empty() | Preposition::is_prep(token) | token.starts_with('<') | token.starts_with('<')) {
+            return Some(Self::Label(&token[..token.len()]));
         } else {
             None
         }
@@ -610,7 +612,8 @@ impl<'a> Sentence<'a> {
             Ok(TokenKind{ token: _TokenKind::LabelDef(label), location}) => {
                 Ok(Self::LabelDefinition(Box::new((label, location))))
             }
-            _ => Err(AsmError::SyntaxError(*token.location.borrow(),format!("something is wrong")))
+            Ok(TokenKind { token:_TokenKind::EOL, .. }) => Ok(Self::Null),
+            _ => Err(AsmError::SyntaxError(*token.location.borrow(),format!("something is wrong1")))
         }
     }
 }

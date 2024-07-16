@@ -39,6 +39,7 @@ pub fn codegen<'a>(s:Sentence<'a>) -> Result<String, AsmError<'a>> {
             object: None,
         } => vi_instructions(verb, prepositional_phrases),
         Sentence::LabelDefinition(l) => Ok(format!("{}:\n", l.0)),
+        Sentence::Null =>  Ok(format!("\n"))
         // _ => Err(AsmError::SyntaxError(format!("something is wrong"))),
     }
 }
