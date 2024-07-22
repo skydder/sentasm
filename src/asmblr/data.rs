@@ -1,4 +1,6 @@
 use super::Loc;
+use super::Result;
+
 
 // use someday
 const REG8: &[&'static str] = &["al", "bl", "cl", "dl", "dil", "sil", "bpl", "spl", "r8b", "r9b", "r10b", "r11b", "r12b", "r13b","r14b", "r15b"];
@@ -29,6 +31,15 @@ pub enum Data<'a> {
 impl<'a> DataSet<'a> {
     pub fn new(token: &'a str, loc: Loc<'a>) -> Self {
         Self{ data: Data::parse(token), loc}
+    }
+    pub fn expect_object(self) -> Result<Self> {
+        match self.data {
+            Data::Immidiate(_) | Data::Keyword(_) | Data::Label(_) | Data::Register(_) => Ok(self),
+            _ => {
+                eprintln!("expected object, but found other type token");
+                Err(())
+            }
+        }
     }
 }
 

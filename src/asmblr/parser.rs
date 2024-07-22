@@ -1,15 +1,16 @@
 use std::collections::HashMap;
 
 use super::{Data, DataSet, Label, Loc, Preposition, Tonkenizer, Verb, Result};
-struct PrepositionPhrases<'a> {
+pub(crate) struct PrepositionPhrases<'a> {
     data: HashMap<Preposition, DataSet<'a>>
 }
 
 impl<'a> PrepositionPhrases<'a> {
     fn parse(tokenizer: &'a  Tonkenizer<'a>) -> Result<Self> {
         let mut data: HashMap<Preposition, DataSet<'a>> = HashMap::new(); 
-        while let Some(DataSet { data:Data::Prepositon(p), loc: _ }) = tokenizer.next_dataset() {
-            data.insert(p, tokenizer.next_dataset().ok_or_else(|| eprintln!("preposition must take an object, but found nothing"))?);
+        while let Some(DataSet { data:Data::Prepositon(p), loc: _ }) = tokenizer.next() {
+            data.insert(p, tokenizer.peek().ok_or_else(|| eprintln!("preposition must take an object, but found nothing"))?.expect_object()?);
+            tokenizer.next();
         }
         Ok(Self { data })
     }
@@ -28,11 +29,13 @@ pub(crate) enum Code<'a> {
 
 impl<'a> Code<'a> {
     fn parse(tonkenizer: &'a Tonkenizer<'a>) -> Result<Self> {
-        match tonkenizer.next_dataset() {
+        match tonkenizer.next() {
             Some(DataSet { data: Data::Verb(v), loc }) => {
-                Ok(Self::Sentence { verb: v, verb_loc: loc, object: tonkenizer.next_dataset(), preposition_phrases:PrepositionPhrases::parse(tonkenizer )?})
+                let ret = Ok(Self::Sentence { verb: v, verb_loc: loc, object: tonkenizer.peek().ok_or_else(|| eprintln!("preposition must take an object, but found nothing"))?.expect_object().ok(), preposition_phrases:PrepositionPhrases::parse(tonkenizer )?});
+                tonkenizer.next();
+                ret
             },
-            Some(DataSet { data: Data::Label(l), loc }) => todo!(),
+            Some(DataSet { data: Data::Label(l), loc }) => Ok(Self::LabelDef(l)),
             None => Ok(Self::NullStmt),
             _ => todo!(),
         }
