@@ -14,6 +14,17 @@ impl<'a> PrepositionPhrases<'a> {
         }
         Ok(Self { data })
     }
+    pub(crate) fn expect_empty(&self) -> Result<()> {
+        if self.data.is_empty() {
+            Ok(())
+        } else {
+            eprintln!("expected no more preposition phrases, but found it");
+            Err(())
+        }
+    }
+    pub(crate) fn get_object(&mut self, p: Preposition) -> Option<DataSet> {
+        self.data.remove(&p)
+    }
 }
 
 pub(crate) enum Code<'a> {

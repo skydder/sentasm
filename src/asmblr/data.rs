@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use super::Loc;
 use super::Result;
 
@@ -124,7 +126,7 @@ impl Verb {
 }
 
 // temporary implementation
-pub enum Register {
+pub(crate) enum Register {
     // general purpose regiser
     AL,
     BL,
