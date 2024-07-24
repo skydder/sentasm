@@ -1,7 +1,6 @@
 use std::fmt::Debug;
 
-use super::Loc;
-use super::Result;
+use super::{Loc, Result, Tonkenizer};
 
 
 // use someday
@@ -20,10 +19,10 @@ pub enum Data<'a> {
     Verb(Verb),
     Register(Register),
     Prepositon(Preposition),
-    Immidiate(i64),
+    Immediate(i64),
     MemoryLP,
     MemoryRP,
-    MemorySym,
+    MemorySym(&'a str),
     Label(Label<'a>),
     LabelDef,
     LabelSpecial,
@@ -36,9 +35,29 @@ impl<'a> DataSet<'a> {
     }
     pub fn expect_object(self) -> Result<Self> {
         match self.data {
-            Data::Immidiate(_) | Data::Keyword(_) | Data::Label(_) | Data::Register(_) => Ok(self),
+            Data::Immediate(_) | Data::Keyword(_) | Data::Label(_) | Data::Register(_) => Ok(self),
             _ => {
                 eprintln!("expected object, but found other type token");
+                Err(())
+            }
+        }
+    }
+
+    pub fn expect_register(self) -> Result<Self> {
+        match self.data {
+            Data::Register(_) => Ok(self),
+            _ => {
+                eprintln!("expected register, but found other type token");
+                Err(())
+            }
+        }
+    }
+
+    pub fn expect_immediate(self) -> Result<Self> {
+        match self.data {
+            Data::Immediate(_) => Ok(self),
+            _ => {
+                eprintln!("expected immediate, but found other type token");
                 Err(())
             }
         }
@@ -60,7 +79,7 @@ impl<'a> Data<'a> {
         } else if let Some(r) = Register::parse(token) {
             Data::Register(r)
         } else if let Ok(i) = token.parse::<i64>() {
-            Data::Immidiate(i)
+            Data::Immediate(i)
         } else if let Some(k) = Keyword::parse(token) {
             Data::Keyword(k)
         } else if let Some(p) = Preposition::parse(token) {
@@ -69,6 +88,24 @@ impl<'a> Data<'a> {
             Data::Label(token)
         }
     }
+    pub fn reg(self) -> Result<Register>{
+        match self {
+            Self::Register(reg) => Ok(reg),
+            _ => {
+                eprintln!("expected register, but found other token");
+                Err(())
+        },
+    }
+}
+    pub fn imm(self) -> Result<i64> {
+        match self {
+            Self::Immediate(imm) => Ok(imm),
+            _ => {
+                eprintln!("expected immediate, but found other token");
+                Err(())
+        }
+    }
+}
 }
 
 # [derive(Debug)]
@@ -340,3 +377,29 @@ impl Preposition {
 }
 
 pub(crate) type Label<'a> = &'a str;
+
+pub(crate) struct Memory<'a> {
+    base:(Register, Loc<'a>),
+    displacement:(i64, Loc<'a>),
+    index:(Register, Loc<'a>),
+    scale: (usize, Loc<'a>),
+}
+impl<'a> Memory<'a> {
+    fn parse_idx_scl(tokenizer:&mut Tonkenizer) -> Result<Option<((Register, Loc<'a>), (usize, Loc<'a>))>> {
+        match tokenizer.peek_next() {
+            Some(DataSet { data:  Data::MemorySym("*"), loc }) => {
+                let idx = tokenizer.next().unwrap_or(DataSet {data: Data::LabelSpecial, loc}).expect_register()?;
+                tokenizer.next();
+                let scl = tokenizer.next().unwrap_or(DataSet {data: Data::LabelSpecial, loc}).expect_immediate()?;
+                Ok(Some(((idx.data.reg()?, idx.loc),(scl.data.imm()?.try_into().or_else(|_|  Err(()))?, scl.loc))))
+            },
+            Some(DataSet { data:  Data::MemorySym("+"), loc }) |
+            Some(DataSet { data:  Data::MemorySym("-"), loc }) => {
+                todo!();
+            },
+            None => Ok(None),
+        }
+        
+
+    }
+}

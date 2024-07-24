@@ -56,10 +56,21 @@ impl<'a> Tonkenizer<'a> {
         }
     }
 
+    pub fn peek_next(&self) -> Option<DataSet> {
+        self.skip_whitespase();
+        let column = self.loc.get().column;
+        match self.length_of_symbol() {
+            0 => return None,
+            _ => ()
+        };
+        let toknizer = Tonkenizer::new(self.sourse, Loc::new(self.loc.get().file_name, self.loc.get().line, column + self.length_of_symbol()));
+        toknizer.peek()
+    }
+
     pub fn next(&self) -> Option<DataSet> {
         let next = self.peek();
         let column = self.loc.get().column + self.length_of_symbol();
-        self.loc.set(Loc { file_name: self.loc.get().file_name, line: self.loc.get().line, column: column });
+        self.loc.set(Loc::new(self.loc.get().file_name, self.loc.get().line, column));
         next
     }
     
