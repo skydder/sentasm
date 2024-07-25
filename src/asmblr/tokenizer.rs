@@ -1,8 +1,8 @@
 use std::cell::Cell;
 
-use super::{Data, DataSet};
+use super::DataSet;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Loc<'a> {
     file_name: &'a str,
     line: usize,
@@ -16,14 +16,14 @@ impl<'a> Loc<'a> {
 }
 
 pub struct Tonkenizer<'a> {
-    sourse: &'a str,
+    sourse: String,
     loc: Cell<Loc<'a>>,
 }
 
 impl<'a> Tonkenizer<'a> {
     pub fn new(sourse: &'a str, loc: Loc<'a>) -> Self {
         Self {
-            sourse,
+            sourse: sourse.replace("@[", " @[ ").replace(']', " ] ").replace('#', " # ").replace(':', " : "),
             loc: Cell::new(loc)
         }
     }
@@ -40,8 +40,7 @@ impl<'a> Tonkenizer<'a> {
     fn length_of_symbol(&self) -> usize {
         let mut len = 0;
         let column = self.loc.get().column;
-        let src = self.sourse.replace('[', " [ ").replace(']', " ] ").replace('@', " @ ").replace(':', " : ");
-        while !src.chars().nth(column + len).unwrap_or('\n').is_whitespace() {
+        while !self.sourse.chars().nth(column + len).unwrap_or('\n').is_whitespace() {
             len += 1;
         }
         len 
@@ -50,22 +49,24 @@ impl<'a> Tonkenizer<'a> {
     pub fn peek(&self) -> Option<DataSet> {
         self.skip_whitespase();
         let column = self.loc.get().column;
+        println!("{}", &self.sourse[column..column + self.length_of_symbol()]);
         match self.length_of_symbol() {
             0 => None,
             _ => Some(DataSet::new(&self.sourse[column..column + self.length_of_symbol()], self.loc.get()))
         }
     }
 
-    pub fn peek_next(&self) -> Option<DataSet> {
-        self.skip_whitespase();
-        let column = self.loc.get().column;
-        match self.length_of_symbol() {
-            0 => return None,
-            _ => ()
-        };
-        let toknizer = Tonkenizer::new(self.sourse, Loc::new(self.loc.get().file_name, self.loc.get().line, column + self.length_of_symbol()));
-        toknizer.peek()
-    }
+    // pub fn peek_next(&self) -> Option<DataSet> {
+    //     self.skip_whitespase();
+    //     let column = self.loc.get().column;
+    //     match self.length_of_symbol() {
+    //         0 => return None,
+    //         _ => ()
+    //     };
+    //     let toknizer = Tonkenizer::new(self.sourse, Loc::new(self.loc.get().file_name, self.loc.get().line, column + self.length_of_symbol()));
+    //     let data = toknizer.peek();
+    //     data
+    // }
 
     pub fn next(&self) -> Option<DataSet> {
         let next = self.peek();

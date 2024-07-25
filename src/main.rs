@@ -25,6 +25,9 @@ fn compile_file(file:&str) {
     for (ln, line_result) in BufReader::new(File::open(file).unwrap()).lines().enumerate() {
         let line = line_result.unwrap().clone();
         let _tokenizer = Tonkenizer::new(&line, Loc::new(file, ln, 0));
+        while let Some(data) = _tokenizer.next() {
+            println!("{:?}", data);
+        }
         
     }
 

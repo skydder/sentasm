@@ -1,13 +1,13 @@
 use std::result;
 
 mod tokenizer;
-mod parser;
+// mod parser;
 mod data;
-mod codegen;
+// mod codegen;
 
 pub use tokenizer::{Tonkenizer, Loc};
 pub use data::{Data, DataSet};
-use data::{Verb, Preposition, Keyword, Label};
-use parser::{Code, PrepositionPhrases};
+use data::{Verb, Preposition, Keyword, Label, Memory};
+// use parser::{Code, PrepositionPhrases};
 
 pub type Result<T> = result::Result<T, ()>;

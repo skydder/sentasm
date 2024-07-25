@@ -10,11 +10,13 @@ const REG32: &[&'static str] = &["eax", "ebx", "ecx", "edx", "edi", "esi", "ebp"
 const REG64: &[&'static str] = &["rax", "rbx", "rcx", "rdx", "rdi", "rsi", "rbp", "rsp", "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15"];
 const XMM: &[&'static str] = &["xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7"];
 
+#[derive(Debug)]
 pub struct DataSet<'a> {
     pub data:Data<'a>,
     pub loc: Loc<'a>,
 }
 
+#[derive(Debug)]
 pub enum Data<'a> {
     Verb(Verb),
     Register(Register),
@@ -23,6 +25,7 @@ pub enum Data<'a> {
     MemoryLP,
     MemoryRP,
     MemorySym(&'a str),
+    // Memory(Memory<'a>),
     Label(Label<'a>),
     LabelDef,
     LabelSpecial,
@@ -66,11 +69,11 @@ impl<'a> DataSet<'a> {
 
 impl<'a> Data<'a> {
     fn parse(token: &'a str) -> Data {
-        if token == "[" {
+        if token == "@[" {
             Data::MemoryLP
-        } else if token == "[" {
+        } else if token == "]" {
             Data::MemoryRP
-        } else if token == "@" {
+        } else if token == "#" {
             Data::LabelSpecial
         }else if token == ":" {
             Data::LabelDef
@@ -163,6 +166,7 @@ impl Verb {
 }
 
 // temporary implementation
+#[derive(Debug)]
 pub(crate) enum Register {
     // general purpose regiser
     AL,
@@ -320,6 +324,7 @@ impl Register {
     }
 }
 
+#[derive(Debug)]
 pub(crate) enum Keyword {
     DoublePrecisionFloat,
     SinglePrecisionFloat,
@@ -379,27 +384,8 @@ impl Preposition {
 pub(crate) type Label<'a> = &'a str;
 
 pub(crate) struct Memory<'a> {
-    base:(Register, Loc<'a>),
-    displacement:(i64, Loc<'a>),
-    index:(Register, Loc<'a>),
-    scale: (usize, Loc<'a>),
-}
-impl<'a> Memory<'a> {
-    fn parse_idx_scl(tokenizer:&mut Tonkenizer) -> Result<Option<((Register, Loc<'a>), (usize, Loc<'a>))>> {
-        match tokenizer.peek_next() {
-            Some(DataSet { data:  Data::MemorySym("*"), loc }) => {
-                let idx = tokenizer.next().unwrap_or(DataSet {data: Data::LabelSpecial, loc}).expect_register()?;
-                tokenizer.next();
-                let scl = tokenizer.next().unwrap_or(DataSet {data: Data::LabelSpecial, loc}).expect_immediate()?;
-                Ok(Some(((idx.data.reg()?, idx.loc),(scl.data.imm()?.try_into().or_else(|_|  Err(()))?, scl.loc))))
-            },
-            Some(DataSet { data:  Data::MemorySym("+"), loc }) |
-            Some(DataSet { data:  Data::MemorySym("-"), loc }) => {
-                todo!();
-            },
-            None => Ok(None),
-        }
-        
-
-    }
+    pub(crate) base:Option<(Register, Loc<'a>)>,
+    pub(crate) displacement:Option<(i64, Loc<'a>)>,
+    pub(crate) index:Option<(Register, Loc<'a>)>,
+    pub(crate) scale: Option<(usize, Loc<'a>)>,
 }
