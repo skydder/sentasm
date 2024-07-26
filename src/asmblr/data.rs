@@ -22,10 +22,8 @@ pub enum Data<'a> {
     Register(Register),
     Prepositon(Preposition),
     Immediate(i64),
-    MemoryLP,
-    MemoryRP,
-    MemorySym(&'a str),
-    // Memory(Memory<'a>),
+    
+    Memory(&'a str),
     Label(Label<'a>),
     LabelDef,
     LabelSpecial,
@@ -68,11 +66,9 @@ impl<'a> DataSet<'a> {
 }
 
 impl<'a> Data<'a> {
-    fn parse(token: &'a str) -> Data {
-        if token == "@[" {
-            Data::MemoryLP
-        } else if token == "]" {
-            Data::MemoryRP
+    pub(crate) fn parse(token: &'a str) -> Data {
+        if token.starts_with("@[") {
+            Data::Memory(token)
         } else if token == "#" {
             Data::LabelSpecial
         }else if token == ":" {

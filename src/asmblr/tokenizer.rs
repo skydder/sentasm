@@ -23,7 +23,7 @@ pub struct Tonkenizer<'a> {
 impl<'a> Tonkenizer<'a> {
     pub fn new(sourse: &'a str, loc: Loc<'a>) -> Self {
         Self {
-            sourse: sourse.replace("@[", " @[ ").replace(']', " ] ").replace('#', " # ").replace(':', " : "),
+            sourse: sourse.replace('#', " # ").replace(':', " : "),
             loc: Cell::new(loc)
         }
     }
@@ -40,6 +40,12 @@ impl<'a> Tonkenizer<'a> {
     fn length_of_symbol(&self) -> usize {
         let mut len = 0;
         let column = self.loc.get().column;
+        if self.sourse[column..].starts_with("@[") {
+            while self.sourse.chars().nth(column + len).unwrap_or(']') != ']' {
+                len += 1;
+            }
+            return len + 1;
+        }
         while !self.sourse.chars().nth(column + len).unwrap_or('\n').is_whitespace() {
             len += 1;
         }
@@ -49,7 +55,7 @@ impl<'a> Tonkenizer<'a> {
     pub fn peek(&self) -> Option<DataSet> {
         self.skip_whitespase();
         let column = self.loc.get().column;
-        println!("{}", &self.sourse[column..column + self.length_of_symbol()]);
+        // println!("{}", &self.sourse[column..column + self.length_of_symbol()]);
         match self.length_of_symbol() {
             0 => None,
             _ => Some(DataSet::new(&self.sourse[column..column + self.length_of_symbol()], self.loc.get()))
@@ -63,7 +69,7 @@ impl<'a> Tonkenizer<'a> {
     //         0 => return None,
     //         _ => ()
     //     };
-    //     let toknizer = Tonkenizer::new(self.sourse, Loc::new(self.loc.get().file_name, self.loc.get().line, column + self.length_of_symbol()));
+    //     let toknizer = Tonkenizer::new(&self.sourse, Loc::new(self.loc.get().file_name, self.loc.get().line, column + self.length_of_symbol()));
     //     let data = toknizer.peek();
     //     data
     // }
