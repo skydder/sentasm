@@ -16,7 +16,7 @@ pub struct DataSet<'a> {
     pub loc: Loc<'a>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum Data<'a> {
     Verb(Verb),
     Register(Register),
@@ -107,7 +107,8 @@ impl<'a> Data<'a> {
 }
 }
 
-# [derive(Debug)]
+#[derive(Debug, Clone, Copy)]
+
 pub(crate) enum Verb {
     Add,
     Substract,
@@ -162,7 +163,8 @@ impl Verb {
 }
 
 // temporary implementation
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
+
 pub(crate) enum Register {
     // general purpose regiser
     AL,
@@ -320,7 +322,7 @@ impl Register {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) enum Keyword {
     DoublePrecisionFloat,
     SinglePrecisionFloat,
@@ -352,7 +354,7 @@ impl Keyword {
     }
 }
 
-#[derive(PartialEq, Eq, Hash, Debug)]
+#[derive(PartialEq, Eq, Hash, Debug, Clone, Copy)]
 pub(crate) enum Preposition {
     To,
     From,
@@ -379,9 +381,9 @@ impl Preposition {
 
 pub(crate) type Label<'a> = &'a str;
 
-pub(crate) struct Memory<'a> {
-    pub(crate) base:Option<(Register, Loc<'a>)>,
-    pub(crate) displacement:Option<(i64, Loc<'a>)>,
-    pub(crate) index:Option<(Register, Loc<'a>)>,
-    pub(crate) scale: Option<(usize, Loc<'a>)>,
+pub(crate) struct Memory {
+    pub(crate) base:Option<Register>,
+    pub(crate) displacement:Option<i64>,
+    pub(crate) index:Option<Register>,
+    pub(crate) scale: Option<usize>,
 }

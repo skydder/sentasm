@@ -2,32 +2,94 @@ use std::collections::HashMap;
 
 use super::{Register, Data, DataSet, Label, Loc, Memory, Preposition, Result, Tonkenizer, Verb};
 
-impl<'a> Memory<'a> {
+impl Memory {
     // reg + reg * num + reg
     // (reg '+'|']')? (reg ('*' (1|2|4|8))? '+'|']')? (num ])?
     // base = reg
     // index = reg 
     // scale = 1|2|4|8 
     // disp = num
-    // mem = (base (+ index (* scale)?)? (+ disp)?) | index * scale + disp
-    fn parse(token: &'a str) -> Result<Self> {
-        let mut token_seq = token.replace("@[", " @[ ").replace("]", " ] ")
-                                    .replace("*", " * ").replace("+", " + ").replace("-", " - ").split(' ').map(Data::parse).collect::<Vec<Data>>();
-        
-        let base: Option<(super::data::Register, Loc<'a>)> = None;
-        let idx: Option<(super::data::Register, Loc<'a>)> = None;
-        let scl: Option<(usize, Loc<'a>)> = None;
-        let disp :Option<(i64, Loc<'a>)> = None;
-        Ok(Self { base: base, displacement: disp, index: idx, scale: scl })
-    }
-    fn parse_reg(token_seq:Vec<Data>) {
-        
-    }
-    
-    
+    // mem = (base (+ index (* scale)?)? (+ disp)?) | (index * scale +)? disp
+    fn parse<'a>(&mut self, token: &'a str) -> Result<()> {
+        let tokens = token.replace("@[", " @[ ").replace("]", " ] ")
+                                    .replace("*", " * ").replace("+", " + ").replace("-", " - ");
+        let token_seq = tokens.split(' ').map(Data::parse).collect::<Vec<Data>>();
 
-    
-    
+        let mut pos = 1;
+        self.parse_base(&token_seq, &mut pos);
+        self.parse_idx_scl(&token_seq, &mut pos)?;
+        self.parse_disp(&token_seq, &mut pos)?;
+        Ok(())
+    }
+    fn parse_base(&mut self, token_seq: &Vec<Data>, pos:&mut usize) {
+        self.base = match token_seq[*pos] {
+            Data::Register(reg) => {
+                match token_seq[*pos + 1] {
+                    Data::Label("]") | Data::Label("+") | Data::Label("-") => {
+                        *pos += 1;
+                         Some(reg)
+                    },
+                    _ => None,
+                }
+            },
+            _ => None,
+        };
+    }
+
+    fn parse_idx_scl(&mut self, token_seq: &Vec<Data>, pos:&mut usize) -> Result<()> {
+        (self.index, self.scale) = match token_seq[*pos] {
+            Data::Register(reg) => {
+                *pos += 1;
+                match (token_seq[*pos], token_seq[*pos + 1]) {
+                    (Data::Label("*"), Data::Immediate(imm)) => {
+                        *pos += 2;
+                        (Some(reg), Some(TryInto::<usize>::try_into(imm).or_else(|_| Err(()))?))
+                    },
+                    (Data::Label("]") | Data::Label("+") | Data::Label("-"), _) => {
+                        if self.base.is_none() {
+                            return Err(());
+                        }
+                        (Some(reg), None)
+                    },
+                    _ => {
+                        eprintln!("unexpected");
+                        return Err(());
+                    }
+                }
+            },
+            _ => (None, None),
+        };
+        Ok(())
+    }
+
+    fn parse_disp(&mut self, token_seq: &Vec<Data>, pos:&mut usize) -> Result<()> {
+        self.displacement = match token_seq[*pos] {
+            Data::Immediate(imm) => {
+                Some(imm)
+            },
+            Data::Label("-") => {
+                *pos += 1;
+                match token_seq[*pos] {
+                    Data::Immediate(imm) => {
+                        *pos += 1;
+                        Some(-imm)
+                    }
+                    _ => {
+                        eprintln!("expected immediate, but found other");
+                        return Err(());
+                    }
+                }
+            }
+            Data::Label("]") => None,
+            _ => {
+                eprintln!("expected immediate, but found other");
+                return Err(());
+            }
+        };
+        Ok(())
+    }
+
+
 }
 
 pub(crate) struct PrepositionPhrases<'a> {
