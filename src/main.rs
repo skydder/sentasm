@@ -2,7 +2,7 @@ use std::{fs::File, io::{BufRead, BufReader}};
 
 mod asmblr;
 
-use asmblr::{Tonkenizer, Loc, };
+use asmblr::{Tonkenizer, Loc, Memory};
 
 fn main() {
     match read_args() {
@@ -27,7 +27,12 @@ fn compile_file(file:&str) {
         let line = line_result.unwrap().clone();
         let _tokenizer = Tonkenizer::new(&line, Loc::new(file, ln, 0));
         while let Some(data) = _tokenizer.next() {
-            println!("{:?}", data);
+            if data.is_memory() {
+                let mut mem = Memory::new();
+                mem.parse(data.data.mem().unwrap());
+                println!("{:?}",mem)
+            }
+            // println!("{:?}", data);
             // println!("{:?}", )
         }
         

@@ -6,8 +6,8 @@ mod data;
 // mod codegen;
 
 pub use tokenizer::{Tonkenizer, Loc};
-pub use data::{Data, DataSet};
-use data::{Verb, Preposition, Keyword, Label, Memory, Register};
+pub use data::{Data, DataSet, Memory};
+use data::{Verb, Preposition, Keyword, Label, Register};
 pub use parser::Code;
 use parser::PrepositionPhrases;
 

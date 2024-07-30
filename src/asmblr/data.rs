@@ -36,7 +36,7 @@ impl<'a> DataSet<'a> {
     }
     pub fn expect_object(self) -> Result<Self> {
         match self.data {
-            Data::Immediate(_) | Data::Keyword(_) | Data::Label(_) | Data::Register(_) => Ok(self),
+            Data::Immediate(_) | Data::Keyword(_) | Data::Label(_) | Data::Register(_) | Data::Memory(_)=> Ok(self),
             _ => {
                 eprintln!("expected object, but found other type token");
                 Err(())
@@ -63,6 +63,12 @@ impl<'a> DataSet<'a> {
             }
         }
     }
+    pub fn is_memory(&self) -> bool{
+        match self.data {
+            Data::Memory(_) => true,
+            _ => false
+        }
+    }
 }
 
 impl<'a> Data<'a> {
@@ -87,24 +93,35 @@ impl<'a> Data<'a> {
             Data::Label(token)
         }
     }
+
     pub fn reg(self) -> Result<Register>{
         match self {
             Self::Register(reg) => Ok(reg),
             _ => {
                 eprintln!("expected register, but found other token");
                 Err(())
-        },
+            },
+        }
     }
-}
+
     pub fn imm(self) -> Result<i64> {
         match self {
             Self::Immediate(imm) => Ok(imm),
             _ => {
                 eprintln!("expected immediate, but found other token");
                 Err(())
+            }
         }
     }
-}
+    pub fn mem(self) -> Option<&'a str> {
+        match self {
+            Self::Memory(mem) => Some(mem),
+            _ => {
+                eprintln!("expected memory, but found other token");
+                None
+            }
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -381,7 +398,8 @@ impl Preposition {
 
 pub(crate) type Label<'a> = &'a str;
 
-pub(crate) struct Memory {
+#[derive(Debug)]
+pub struct Memory {
     pub(crate) base:Option<Register>,
     pub(crate) displacement:Option<i64>,
     pub(crate) index:Option<Register>,

@@ -31,8 +31,13 @@ impl<'a> Tonkenizer<'a> {
     fn skip_whitespase(&self) {
         let mut loc = self.loc.get();
         while self.sourse.chars().nth(loc.column).unwrap_or('*').is_whitespace() {
-
             loc.column += 1;
+        }
+
+        if self.sourse.chars().nth(loc.column).unwrap_or('*') == '('{
+            while self.sourse.chars().nth(loc.column).unwrap_or(')') != ')' {
+                loc.column += 1;
+            }
         }
         self.loc.set(loc)
     }
