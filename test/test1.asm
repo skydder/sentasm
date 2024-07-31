@@ -5,16 +5,15 @@ substract 1 from @[ax](base)
 substract 1 from @[ax+rax+1](base+idx+disp)
 substract 1 from @[ax+1](base+disp)
 substract 1 from @[ax+rax*1+1](base+idx*scl+disp)
-substract 1 from @[ax*1+1]
-substract 1 from @[ax+rax*1]
+substract 1 from @[ax*1+1](idx*scl+disp)
+substract 1 from @[ax+rax*1](base+idx*scl)
+substract 1 from @[ax+rax](base+idx)
 
 substract 1 from @[-1](disp)
-substract 1 from @[ax](base)
 substract 1 from @[ax+rax-1](base+idx+disp)
 substract 1 from @[ax-1](base+disp)
 substract 1 from @[ax+rax*1-1](base+idx*scl+disp)
-substract 1 from @[ax*1-1]
-substract 1 from @[ax+rax*1]
+substract 1 from @[ax   *  1-1]
 
 multiply eax by ebx
 divide eax

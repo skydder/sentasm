@@ -1,18 +1,32 @@
+use core::str;
 use std::fmt::Debug;
 
 use super::{Loc, Result, Tonkenizer};
 
-
 // use someday
-const REG8: &[&'static str] = &["al", "bl", "cl", "dl", "dil", "sil", "bpl", "spl", "r8b", "r9b", "r10b", "r11b", "r12b", "r13b","r14b", "r15b"];
-const REG16: &[&'static str] = &["ax", "bx", "cx", "dx", "di", "si", "bp", "sp", "r8w", "r9w", "r10w", "r11w", "r12w", "r13w", "r14w", "r15w"];
-const REG32: &[&'static str] = &["eax", "ebx", "ecx", "edx", "edi", "esi", "ebp", "esp", "r8d", "r9d", "r10d", "r11d", "r12d", "r13d", "r14d", "r15d"];
-const REG64: &[&'static str] = &["rax", "rbx", "rcx", "rdx", "rdi", "rsi", "rbp", "rsp", "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15"];
-const XMM: &[&'static str] = &["xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7"];
+const REG8: &[&'static str] = &[
+    "al", "bl", "cl", "dl", "dil", "sil", "bpl", "spl", "r8b", "r9b", "r10b", "r11b", "r12b",
+    "r13b", "r14b", "r15b",
+];
+const REG16: &[&'static str] = &[
+    "ax", "bx", "cx", "dx", "di", "si", "bp", "sp", "r8w", "r9w", "r10w", "r11w", "r12w", "r13w",
+    "r14w", "r15w",
+];
+const REG32: &[&'static str] = &[
+    "eax", "ebx", "ecx", "edx", "edi", "esi", "ebp", "esp", "r8d", "r9d", "r10d", "r11d", "r12d",
+    "r13d", "r14d", "r15d",
+];
+const REG64: &[&'static str] = &[
+    "rax", "rbx", "rcx", "rdx", "rdi", "rsi", "rbp", "rsp", "r8", "r9", "r10", "r11", "r12", "r13",
+    "r14", "r15",
+];
+const XMM: &[&'static str] = &[
+    "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7",
+];
 
 #[derive(Debug)]
 pub struct DataSet<'a> {
-    pub data:Data<'a>,
+    pub data: Data<'a>,
     pub loc: Loc<'a>,
 }
 
@@ -22,8 +36,9 @@ pub enum Data<'a> {
     Register(Register),
     Prepositon(Preposition),
     Immediate(i64),
-    
-    Memory(&'a str),
+
+    _Memory(&'a str),
+    Memory(Memory),
     Label(Label<'a>),
     LabelDef,
     LabelSpecial,
@@ -32,11 +47,18 @@ pub enum Data<'a> {
 
 impl<'a> DataSet<'a> {
     pub fn new(token: &'a str, loc: Loc<'a>) -> Self {
-        Self{ data: Data::parse(token), loc}
+        Self {
+            data: Data::parse(token),
+            loc,
+        }
     }
     pub fn expect_object(self) -> Result<Self> {
         match self.data {
-            Data::Immediate(_) | Data::Keyword(_) | Data::Label(_) | Data::Register(_) | Data::Memory(_)=> Ok(self),
+            Data::Immediate(_) | Data::Keyword(_) | Data::Label(_) | Data::Register(_) => Ok(self),
+            Data::_Memory(mem) => Ok(Self {
+                data: Data::Memory(Memory::new().parse(mem)?),
+                loc: self.loc,
+            }),
             _ => {
                 eprintln!("expected object, but found other type token");
                 Err(())
@@ -63,10 +85,10 @@ impl<'a> DataSet<'a> {
             }
         }
     }
-    pub fn is_memory(&self) -> bool{
+    pub fn is_memory(&self) -> bool {
         match self.data {
-            Data::Memory(_) => true,
-            _ => false
+            Data::_Memory(_) => true,
+            _ => false,
         }
     }
 }
@@ -74,12 +96,12 @@ impl<'a> DataSet<'a> {
 impl<'a> Data<'a> {
     pub(crate) fn parse(token: &'a str) -> Data {
         if token.starts_with("@[") {
-            Data::Memory(token)
+            Data::_Memory(token)
         } else if token == "#" {
             Data::LabelSpecial
-        }else if token == ":" {
+        } else if token == ":" {
             Data::LabelDef
-        }else if let Some(v) = Verb::parse(token) {
+        } else if let Some(v) = Verb::parse(token) {
             Data::Verb(v)
         } else if let Some(r) = Register::parse(token) {
             Data::Register(r)
@@ -94,13 +116,13 @@ impl<'a> Data<'a> {
         }
     }
 
-    pub fn reg(self) -> Result<Register>{
+    pub fn reg(self) -> Result<Register> {
         match self {
             Self::Register(reg) => Ok(reg),
             _ => {
                 eprintln!("expected register, but found other token");
                 Err(())
-            },
+            }
         }
     }
 
@@ -115,7 +137,7 @@ impl<'a> Data<'a> {
     }
     pub fn mem(self) -> Option<&'a str> {
         match self {
-            Self::Memory(mem) => Some(mem),
+            Self::_Memory(mem) => Some(mem),
             _ => {
                 eprintln!("expected memory, but found other token");
                 None
@@ -134,7 +156,7 @@ pub(crate) enum Verb {
     Move,
     Jump,
     And,
-    Or, 
+    Or,
     Xor,
     Not,
     Negate,
@@ -161,13 +183,13 @@ impl Verb {
             "jump" => Some(Self::Jump),
             "and" => Some(Self::And),
             "or" => Some(Self::Or),
-            "xor" =>  Some(Self::Xor),
+            "xor" => Some(Self::Xor),
             "not" => Some(Self::Not),
             "negate" => Some(Self::Negate),
             "shift-right" => Some(Self::ShiftRight),
-            "shift-left" =>Some(Self::ShiftLeft),
+            "shift-left" => Some(Self::ShiftLeft),
             "call" => Some(Verb::Call),
-            "compare" =>  Some(Self::Compare),
+            "compare" => Some(Self::Compare),
 
             "return" => Some(Self::Return),
             "halt" => Some(Self::Halt),
@@ -260,7 +282,7 @@ pub(crate) enum Register {
 }
 
 impl Register {
-    fn parse<'a>(token: &'a str) -> Option<Self> {
+    pub(crate) fn parse<'a>(token: &'a str) -> Option<Self> {
         match token {
             "al" => Some(Self::AL),
             "bl" => Some(Self::BL),
@@ -337,6 +359,10 @@ impl Register {
             _ => None,
         }
     }
+
+    pub fn is_reg(token: &str) -> bool {
+        Self::parse(token).is_some()
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -354,11 +380,11 @@ pub(crate) enum Keyword {
 }
 
 impl Keyword {
-    fn parse<'a>(token: &'a str) ->  Option<Self> {
+    fn parse<'a>(token: &'a str) -> Option<Self> {
         match token {
             "single-precision-float" => Some(Self::SinglePrecisionFloat),
             "double-precision-float" => Some(Self::DoublePrecisionFloat),
-            "signed" =>  Some(Self::Signed),
+            "signed" => Some(Self::Signed),
             "zero-extended" => Some(Self::ZeroExtened),
             "=" => Some(Self::E),
             "!=" => Some(Self::NE),
@@ -382,8 +408,7 @@ pub(crate) enum Preposition {
 }
 
 impl Preposition {
-    fn parse<'a>(token: &'a str) -> Option<Self>
-    {
+    fn parse<'a>(token: &'a str) -> Option<Self> {
         match token {
             "to" => Some(Self::To),
             "from" => Some(Self::From),
@@ -398,10 +423,94 @@ impl Preposition {
 
 pub(crate) type Label<'a> = &'a str;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Memory {
-    pub(crate) base:Option<Register>,
-    pub(crate) displacement:Option<i64>,
-    pub(crate) index:Option<Register>,
+    pub(crate) base: Option<Register>,
+    pub(crate) displacement: Option<i64>,
+    pub(crate) index: Option<Register>,
     pub(crate) scale: Option<usize>,
+}
+
+impl Memory {
+    pub fn new() -> Self {
+        Self {
+            base: None,
+            displacement: None,
+            index: None,
+            scale: None,
+        }
+    }
+
+    // base = reg
+    // index = reg
+    // scale = 1|2|4|8
+    // disp = num
+    // mem = '['((base ('+' index ('*' scale)?)? ('+' disp)? ]) | (index '*' scale '+')? disp]))
+    pub fn parse<'a>(mut self, token: &'a str) -> Result<Self> {
+        let tokens = token
+            .replace("@[", "[ ")
+            .replace("]", " ]")
+            .replace("*", " * ")
+            .replace("+", " + ")
+            .replace("-", " - ");
+        let token_seq = tokens.split_ascii_whitespace().collect::<Vec<&str>>();
+        let mut pos = 1;
+        self.parse_base(&token_seq, &mut pos)?;
+        println!("{}", token);
+        println!("{:?}", self);
+        Ok(self)
+    }
+
+    fn parse_base(&mut self, token_seq: &Vec<&str>, pos: &mut usize) -> Result<()> {
+        if Register::is_reg(token_seq[*pos]) {
+            if token_seq[*pos + 1] == "]"
+                || token_seq[*pos + 1] == "+"
+                || token_seq[*pos + 1] == "-"
+            {
+                self.base = Register::parse(token_seq[*pos]);
+                *pos += 1;
+            }
+        }
+        self.parse_idx_scl(token_seq, pos)
+    }
+
+    fn parse_idx_scl(&mut self, token_seq: &Vec<&str>, pos: &mut usize) -> Result<()> {
+        if token_seq[*pos] == "+" {
+            *pos += 1;
+        }
+        if Register::is_reg(token_seq[*pos]) {
+            if token_seq[*pos + 1] == "]"
+                || token_seq[*pos + 1] == "+"
+                || token_seq[*pos + 1] == "-"
+            {
+                self.index = Register::parse(token_seq[*pos]);
+                *pos += 1;
+            } else if token_seq[*pos + 1] == "*" {
+                self.index = Register::parse(token_seq[*pos]);
+                *pos += 2;
+                // todo: emit error data
+                self.scale = Some(token_seq[*pos].parse::<usize>().or_else(|_| Err(()))?);
+                *pos += 1;
+            }
+        }
+        self.parse_disp(token_seq, pos)
+    }
+
+    fn parse_disp(&mut self, token_seq: &Vec<&str>, pos: &mut usize) -> Result<()> {
+        let sgn: i64;
+        if token_seq[*pos] == "+" {
+            *pos += 1;
+            sgn = 1;
+        } else if token_seq[*pos] == "-" {
+            *pos += 1;
+            sgn = -1;
+        } else if token_seq[*pos] == "]" {
+            return Ok(());
+        } else {
+            sgn = 1
+        }
+        // todo: emit error data
+        self.displacement = Some(sgn * token_seq[*pos].parse::<i64>().or_else(|_| Err(()))?);
+        Ok(())
+    }
 }

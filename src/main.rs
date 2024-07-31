@@ -1,13 +1,16 @@
-use std::{fs::File, io::{BufRead, BufReader}};
+use std::{
+    fs::File,
+    io::{BufRead, BufReader},
+};
 
 mod asmblr;
 
-use asmblr::{Tonkenizer, Loc, Memory};
+use asmblr::{Loc, Memory, Tonkenizer, Code};
 
 fn main() {
     match read_args() {
         Ok(file) => compile_file(&file),
-        Err(_) => ()
+        Err(_) => (),
     }
 }
 
@@ -20,22 +23,15 @@ fn read_args<'a>() -> Result<String, ()> {
     Ok(path.to_string())
 }
 
-
-fn compile_file(file:&str) {
+fn compile_file(file: &str) {
     let code: String = String::new();
-    for (ln, line_result) in BufReader::new(File::open(file).unwrap()).lines().enumerate() {
+    for (ln, line_result) in BufReader::new(File::open(file).unwrap())
+        .lines()
+        .enumerate()
+    {
         let line = line_result.unwrap().clone();
         let _tokenizer = Tonkenizer::new(&line, Loc::new(file, ln, 0));
-        while let Some(data) = _tokenizer.next() {
-            if data.is_memory() {
-                let mut mem = Memory::new();
-                mem.parse(data.data.mem().unwrap());
-                println!("{:?}",mem)
-            }
-            // println!("{:?}", data);
-            // println!("{:?}", )
-        }
-        
+        println!("{:?}", Code::parse(&_tokenizer));
     }
 
     println!(".intel_syntax noprefix");
