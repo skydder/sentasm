@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::{Data, DataSet, Label, Loc, Preposition, Result, Tonkenizer, Verb};
+use super::{data, Data, DataSet, Label, Loc, Preposition, Result, Tonkenizer, Verb};
 
 #[derive(Debug)]
 pub(crate) struct PrepositionPhrases<'a> {
@@ -17,11 +17,13 @@ impl<'a> PrepositionPhrases<'a> {
         {
             data.insert(
                 p,
-                tokenizer
-                    .peek()
-                    .ok_or_else(|| eprintln!("preposition must take an object, but found nothing"))?
-                    .expect_object()?,
-            );
+                match tokenizer.peek() {
+                    Some(data) => data.expect_object().ok_or_else(|| eprintln!("preposition must take an object, but found nothing"))?,
+                    None => {
+                        eprintln!("preposition must take an object, but found nothing");
+                        return Err(());
+                    }
+                });
             tokenizer.next();
         }
         Ok(Self { data })
@@ -58,19 +60,21 @@ impl<'a> Code<'a> {
                 data: Data::Verb(v),
                 loc,
             }) => {
+                let object = if let Some(data) = tonkenizer.peek() {
+                   data.expect_object()
+                } else {
+                    None
+                };
+                if object.is_some() {
+                    tonkenizer.next();
+                }
                 let ret = Ok(Self::Sentence {
                     verb: v,
                     verb_loc: loc,
-                    object: tonkenizer
-                        .peek()
-                        .ok_or_else(|| {
-                            eprintln!("preposition must take an object, but found nothing")
-                        })?
-                        .expect_object()
-                        .ok(),
+                    object,
                     preposition_phrases: PrepositionPhrases::parse(tonkenizer)?,
                 });
-                tonkenizer.next();
+                
                 ret
             }
             Some(DataSet {

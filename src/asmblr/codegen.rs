@@ -8,6 +8,8 @@ pub fn codegen(code: Code) -> Result<String> {
     }
 }
 
+// fn check_operand(fst: Option<DataSet>, scd:)
+
 fn codegen_sentence(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:PrepositionPhrases) -> Result<String> {
     match verb {
         Verb::Add => gen_ins_add(verb, verb_loc, object, preposition_phrases),

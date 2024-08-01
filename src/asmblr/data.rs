@@ -52,17 +52,21 @@ impl<'a> DataSet<'a> {
             loc,
         }
     }
-    pub fn expect_object(self) -> Result<Self> {
+    pub fn expect_object(self) -> Option<Self> {
         match self.data {
-            Data::Immediate(_) | Data::Keyword(_) | Data::Label(_) | Data::Register(_) => Ok(self),
-            Data::_Memory(mem) => Ok(Self {
-                data: Data::Memory(Memory::new().parse(mem)?),
+            Data::Immediate(_) | Data::Keyword(_) | Data::Label(_) | Data::Register(_) => Some(self),
+            Data::_Memory(mem) => {
+                let m = if let Some(memory) = Memory::new().parse(mem).ok() {
+                    memory
+                } else {
+                    return None;
+                };
+                Some(Self {
+                data: Data::Memory(m),
                 loc: self.loc,
-            }),
-            _ => {
-                eprintln!("expected object, but found other type token");
-                Err(())
-            }
+            })
+            },
+            _ => None
         }
     }
 
