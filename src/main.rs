@@ -5,7 +5,7 @@ use std::{
 
 mod asmblr;
 
-use asmblr::{Loc, Memory, Tonkenizer, Code};
+use asmblr::{Code, Loc, Tonkenizer};
 
 fn main() {
     match read_args() {

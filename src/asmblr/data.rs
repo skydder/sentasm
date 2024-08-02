@@ -1,28 +1,28 @@
 use core::str;
-use std::fmt::Debug;
+use std::fmt::{write, Debug};
 
 use super::{Loc, Result, Tonkenizer};
 
 // use someday
-const REG8: &[&'static str] = &[
-    "al", "bl", "cl", "dl", "dil", "sil", "bpl", "spl", "r8b", "r9b", "r10b", "r11b", "r12b",
-    "r13b", "r14b", "r15b",
-];
-const REG16: &[&'static str] = &[
-    "ax", "bx", "cx", "dx", "di", "si", "bp", "sp", "r8w", "r9w", "r10w", "r11w", "r12w", "r13w",
-    "r14w", "r15w",
-];
-const REG32: &[&'static str] = &[
-    "eax", "ebx", "ecx", "edx", "edi", "esi", "ebp", "esp", "r8d", "r9d", "r10d", "r11d", "r12d",
-    "r13d", "r14d", "r15d",
-];
-const REG64: &[&'static str] = &[
-    "rax", "rbx", "rcx", "rdx", "rdi", "rsi", "rbp", "rsp", "r8", "r9", "r10", "r11", "r12", "r13",
-    "r14", "r15",
-];
-const XMM: &[&'static str] = &[
-    "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7",
-];
+// const REG8: &[&'static str] = &[
+//     "al", "bl", "cl", "dl", "dil", "sil", "bpl", "spl", "r8b", "r9b", "r10b", "r11b", "r12b",
+//     "r13b", "r14b", "r15b",
+// ];
+// const REG16: &[&'static str] = &[
+//     "ax", "bx", "cx", "dx", "di", "si", "bp", "sp", "r8w", "r9w", "r10w", "r11w", "r12w", "r13w",
+//     "r14w", "r15w",
+// ];
+// const REG32: &[&'static str] = &[
+//     "eax", "ebx", "ecx", "edx", "edi", "esi", "ebp", "esp", "r8d", "r9d", "r10d", "r11d", "r12d",
+//     "r13d", "r14d", "r15d",
+// ];
+// const REG64: &[&'static str] = &[
+//     "rax", "rbx", "rcx", "rdx", "rdi", "rsi", "rbp", "rsp", "r8", "r9", "r10", "r11", "r12", "r13",
+//     "r14", "r15",
+// ];
+// const XMM: &[&'static str] = &[
+//     "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7",
+// ];
 
 #[derive(Debug)]
 pub struct DataSet<'a> {
@@ -36,7 +36,6 @@ pub enum Data<'a> {
     Register(Register),
     Prepositon(Preposition),
     Immediate(i64),
-
     _Memory(&'a str),
     Memory(Memory),
     Label(Label<'a>),
@@ -54,7 +53,9 @@ impl<'a> DataSet<'a> {
     }
     pub fn expect_object(self) -> Option<Self> {
         match self.data {
-            Data::Immediate(_) | Data::Keyword(_) | Data::Label(_) | Data::Register(_) => Some(self),
+            Data::Immediate(_) | Data::Keyword(_) | Data::Label(_) | Data::Register(_) => {
+                Some(self)
+            }
             Data::_Memory(mem) => {
                 let m = if let Some(memory) = Memory::new().parse(mem).ok() {
                     memory
@@ -62,11 +63,11 @@ impl<'a> DataSet<'a> {
                     return None;
                 };
                 Some(Self {
-                data: Data::Memory(m),
-                loc: self.loc,
-            })
-            },
-            _ => None
+                    data: Data::Memory(m),
+                    loc: self.loc,
+                })
+            }
+            _ => None,
         }
     }
 
@@ -150,7 +151,7 @@ impl<'a> Data<'a> {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 
 pub(crate) enum Verb {
     Add,
@@ -205,9 +206,35 @@ impl Verb {
     }
 }
 
-// temporary implementation
-#[derive(Debug, Clone, Copy)]
+impl std::fmt::Debug for Verb {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Add => write!(f, "add"),
+            Self::Substract => write!(f, "sub"),
+            Self::Multiply => write!(f, "mul"),
+            Self::Divide => write!(f, "div"),
+            Self::Move => write!(f, "mov"),
+            Self::Jump => write!(f, "jmp"),
+            Self::And => write!(f, "and"),
+            Self::Or => write!(f, "or"),
+            Self::Xor => write!(f, "xor"),
+            Self::Not => write!(f, "not"),
+            Self::Negate => write!(f, "neg"),
+            Self::ShiftRight => write!(f, "shr"),
+            Self::ShiftLeft => write!(f, "shl"),
+            Self::Call => write!(f, "call"),
+            Self::Compare => write!(f, "cmp"),
+            Self::Return => write!(f, "ret"),
+            Self::Leave => write!(f, "leave"),
+            Self::NoOperation => write!(f, "nop"),
+            Self::SystemCall => write!(f, "syscall"),
+            Self::Halt => write!(f, "hlt"),
+        }
+    }
+}
 
+// temporary implementation
+#[derive(Clone, Copy)]
 pub(crate) enum Register {
     // general purpose regiser
     AL,
@@ -369,7 +396,87 @@ impl Register {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+impl std::fmt::Debug for Register {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let reg = match self {
+            Register::AL => "al",
+            Register::BL => "bl",
+            Register::CL => "cl",
+            Register::DL => "dl",
+            Register::DIL => "dil",
+            Register::SIL => "sil",
+            Register::BPL => "bpl",
+            Register::SPL => "spl",
+            Register::R8B => "r8b",
+            Register::R9B => "r9b",
+            Register::R10B => "r10b",
+            Register::R11B => "r11b",
+            Register::R12B => "r12b",
+            Register::R13B => "r13b",
+            Register::R14B => "r14b",
+            Register::R15B => "r15b",
+            Register::AX => "ax",
+            Register::BX => "bx",
+            Register::CX => "cx",
+            Register::DX => "dx",
+            Register::DI => "di",
+            Register::SI => "si",
+            Register::BP => "bp",
+            Register::SP => "sp",
+            Register::R8W => "r8w",
+            Register::R9W => "r9w",
+            Register::R10W => "r10w",
+            Register::R11W => "r11w",
+            Register::R12W => "r12w",
+            Register::R13W => "r13w",
+            Register::R14W => "r14w",
+            Register::R15W => "r15w",
+            Register::EAX => "eax",
+            Register::EBX => "ebx",
+            Register::ECX => "ecx",
+            Register::EDX => "edx",
+            Register::EDI => "edi",
+            Register::ESI => "esi",
+            Register::EBP => "ebp",
+            Register::ESP => "esp",
+            Register::R8D => "r8d",
+            Register::R9D => "r9d",
+            Register::R10D => "r10d",
+            Register::R11D => "r11d",
+            Register::R12D => "r12d",
+            Register::R13D => "r13d",
+            Register::R14D => "r14d",
+            Register::R15D => "r15d",
+            Register::RAX => "rax",
+            Register::RBX => "rbx",
+            Register::RCX => "rcx",
+            Register::RDX => "rdx",
+            Register::RDI => "rdi",
+            Register::RSI => "rsi",
+            Register::RBP => "rbp",
+            Register::RSP => "rsp",
+            Register::R8 => "r8",
+            Register::R9 => "r9",
+            Register::R10 => "r10",
+            Register::R11 => "r11",
+            Register::R12 => "r12",
+            Register::R13 => "r13",
+            Register::R14 => "r14",
+            Register::R15 => "r15",
+            Register::XMM0 => "xmm0",
+            Register::XMM1 => "xmm1",
+            Register::XMM2 => "xmm2",
+            Register::XMM3 => "xmm3",
+            Register::XMM4 => "xmm4",
+            Register::XMM5 => "xmm5",
+            Register::XMM6 => "xmm6",
+            Register::XMM7 => "xmm7",
+        };
+        write!(f, "{}", reg)
+    }
+}
+
+#[derive(Clone, Copy)]
 pub(crate) enum Keyword {
     DoublePrecisionFloat,
     SinglePrecisionFloat,
@@ -381,6 +488,23 @@ pub(crate) enum Keyword {
     NE,
     GE,
     LE,
+}
+
+impl std::fmt::Debug for Keyword {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Keyword::DoublePrecisionFloat => write!(f, "dd"),
+            Keyword::SinglePrecisionFloat => write!(f, "sd"),
+            Keyword::Signed => todo!(),
+            Keyword::ZeroExtened => todo!(),
+            Keyword::E => write!(f, "e"),
+            Keyword::G => write!(f, "g"),
+            Keyword::L => write!(f, "l"),
+            Keyword::NE => write!(f, "ne"),
+            Keyword::GE => write!(f, "ge"),
+            Keyword::LE => write!(f, "le"),
+        }
+    }
 }
 
 impl Keyword {
@@ -427,7 +551,7 @@ impl Preposition {
 
 pub(crate) type Label<'a> = &'a str;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub struct Memory {
     pub(crate) base: Option<Register>,
     pub(crate) displacement: Option<i64>,
@@ -516,5 +640,38 @@ impl Memory {
         // todo: emit error data
         self.displacement = Some(sgn * token_seq[*pos].parse::<i64>().or_else(|_| Err(()))?);
         Ok(())
+    }
+}
+
+impl std::fmt::Debug for Memory {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[")?;
+        let mut count = 0;
+        if let Some(base) = self.base {
+            write!(f, "{:?}", base)?;
+            count += 1;
+        }
+        
+        if let Some(idx) = self.index {
+            if count > 0 {
+                write!(f, "+")?;
+            }
+            write!(f, "{:?}", idx)?;
+            if let Some(scl) = self.scale {
+                write!(f, "*{}", scl)?;
+            }
+        }
+        
+        if let Some(disp) = self.displacement {
+            if disp > 0 {
+                if count > 0 {
+                    write!(f, " + ")?;
+                }
+                write!(f, "{}", disp)?;
+            } else {
+                write!(f, "{}", disp)?;
+            }
+        }
+        write!(f, "]")
     }
 }
