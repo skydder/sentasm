@@ -24,13 +24,13 @@ use super::{Loc, Result, Tonkenizer};
 //     "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7",
 // ];
 
-#[derive(Debug)]
+
 pub struct DataSet<'a> {
     pub data: Data<'a>,
     pub loc: Loc<'a>,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub enum Data<'a> {
     Verb(Verb),
     Register(Register),
@@ -98,6 +98,12 @@ impl<'a> DataSet<'a> {
     }
 }
 
+impl<'a> std::fmt::Debug for  DataSet<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self.data)
+    }
+}
+
 impl<'a> Data<'a> {
     pub(crate) fn parse(token: &'a str) -> Data {
         if token.starts_with("@[") {
@@ -147,6 +153,23 @@ impl<'a> Data<'a> {
                 eprintln!("expected memory, but found other token");
                 None
             }
+        }
+    }
+}
+
+impl<'a> std::fmt::Debug for Data<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Verb(arg0) => write!(f, "{:?}", arg0),
+            Self::Register(arg0) => write!(f, "{:?}", arg0),
+            Self::Prepositon(arg0) => write!(f, "{:?}", arg0),
+            Self::Immediate(arg0) => write!(f, "{:?}", arg0),
+            Self::_Memory(arg0) => write!(f, "{:?}", arg0),
+            Self::Memory(arg0) => write!(f, "{:?}", arg0),
+            Self::Label(arg0) => write!(f, "{:?}", arg0),
+            Self::LabelDef => write!(f, "LabelDef"),
+            Self::LabelSpecial => write!(f, "LabelSpecial"),
+            Self::Keyword(arg0) => write!(f, "{:?}", arg0),
         }
     }
 }
@@ -493,8 +516,8 @@ pub(crate) enum Keyword {
 impl std::fmt::Debug for Keyword {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Keyword::DoublePrecisionFloat => write!(f, "dd"),
-            Keyword::SinglePrecisionFloat => write!(f, "sd"),
+            Keyword::DoublePrecisionFloat => write!(f, "sd"),
+            Keyword::SinglePrecisionFloat => write!(f, "ss"),
             Keyword::Signed => todo!(),
             Keyword::ZeroExtened => todo!(),
             Keyword::E => write!(f, "e"),
@@ -584,8 +607,8 @@ impl Memory {
         let token_seq = tokens.split_ascii_whitespace().collect::<Vec<&str>>();
         let mut pos = 1;
         self.parse_base(&token_seq, &mut pos)?;
-        println!("{}", token);
-        println!("{:?}", self);
+        // println!("{}", token);
+        // println!("{:?}", self);
         Ok(self)
     }
 

@@ -1,10 +1,11 @@
 use std::collections::HashMap;
+use std::cell::RefCell;
 
-use super::{data, Data, DataSet, Label, Loc, Preposition, Result, Tonkenizer, Verb};
+use super::{Data, DataSet, Label, Loc, Preposition, Result, Tonkenizer, Verb};
 
 #[derive(Debug)]
 pub(crate) struct PrepositionPhrases<'a> {
-    data: HashMap<Preposition, DataSet<'a>>,
+    data: RefCell<HashMap<Preposition, DataSet<'a>>>,
 }
 
 impl<'a> PrepositionPhrases<'a> {
@@ -26,18 +27,18 @@ impl<'a> PrepositionPhrases<'a> {
                 });
             tokenizer.next();
         }
-        Ok(Self { data })
+        Ok(Self { data:RefCell::new(data) })
     }
     pub(crate) fn expect_empty(&self) -> Result<()> {
-        if self.data.is_empty() {
+        if self.data.borrow().is_empty() {
             Ok(())
         } else {
             eprintln!("expected no more preposition phrases, but found it");
             Err(())
         }
     }
-    pub(crate) fn get_object(&mut self, p: Preposition) -> Option<DataSet> {
-        self.data.remove(&p)
+    pub(crate) fn get_object(&self, p: Preposition) -> Option<DataSet> {
+        self.data.borrow_mut().remove(&p)
     }
 }
 

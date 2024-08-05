@@ -48,6 +48,9 @@ impl<'a> Tonkenizer<'a> {
             while self.sourse.chars().nth(loc.column).unwrap_or(')') != ')' {
                 loc.column += 1;
             }
+            if self.sourse.chars().nth(loc.column).is_some() {
+                loc.column += 1;
+            }
         }
         self.loc.set(loc)
     }

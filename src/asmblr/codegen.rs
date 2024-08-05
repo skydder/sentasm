@@ -1,15 +1,15 @@
-use super::{data::Verb, Code, DataSet, Result, Loc, PrepositionPhrases, Preposition};
+use super::{data::Verb, Code, Data, DataSet, Keyword, Loc, Preposition, PrepositionPhrases, Result};
 
-pub fn codegen(mut code: &mut Code) -> Result<String> {
+pub fn codegen(mut code: Code) -> Result<String> {
     match code {
         Code::NullStmt=> Ok(format!("")),
         Code::LabelDef(l) => Ok(format!("{}:", l)),
-        Code::Sentence { verb, verb_loc, object,preposition_phrases } => codegen_sentence(*verb, *verb_loc, *object,  preposition_phrases)
+        Code::Sentence { verb, verb_loc, object,mut preposition_phrases } => codegen_sentence(verb, verb_loc, object,  &mut preposition_phrases)
     }
 }
 
 fn check_intransitive(object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> bool {
-    if object.is_none() & preposition_phrases.expect_empty().ok().is_none() {
+    if object.is_none() & preposition_phrases.expect_empty().ok().is_some() {
         true
     } else {
         false
@@ -31,7 +31,7 @@ fn codegen_sentence(verb: Verb, verb_loc: Loc, object: Option<DataSet>, mut prep
             Verb::Negate => gen_ins_neg(verb, verb_loc, object, &mut preposition_phrases),
             Verb::ShiftRight => gen_ins_shr(verb, verb_loc, object, &mut preposition_phrases),
             Verb::ShiftLeft => gen_ins_shl(verb, verb_loc, object, &mut preposition_phrases),
-            // Verb::Call => gen_ins_call(verb, verb_loc, object, preposition_phrases),
+            Verb::Call => gen_ins_call(verb, verb_loc, object, &mut preposition_phrases),
             Verb::Compare => gen_ins_cmp(verb, verb_loc, object, &mut preposition_phrases),
             // Verb::Return => gen_ins_ret(verb, verb_loc, object, preposition_phrases),
             // Verb::Leave => gen_ins_leave(verb, verb_loc, object, preposition_phrases),
@@ -52,7 +52,7 @@ fn gen_ins_add(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_p
     Ok(format!("{:?}{} {:?}, {:?}", verb, az, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
 }
 fn gen_ins_sub(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
-    let to = preposition_phrases.get_object(Preposition::To).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
+    let to = preposition_phrases.get_object(Preposition::From).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
     let az = if let Some(ap) = preposition_phrases.get_object(Preposition::As) {
         format!("{:?}", ap)
     } else {
@@ -61,22 +61,12 @@ fn gen_ins_sub(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_p
     Ok(format!("{:?}{} {:?}, {:?}", verb, az, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
 }
 fn gen_ins_mul(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
-    let to = preposition_phrases.get_object(Preposition::To).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
-    let az = if let Some(ap) = preposition_phrases.get_object(Preposition::As) {
-        format!("{:?}", ap)
-    } else {
-        format!("")
-    };
-    Ok(format!("{:?}{} {:?}, {:?}", verb, az, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+    let to = preposition_phrases.get_object(Preposition::By).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
+    Ok(format!("{:?} {:?}, {:?}", verb, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
 }
 fn gen_ins_div(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
-    let to = preposition_phrases.get_object(Preposition::To).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
-    let az = if let Some(ap) = preposition_phrases.get_object(Preposition::As) {
-        format!("{:?}", ap)
-    } else {
-        format!("")
-    };
-    Ok(format!("{:?}{} {:?}, {:?}", verb, az, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+    
+    Ok(format!("{:?} {:?}", verb, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
 }
 fn gen_ins_mov(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
     let to = preposition_phrases.get_object(Preposition::To).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
@@ -88,98 +78,58 @@ fn gen_ins_mov(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_p
     Ok(format!("{:?}{} {:?}, {:?}", verb, az, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
 }
 fn gen_ins_jmp(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
+    // println!("{:?}", preposition_phrases);
     let to = preposition_phrases.get_object(Preposition::To).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
-    let az = if let Some(ap) = preposition_phrases.get_object(Preposition::As) {
-        format!("{:?}", ap)
+    let az = if let Some(ap) = preposition_phrases.get_object(Preposition::If) {
+        format!("j{:?}", ap)
     } else {
-        format!("")
+        format!("jmp")
     };
-    Ok(format!("{:?}{} {:?}, {:?}", verb, az, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+
+    Ok(format!("{} {:?}", az, to))
 }
 fn gen_ins_and(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
-    let to = preposition_phrases.get_object(Preposition::To).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
-    let az = if let Some(ap) = preposition_phrases.get_object(Preposition::As) {
-        format!("{:?}", ap)
-    } else {
-        format!("")
-    };
-    Ok(format!("{:?}{} {:?}, {:?}", verb, az, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+    let to = preposition_phrases.get_object(Preposition::With).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
+    Ok(format!("{:?} {:?}, {:?}", verb, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
 }
 fn gen_ins_or(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
-    let to = preposition_phrases.get_object(Preposition::To).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
-    let az = if let Some(ap) = preposition_phrases.get_object(Preposition::As) {
-        format!("{:?}", ap)
-    } else {
-        format!("")
-    };
-    Ok(format!("{:?}{} {:?}, {:?}", verb, az, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+    let to = preposition_phrases.get_object(Preposition::With).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
+    Ok(format!("{:?} {:?}, {:?}", verb, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
 }
 fn gen_ins_xor(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
-    let to = preposition_phrases.get_object(Preposition::To).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
-    let az = if let Some(ap) = preposition_phrases.get_object(Preposition::As) {
-        format!("{:?}", ap)
-    } else {
-        format!("")
-    };
-    Ok(format!("{:?}{} {:?}, {:?}", verb, az, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+    let to = preposition_phrases.get_object(Preposition::With).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
+    Ok(format!("{:?} {:?}, {:?}", verb, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
 }
 fn gen_ins_not(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
-    let to = preposition_phrases.get_object(Preposition::To).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
-    let az = if let Some(ap) = preposition_phrases.get_object(Preposition::As) {
-        format!("{:?}", ap)
-    } else {
-        format!("")
-    };
-    Ok(format!("{:?}{} {:?}, {:?}", verb, az, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+    Ok(format!("{:?} {:?}", verb, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
 }
 fn gen_ins_neg(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
-    let to = preposition_phrases.get_object(Preposition::To).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
-    let az = if let Some(ap) = preposition_phrases.get_object(Preposition::As) {
-        format!("{:?}", ap)
-    } else {
-        format!("")
-    };
-    Ok(format!("{:?}{} {:?}, {:?}", verb, az, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+    Ok(format!("{:?} {:?}", verb, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
 }
 fn gen_ins_shr(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
-    let to = preposition_phrases.get_object(Preposition::To).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
-    let az = if let Some(ap) = preposition_phrases.get_object(Preposition::As) {
-        format!("{:?}", ap)
-    } else {
-        format!("")
-    };
-    Ok(format!("{:?}{} {:?}, {:?}", verb, az, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+    let to = preposition_phrases.get_object(Preposition::By).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
+    Ok(format!("{:?} {:?}, {:?}", verb, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
 }
 fn gen_ins_shl(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
-    let to = preposition_phrases.get_object(Preposition::To).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
-    let az = if let Some(ap) = preposition_phrases.get_object(Preposition::As) {
-        format!("{:?}", ap)
-    } else {
-        format!("")
-    };
-    Ok(format!("{:?}{} {:?}, {:?}", verb, az, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+    let to = preposition_phrases.get_object(Preposition::By).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
+    Ok(format!("{:?} {:?}, {:?}", verb, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
 }
-// fn gen_ins_call(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:PrepositionPhrases) -> Result<String> {
-//     todo!();
-// }
+fn gen_ins_call(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
+    Ok(format!("{:?} {:?}", verb, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+}
 fn gen_ins_cmp(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
     let to = preposition_phrases.get_object(Preposition::To).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
-    let az = if let Some(ap) = preposition_phrases.get_object(Preposition::As) {
-        format!("{:?}", ap)
-    } else {
-        format!("")
-    };
-    Ok(format!("{:?}{} {:?}, {:?}", verb, az, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+    Ok(format!("{:?} {:?}, {:?}", verb, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
 }
-fn gen_ins_ret(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
-    let to = preposition_phrases.get_object(Preposition::To).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
-    let az = if let Some(ap) = preposition_phrases.get_object(Preposition::As) {
-        format!("{:?}", ap)
-    } else {
-        format!("")
-    };
-    Ok(format!("{:?}{} {:?}, {:?}", verb, az, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
-}
+// fn gen_ins_ret(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
+//     let to = preposition_phrases.get_object(Preposition::To).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
+//     let az = if let Some(ap) = preposition_phrases.get_object(Preposition::As) {
+//         format!("{:?}", ap)
+//     } else {
+//         format!("")
+//     };
+//     Ok(format!("{:?}{} {:?}, {:?}", verb, az, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+// }
 // fn gen_ins_leave(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:PrepositionPhrases) -> Result<String> {
 //     todo!();
 // }
@@ -189,10 +139,10 @@ fn gen_ins_ret(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_p
 // fn gen_ins_syscall(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:PrepositionPhrases) -> Result<String> {
 //     todo!();
 // }
-fn gen_ins_hlt(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
-    assert!(check_intransitive(object, preposition_phrases)); // todo: assert to error handling
-    Ok(format!("{:?}", verb))
-}
+// fn gen_ins_hlt(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
+//     assert!(check_intransitive(object, preposition_phrases)); // todo: assert to error handling
+//     Ok(format!("{:?}", verb))
+// }
 
 
 fn gen_ins_iv(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {

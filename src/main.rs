@@ -1,11 +1,11 @@
 use std::{
     fs::File,
-    io::{BufRead, BufReader},
+    io::{BufRead, BufReader}, process::exit,
 };
 
 mod asmblr;
 
-use asmblr::{Code, Loc, Tonkenizer};
+use asmblr::{Code, Loc, Tonkenizer, codegen};
 
 fn main() {
     match read_args() {
@@ -24,17 +24,16 @@ fn read_args<'a>() -> Result<String, ()> {
 }
 
 fn compile_file(file: &str) {
-    let code: String = String::new();
+    println!(".intel_syntax noprefix");
+    println!(".global main");
+
     for (ln, line_result) in BufReader::new(File::open(file).unwrap())
         .lines()
         .enumerate()
     {
         let line = line_result.unwrap().clone();
         let _tokenizer = Tonkenizer::new(&line, Loc::new(file, ln, 0));
-        println!("{:?}", Code::parse(&_tokenizer));
+        // println!("{:?}", Code::parse(&_tokenizer));
+        println!("{}", codegen(Code::parse(&_tokenizer).unwrap_or_else(|_| exit(404))).unwrap_or_else(|_| exit(404)));
     }
-
-    println!(".intel_syntax noprefix");
-    println!(".global main");
-    println!("{}", code);
 }
