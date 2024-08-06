@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::cell::RefCell;
 
-use super::{Data, DataSet, Label, Loc, Preposition, Result, Tonkenizer, Verb};
+use super::{Data, DataSet, Label, Loc, Preposition, Result, Tonkenizer, Verb, codegen};
 
 #[derive(Debug)]
 pub(crate) struct PrepositionPhrases<'a> {
@@ -42,7 +42,7 @@ impl<'a> PrepositionPhrases<'a> {
     }
 }
 
-#[derive(Debug)]
+
 pub enum Code<'a> {
     Sentence {
         verb: Verb,
@@ -55,6 +55,7 @@ pub enum Code<'a> {
 }
 
 impl<'a> Code<'a> {
+    
     pub fn parse(tonkenizer: &'a Tonkenizer<'a>) -> Result<Self> {
         match tonkenizer.next() {
             Some(DataSet {
@@ -87,3 +88,9 @@ impl<'a> Code<'a> {
         }
     }
 }
+
+// impl<'a> std::fmt::Debug for Code<'a> {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         write!(f, "{}", codegen(*self).ok().unwrap_or_else(|| {eprintln!("hwat?"); String::new()}))
+//     }
+// }

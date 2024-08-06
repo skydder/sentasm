@@ -108,18 +108,18 @@ fn gen_ins_neg(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_p
 }
 fn gen_ins_shr(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
     let to = preposition_phrases.get_object(Preposition::By).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
-    Ok(format!("{:?} {:?}, {:?}", verb, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+    Ok(format!("{:?} {:?}, {:?}", verb, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?, to))
 }
 fn gen_ins_shl(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
     let to = preposition_phrases.get_object(Preposition::By).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
-    Ok(format!("{:?} {:?}, {:?}", verb, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+    Ok(format!("{:?} {:?}, {:?}", verb, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?, to))
 }
 fn gen_ins_call(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
     Ok(format!("{:?} {:?}", verb, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
 }
 fn gen_ins_cmp(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
     let to = preposition_phrases.get_object(Preposition::To).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
-    Ok(format!("{:?} {:?}, {:?}", verb, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+    Ok(format!("{:?} {:?}, {:?}", verb, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?, to))
 }
 // fn gen_ins_ret(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
 //     let to = preposition_phrases.get_object(Preposition::To).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;

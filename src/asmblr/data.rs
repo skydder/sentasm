@@ -4,26 +4,80 @@ use std::fmt::{write, Debug};
 use super::{Loc, Result, Tonkenizer};
 
 // use someday
-// const REG8: &[&'static str] = &[
-//     "al", "bl", "cl", "dl", "dil", "sil", "bpl", "spl", "r8b", "r9b", "r10b", "r11b", "r12b",
-//     "r13b", "r14b", "r15b",
-// ];
-// const REG16: &[&'static str] = &[
-//     "ax", "bx", "cx", "dx", "di", "si", "bp", "sp", "r8w", "r9w", "r10w", "r11w", "r12w", "r13w",
-//     "r14w", "r15w",
-// ];
-// const REG32: &[&'static str] = &[
-//     "eax", "ebx", "ecx", "edx", "edi", "esi", "ebp", "esp", "r8d", "r9d", "r10d", "r11d", "r12d",
-//     "r13d", "r14d", "r15d",
-// ];
-// const REG64: &[&'static str] = &[
-//     "rax", "rbx", "rcx", "rdx", "rdi", "rsi", "rbp", "rsp", "r8", "r9", "r10", "r11", "r12", "r13",
-//     "r14", "r15",
-// ];
-// const XMM: &[&'static str] = &[
-//     "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7",
-// ];
+const REG8: &[&'static str] = &[
+    "al", "bl", "cl", "dl", "dil", "sil", "bpl", "spl", "r8b", "r9b", "r10b", "r11b", "r12b",
+    "r13b", "r14b", "r15b",
+];
+const REG16: &[&'static str] = &[
+    "ax", "bx", "cx", "dx", "di", "si", "bp", "sp", "r8w", "r9w", "r10w", "r11w", "r12w", "r13w",
+    "r14w", "r15w",
+];
+const REG32: &[&'static str] = &[
+    "eax", "ebx", "ecx", "edx", "edi", "esi", "ebp", "esp", "r8d", "r9d", "r10d", "r11d", "r12d",
+    "r13d", "r14d", "r15d",
+];
+const REG64: &[&'static str] = &[
+    "rax", "rbx", "rcx", "rdx", "rdi", "rsi", "rbp", "rsp", "r8", "r9", "r10", "r11", "r12", "r13",
+    "r14", "r15",
+];
+const XMM: &[&'static str] = &[
+    "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7",
+];
+#[derive(Clone, Copy)]
+pub(crate) struct Register {
+    size: usize,
+    kind: _Register
+}
 
+impl Register {
+    pub(crate) fn parse<'a>(token: &'a str) -> Option<Self> {
+        let size = if let Some(s) = Self::size(token) {
+            s
+        } else {
+            return None;
+        };
+        let kind = _Register::parse(token).unwrap();
+        Some(Self {size, kind})
+    }
+    fn size<'a>(token: &'a str) -> Option<usize> {
+        for i in REG8 {
+            if token == *i {
+                return Some(8);
+            }
+        }
+
+        for i in REG16 {
+            if token == *i {
+                return Some(16);
+            }
+        }
+        for i in REG32 {
+            if token == *i {
+                return Some(32);
+            }
+        }
+        for i in REG64 {
+            if token == *i {
+                return Some(64);
+            }
+        }
+        for i in XMM {
+            if token == *i {
+                return Some(128);
+            }
+        }
+        None
+    }
+    pub fn is_reg(token: &str) -> bool {
+        Self::parse(token).is_some()
+    }
+}
+
+impl std::fmt::Debug for Register {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self.kind)
+    }
+}
 
 pub struct DataSet<'a> {
     pub data: Data<'a>,
@@ -258,7 +312,7 @@ impl std::fmt::Debug for Verb {
 
 // temporary implementation
 #[derive(Clone, Copy)]
-pub(crate) enum Register {
+enum _Register {
     // general purpose regiser
     AL,
     BL,
@@ -335,7 +389,7 @@ pub(crate) enum Register {
     XMM7,
 }
 
-impl Register {
+impl _Register {
     pub(crate) fn parse<'a>(token: &'a str) -> Option<Self> {
         match token {
             "al" => Some(Self::AL),
@@ -413,87 +467,83 @@ impl Register {
             _ => None,
         }
     }
-
-    pub fn is_reg(token: &str) -> bool {
-        Self::parse(token).is_some()
-    }
 }
 
-impl std::fmt::Debug for Register {
+impl std::fmt::Debug for _Register {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let reg = match self {
-            Register::AL => "al",
-            Register::BL => "bl",
-            Register::CL => "cl",
-            Register::DL => "dl",
-            Register::DIL => "dil",
-            Register::SIL => "sil",
-            Register::BPL => "bpl",
-            Register::SPL => "spl",
-            Register::R8B => "r8b",
-            Register::R9B => "r9b",
-            Register::R10B => "r10b",
-            Register::R11B => "r11b",
-            Register::R12B => "r12b",
-            Register::R13B => "r13b",
-            Register::R14B => "r14b",
-            Register::R15B => "r15b",
-            Register::AX => "ax",
-            Register::BX => "bx",
-            Register::CX => "cx",
-            Register::DX => "dx",
-            Register::DI => "di",
-            Register::SI => "si",
-            Register::BP => "bp",
-            Register::SP => "sp",
-            Register::R8W => "r8w",
-            Register::R9W => "r9w",
-            Register::R10W => "r10w",
-            Register::R11W => "r11w",
-            Register::R12W => "r12w",
-            Register::R13W => "r13w",
-            Register::R14W => "r14w",
-            Register::R15W => "r15w",
-            Register::EAX => "eax",
-            Register::EBX => "ebx",
-            Register::ECX => "ecx",
-            Register::EDX => "edx",
-            Register::EDI => "edi",
-            Register::ESI => "esi",
-            Register::EBP => "ebp",
-            Register::ESP => "esp",
-            Register::R8D => "r8d",
-            Register::R9D => "r9d",
-            Register::R10D => "r10d",
-            Register::R11D => "r11d",
-            Register::R12D => "r12d",
-            Register::R13D => "r13d",
-            Register::R14D => "r14d",
-            Register::R15D => "r15d",
-            Register::RAX => "rax",
-            Register::RBX => "rbx",
-            Register::RCX => "rcx",
-            Register::RDX => "rdx",
-            Register::RDI => "rdi",
-            Register::RSI => "rsi",
-            Register::RBP => "rbp",
-            Register::RSP => "rsp",
-            Register::R8 => "r8",
-            Register::R9 => "r9",
-            Register::R10 => "r10",
-            Register::R11 => "r11",
-            Register::R12 => "r12",
-            Register::R13 => "r13",
-            Register::R14 => "r14",
-            Register::R15 => "r15",
-            Register::XMM0 => "xmm0",
-            Register::XMM1 => "xmm1",
-            Register::XMM2 => "xmm2",
-            Register::XMM3 => "xmm3",
-            Register::XMM4 => "xmm4",
-            Register::XMM5 => "xmm5",
-            Register::XMM6 => "xmm6",
-            Register::XMM7 => "xmm7",
+            Self::AL => "al",
+            Self::BL => "bl",
+            Self::CL => "cl",
+            Self::DL => "dl",
+            Self::DIL => "dil",
+            Self::SIL => "sil",
+            Self::BPL => "bpl",
+            Self::SPL => "spl",
+            Self::R8B => "r8b",
+            Self::R9B => "r9b",
+            Self::R10B => "r10b",
+            Self::R11B => "r11b",
+            Self::R12B => "r12b",
+            Self::R13B => "r13b",
+            Self::R14B => "r14b",
+            Self::R15B => "r15b",
+            Self::AX => "ax",
+            Self::BX => "bx",
+            Self::CX => "cx",
+            Self::DX => "dx",
+            Self::DI => "di",
+            Self::SI => "si",
+            Self::BP => "bp",
+            Self::SP => "sp",
+            Self::R8W => "r8w",
+            Self::R9W => "r9w",
+            Self::R10W => "r10w",
+            Self::R11W => "r11w",
+            Self::R12W => "r12w",
+            Self::R13W => "r13w",
+            Self::R14W => "r14w",
+            Self::R15W => "r15w",
+            Self::EAX => "eax",
+            Self::EBX => "ebx",
+            Self::ECX => "ecx",
+            Self::EDX => "edx",
+            Self::EDI => "edi",
+            Self::ESI => "esi",
+            Self::EBP => "ebp",
+            Self::ESP => "esp",
+            Self::R8D => "r8d",
+            Self::R9D => "r9d",
+            Self::R10D => "r10d",
+            Self::R11D => "r11d",
+            Self::R12D => "r12d",
+            Self::R13D => "r13d",
+            Self::R14D => "r14d",
+            Self::R15D => "r15d",
+            Self::RAX => "rax",
+            Self::RBX => "rbx",
+            Self::RCX => "rcx",
+            Self::RDX => "rdx",
+            Self::RDI => "rdi",
+            Self::RSI => "rsi",
+            Self::RBP => "rbp",
+            Self::RSP => "rsp",
+            Self::R8 => "r8",
+            Self::R9 => "r9",
+            Self::R10 => "r10",
+            Self::R11 => "r11",
+            Self::R12 => "r12",
+            Self::R13 => "r13",
+            Self::R14 => "r14",
+            Self::R15 => "r15",
+            Self::XMM0 => "xmm0",
+            Self::XMM1 => "xmm1",
+            Self::XMM2 => "xmm2",
+            Self::XMM3 => "xmm3",
+            Self::XMM4 => "xmm4",
+            Self::XMM5 => "xmm5",
+            Self::XMM6 => "xmm6",
+            Self::XMM7 => "xmm7",
         };
         write!(f, "{}", reg)
     }
