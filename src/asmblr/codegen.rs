@@ -1,4 +1,4 @@
-use super::{data::Verb, Code, Data, DataSet, Keyword, Loc, Preposition, PrepositionPhrases, Result};
+use super::{data::{self, Verb}, Code, Data, DataSet, Keyword, Loc, Preposition, PrepositionPhrases, Result};
 
 pub fn codegen(mut code: Code) -> Result<String> {
     match code {
@@ -43,13 +43,25 @@ fn codegen_sentence(verb: Verb, verb_loc: Loc, object: Option<DataSet>, mut prep
 }
 
 fn gen_ins_add(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
-    let to = preposition_phrases.get_object(Preposition::To).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
+    let to = preposition_phrases.get_object(Preposition::To).map_or_else(|| None, |date| date.expect_object()).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
     let az = if let Some(ap) = preposition_phrases.get_object(Preposition::As) {
         format!("{:?}", ap)
     } else {
         format!("")
     };
-    Ok(format!("{:?}{} {:?}, {:?}", verb, az, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+    let obj = object.map_or_else(|| None, |date| date.expect_object()).ok_or_else(|| eprintln!("expected object, but could not find it"))?;
+    if let  Data::Immediate(_) = obj.data {
+        if obj.size() >= to.size() {
+            eprintln!("mismatched operand size!! refer to the document");
+            return Err(());
+        }
+    } else if obj.size() != to.size() {
+        eprintln!("mismatched operand size!! refer to the document");
+        return Err(());
+    }
+     
+
+    Ok(format!("{:?}{} {:?}, {:?}", verb, az, to, obj))
 }
 fn gen_ins_sub(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
     let to = preposition_phrases.get_object(Preposition::From).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;

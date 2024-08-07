@@ -1,5 +1,6 @@
 main:
 add 1 to eax
+add rax to eax(this should be error)
 substract 1 from @[1](disp)("@[memory location]" indicates memory locaion )
 substract 1 from @[ax](base)
 substract 1 from @[ax+rax+1](base+idx+disp)

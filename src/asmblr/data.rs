@@ -1,7 +1,7 @@
 use core::str;
-use std::fmt::{write, Debug};
+use std::fmt::Debug;
 
-use super::{Loc, Result, Tonkenizer};
+use super::{Loc, Result};
 
 // use someday
 const REG8: &[&'static str] = &[
@@ -125,6 +125,25 @@ impl<'a> DataSet<'a> {
         }
     }
 
+    pub fn size(&self) -> usize {
+        match self.data {
+            Data::Register(reg) => reg.size,
+            Data::Immediate(imm) => {
+                if (imm as u64) < (2 << 8) {
+                    8
+                } else if (imm as u64) < (2 << 16) {
+                    16
+                } else if (imm as u64) < (2 << 16) {
+                    32
+                } else {
+                    64
+                }
+            },
+            Data::Memory(mem) => todo!(),//mem.size(),
+            _ => 0,
+        }
+    }
+
     pub fn expect_register(self) -> Result<Self> {
         match self.data {
             Data::Register(_) => Ok(self),
@@ -217,10 +236,10 @@ impl<'a> std::fmt::Debug for Data<'a> {
             Self::Verb(arg0) => write!(f, "{:?}", arg0),
             Self::Register(arg0) => write!(f, "{:?}", arg0),
             Self::Prepositon(arg0) => write!(f, "{:?}", arg0),
-            Self::Immediate(arg0) => write!(f, "{:?}", arg0),
+            Self::Immediate(arg0) => write!(f, "{}", arg0),
             Self::_Memory(arg0) => write!(f, "{:?}", arg0),
             Self::Memory(arg0) => write!(f, "{:?}", arg0),
-            Self::Label(arg0) => write!(f, "{:?}", arg0),
+            Self::Label(arg0) => write!(f, "{}", arg0),
             Self::LabelDef => write!(f, "LabelDef"),
             Self::LabelSpecial => write!(f, "LabelSpecial"),
             Self::Keyword(arg0) => write!(f, "{:?}", arg0),
@@ -246,6 +265,7 @@ pub(crate) enum Verb {
     ShiftLeft,
     Call,
     Compare,
+    LoadEffectiveAddress,   
     // intransitive verbs
     Return,
     Leave,
@@ -272,6 +292,7 @@ impl Verb {
             "shift-left" => Some(Self::ShiftLeft),
             "call" => Some(Verb::Call),
             "compare" => Some(Self::Compare),
+            "load-effective-adress" => Some(Self::LoadEffectiveAddress),
 
             "return" => Some(Self::Return),
             "halt" => Some(Self::Halt),
@@ -306,6 +327,7 @@ impl std::fmt::Debug for Verb {
             Self::NoOperation => write!(f, "nop"),
             Self::SystemCall => write!(f, "syscall"),
             Self::Halt => write!(f, "hlt"),
+            Self::LoadEffectiveAddress => write!(f, "lea"),
         }
     }
 }
