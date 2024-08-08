@@ -26,7 +26,7 @@ const XMM: &[&'static str] = &[
 #[derive(Clone, Copy)]
 pub(crate) struct Register {
     size: usize,
-    kind: _Register
+    kind: _Register,
 }
 
 impl Register {
@@ -37,7 +37,7 @@ impl Register {
             return None;
         };
         let kind = _Register::parse(token).unwrap();
-        Some(Self {size, kind})
+        Some(Self { size, kind })
     }
     fn size<'a>(token: &'a str) -> Option<usize> {
         for i in REG8 {
@@ -138,8 +138,8 @@ impl<'a> DataSet<'a> {
                 } else {
                     64
                 }
-            },
-            Data::Memory(mem) => todo!(),//mem.size(),
+            }
+            Data::Memory(mem) => mem.size,
             _ => 0,
         }
     }
@@ -154,7 +154,7 @@ impl<'a> DataSet<'a> {
     pub fn expect_label(self) -> Option<Self> {
         match self.data {
             Data::Label(_) => Some(self),
-            _ => None
+            _ => None,
         }
     }
 
@@ -173,7 +173,7 @@ impl<'a> DataSet<'a> {
     }
 }
 
-impl<'a> std::fmt::Debug for  DataSet<'a> {
+impl<'a> std::fmt::Debug for DataSet<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.data)
     }
@@ -267,13 +267,15 @@ pub(crate) enum Verb {
     ShiftLeft,
     Call,
     Compare,
-    LoadEffectiveAddress,   
+    LoadEffectiveAddress,
     // intransitive verbs
     Return,
     Leave,
     NoOperation,
     SystemCall,
     Halt,
+    // pesudo instruction verb
+    Define,
 }
 
 impl Verb {
@@ -301,6 +303,7 @@ impl Verb {
             "leave" => Some(Self::Leave),
             "no-operation" => Some(Self::NoOperation),
             "systemcall" => Some(Self::SystemCall),
+            "define" => Some(Self::Define),
             _ => None,
         }
     }
@@ -330,6 +333,7 @@ impl std::fmt::Debug for Verb {
             Self::SystemCall => write!(f, "syscall"),
             Self::Halt => write!(f, "hlt"),
             Self::LoadEffectiveAddress => write!(f, "lea"),
+            Self::Define => write!(f, "def"),
         }
     }
 }
@@ -654,6 +658,7 @@ pub struct Memory {
     pub(crate) displacement: Option<i64>,
     pub(crate) index: Option<Register>,
     pub(crate) scale: Option<usize>,
+    pub(crate) size: usize,
 }
 
 impl Memory {
@@ -663,6 +668,7 @@ impl Memory {
             displacement: None,
             index: None,
             scale: None,
+            size: 0,
         }
     }
 
@@ -748,7 +754,7 @@ impl std::fmt::Debug for Memory {
             write!(f, "{:?}", base)?;
             count += 1;
         }
-        
+
         if let Some(idx) = self.index {
             if count > 0 {
                 write!(f, "+")?;
@@ -758,7 +764,7 @@ impl std::fmt::Debug for Memory {
                 write!(f, "*{}", scl)?;
             }
         }
-        
+
         if let Some(disp) = self.displacement {
             if disp > 0 {
                 if count > 0 {

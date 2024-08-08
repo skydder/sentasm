@@ -1,11 +1,12 @@
 use std::{
     fs::File,
-    io::{BufRead, BufReader}, process::exit,
+    io::{BufRead, BufReader},
+    process::exit,
 };
 
 mod asmblr;
 
-use asmblr::{Code, Loc, Tonkenizer, codegen};
+use asmblr::{codegen, Code, Loc, Tonkenizer};
 
 fn main() {
     match read_args() {
@@ -34,6 +35,10 @@ fn compile_file(file: &str) {
         let line = line_result.unwrap().clone();
         let _tokenizer = Tonkenizer::new(&line, Loc::new(file, ln, 0));
         // println!("{:?}", Code::parse(&_tokenizer));
-        println!("{}", codegen(Code::parse(&_tokenizer).unwrap_or_else(|_| exit(404))).unwrap_or_else(|_| exit(404)));
+        println!(
+            "{}",
+            codegen(Code::parse(&_tokenizer).unwrap_or_else(|_| exit(404)))
+                .unwrap_or_else(|_| exit(404))
+        );
     }
 }
