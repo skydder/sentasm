@@ -144,28 +144,30 @@ impl<'a> DataSet<'a> {
         }
     }
 
-    pub fn expect_register(self) -> Result<Self> {
+    pub fn expect_register(self) -> Option<Self> {
         match self.data {
-            Data::Register(_) => Ok(self),
-            _ => {
-                eprintln!("expected register, but found other type token");
-                Err(())
-            }
+            Data::Register(_) => Some(self),
+            _ => None,
         }
     }
 
-    pub fn expect_immediate(self) -> Result<Self> {
+    pub fn expect_label(self) -> Option<Self> {
         match self.data {
-            Data::Immediate(_) => Ok(self),
-            _ => {
-                eprintln!("expected immediate, but found other type token");
-                Err(())
-            }
+            Data::Label(_) => Some(self),
+            _ => None
         }
     }
+
     pub fn is_memory(&self) -> bool {
         match self.data {
-            Data::_Memory(_) => true,
+            Data::_Memory(_) | Data::Memory(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_register(&self) -> bool {
+        match self.data {
+            Data::Register(_) => true,
             _ => false,
         }
     }

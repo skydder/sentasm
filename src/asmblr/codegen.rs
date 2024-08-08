@@ -16,6 +16,20 @@ fn check_intransitive(object: Option<DataSet>, preposition_phrases:&mut Preposit
     }
 }
 
+macro_rules! check_operand {
+    ($obj:expr, $prep:expr) => {
+        if let  Data::Immediate(_) = $obj.data {
+            if $obj.size() >= $prep.size() {
+                eprintln!("mismatched operand size!! refer to the document");
+                return Err(());
+            }
+        } else if $obj.size() != $prep.size() & !$obj.size() & !$prep.size() {
+            eprintln!("mismatched operand size!! refer to the document");
+            return Err(());
+        }
+    };
+}
+
 fn codegen_sentence(verb: Verb, verb_loc: Loc, object: Option<DataSet>, mut preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
     match verb {
         Verb::Add => gen_ins_add(verb, verb_loc, object, &mut preposition_phrases),
@@ -55,31 +69,63 @@ fn gen_ins_add(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_p
             eprintln!("mismatched operand size!! refer to the document");
             return Err(());
         }
-    } else if obj.size() != to.size() {
+    } else if obj.size() != to.size() & !obj.size() & !to.size() {
         eprintln!("mismatched operand size!! refer to the document");
         return Err(());
     }
-     
-
     Ok(format!("{:?}{} {:?}, {:?}", verb, az, to, obj))
 }
+
 fn gen_ins_sub(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
-    let to = preposition_phrases.get_object(Preposition::From).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
+    let from = preposition_phrases.get_object(Preposition::From).ok_or_else(|| eprintln!("expected 'from' phrase, but could not find it"))?;
     let az = if let Some(ap) = preposition_phrases.get_object(Preposition::As) {
         format!("{:?}", ap)
     } else {
         format!("")
     };
-    Ok(format!("{:?}{} {:?}, {:?}", verb, az, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+
+    let obj = object.map_or_else(|| None, |date| date.expect_object()).ok_or_else(|| eprintln!("expected object, but could not find it"))?;
+    if let  Data::Immediate(_) = obj.data {
+        if obj.size() >= from.size() {
+            eprintln!("mismatched operand size!! refer to the document");
+            return Err(());
+        }
+    } else if obj.size() != from.size() & !obj.size() & !from.size() {
+        eprintln!("mismatched operand size!! refer to the document");
+        return Err(());
+    }
+    Ok(format!("{:?}{} {:?}, {:?}", verb, az, from, obj))
 }
+
 fn gen_ins_mul(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
-    let to = preposition_phrases.get_object(Preposition::By).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
-    Ok(format!("{:?} {:?}, {:?}", verb, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+    let by = preposition_phrases.get_object(Preposition::By).ok_or_else(|| eprintln!("expected 'by' phrase, but could not find it"))?;
+    match object.map_or_else(|| None, |date| date.expect_object()) {
+        Some(obj) => {
+            if let  Data::Immediate(_) = obj.data {
+                if obj.size() >= by.size() {
+                    eprintln!("mismatched operand size!! refer to the document");
+                    return Err(());
+                }
+            } else if obj.size() != by.size() & !obj.size() & !by.size() {
+                eprintln!("mismatched operand size!! refer to the document");
+                return Err(());
+            }
+            Ok(format!("{:?} {:?}, {:?}", verb, by, obj))
+        },
+        None => {
+            if by.is_register() {
+                eprintln!("mismatched operand size!! refer to the document");
+                return Err(());
+            }
+            Ok(format!("{:?} {:?}", verb, by))
+        }
+    }
 }
+
 fn gen_ins_div(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
-    
-    Ok(format!("{:?} {:?}", verb, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+    Ok(format!("{:?} {:?}", verb, object.map_or_else(|| None, |date| date.expect_register()).ok_or_else(|| eprintln!("expected object, but could not find it"))?))
 }
+
 fn gen_ins_mov(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
     let to = preposition_phrases.get_object(Preposition::To).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
     let az = if let Some(ap) = preposition_phrases.get_object(Preposition::As) {
@@ -87,11 +133,22 @@ fn gen_ins_mov(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_p
     } else {
         format!("")
     };
-    Ok(format!("{:?}{} {:?}, {:?}", verb, az, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+    let obj = object.map_or_else(|| None, |date| date.expect_object()).ok_or_else(|| eprintln!("expected object, but could not find it"))?;
+    if let  Data::Immediate(_) = obj.data {
+        if obj.size() >= to.size() {
+            eprintln!("mismatched operand size!! refer to the document");
+            return Err(());
+        }
+    } else if obj.size() != to.size() & !obj.size() & !to.size() {
+        eprintln!("mismatched operand size!! refer to the document");
+        return Err(());
+    }
+    Ok(format!("{:?}{} {:?}, {:?}", verb, az, to, obj))
 }
+
 fn gen_ins_jmp(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
-    // println!("{:?}", preposition_phrases);
-    let to = preposition_phrases.get_object(Preposition::To).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
+    // this code is specifying 'label' as the object, but in machine code, memory address also can be the object.
+    let to = preposition_phrases.get_object(Preposition::To).map_or_else(|| None, |date| date.expect_label()).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
     let az = if let Some(ap) = preposition_phrases.get_object(Preposition::If) {
         format!("j{:?}", ap)
     } else {
@@ -101,37 +158,52 @@ fn gen_ins_jmp(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_p
     Ok(format!("{} {:?}", az, to))
 }
 fn gen_ins_and(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
-    let to = preposition_phrases.get_object(Preposition::With).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
-    Ok(format!("{:?} {:?}, {:?}", verb, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+    let with = preposition_phrases.get_object(Preposition::With).ok_or_else(|| eprintln!("expected 'with' phrase, but could not find it"))?;
+    let obj = object.map_or_else(|| None, |date| date.expect_object()).ok_or_else(|| eprintln!("expected object, but could not find it"))?;
+    check_operand!(obj, with);
+    Ok(format!("{:?} {:?}, {:?}", verb, with, obj))
 }
 fn gen_ins_or(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
-    let to = preposition_phrases.get_object(Preposition::With).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
-    Ok(format!("{:?} {:?}, {:?}", verb, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+    let with = preposition_phrases.get_object(Preposition::With).ok_or_else(|| eprintln!("expected 'with' phrase, but could not find it"))?;
+    let obj = object.map_or_else(|| None, |date| date.expect_object()).ok_or_else(|| eprintln!("expected object, but could not find it"))?;
+    check_operand!(obj, with);
+    Ok(format!("{:?} {:?}, {:?}", verb, with, obj))
 }
 fn gen_ins_xor(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
-    let to = preposition_phrases.get_object(Preposition::With).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
-    Ok(format!("{:?} {:?}, {:?}", verb, to, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+    let with = preposition_phrases.get_object(Preposition::With).ok_or_else(|| eprintln!("expected 'with' phrase, but could not find it"))?;
+    let obj = object.map_or_else(|| None, |date| date.expect_object()).ok_or_else(|| eprintln!("expected object, but could not find it"))?;
+    check_operand!(obj, with);
+    Ok(format!("{:?} {:?}, {:?}", verb, with, obj))
 }
 fn gen_ins_not(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
-    Ok(format!("{:?} {:?}", verb, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+    Ok(format!("{:?} {:?}", verb, object.map_or_else(|| None, |date| date.expect_register()).ok_or_else(|| eprintln!("expected object, but could not find it"))?))
 }
 fn gen_ins_neg(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
-    Ok(format!("{:?} {:?}", verb, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+    Ok(format!("{:?} {:?}", verb, object.map_or_else(|| None, |date| date.expect_register()).ok_or_else(|| eprintln!("expected object, but could not find it"))?))
 }
 fn gen_ins_shr(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
-    let to = preposition_phrases.get_object(Preposition::By).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
-    Ok(format!("{:?} {:?}, {:?}", verb, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?, to))
+    let by = preposition_phrases.get_object(Preposition::By).ok_or_else(|| eprintln!("expected 'by' phrase, but could not find it"))?;
+    let obj = object.map_or_else(|| None, |date| date.expect_object()).ok_or_else(|| eprintln!("expected object, but could not find it"))?;
+    check_operand!(obj, by);
+    Ok(format!("{:?} {:?}, {:?}", verb, obj, by))
 }
 fn gen_ins_shl(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
-    let to = preposition_phrases.get_object(Preposition::By).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
-    Ok(format!("{:?} {:?}, {:?}", verb, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?, to))
+    let by = preposition_phrases.get_object(Preposition::By).ok_or_else(|| eprintln!("expected 'by' phrase, but could not find it"))?;
+    let obj = object.map_or_else(|| None, |date| date.expect_object()).ok_or_else(|| eprintln!("expected object, but could not find it"))?;
+    check_operand!(obj, by);
+    Ok(format!("{:?} {:?}, {:?}", verb, obj, by))
 }
+
 fn gen_ins_call(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
-    Ok(format!("{:?} {:?}", verb, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?))
+    // this code is specifying 'label' as the object, but in machine code, memory address also can be the object.
+    let obj = preposition_phrases.get_object(Preposition::To).map_or_else(|| None, |date| date.expect_label()).ok_or_else(|| eprintln!("expected label, but could not find it"))?;
+    Ok(format!("{:?} {:?}", verb, obj))
 }
 fn gen_ins_cmp(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
     let to = preposition_phrases.get_object(Preposition::To).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
-    Ok(format!("{:?} {:?}, {:?}", verb, object.ok_or_else(|| eprintln!("expected object, but could not find it"))?, to))
+    let obj = object.map_or_else(|| None, |date| date.expect_object()).ok_or_else(|| eprintln!("expected object, but could not find it"))?;
+    check_operand!(obj, to);
+    Ok(format!("{:?} {:?}, {:?}", verb, obj, to))
 }
 // fn gen_ins_ret(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposition_phrases:&mut PrepositionPhrases) -> Result<String> {
 //     let to = preposition_phrases.get_object(Preposition::To).ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
