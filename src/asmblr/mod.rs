@@ -7,7 +7,7 @@ mod tokenizer;
 
 pub use codegen::codegen;
 pub use data::{Data, DataSet};
-pub(crate) use data::{Keyword, Label, Memory, Preposition, Register, Verb};
+pub(crate) use data::{Label, Preposition, Verb};
 pub use parser::Code;
 pub(crate) use parser::PrepositionPhrases;
 pub use tokenizer::{Loc, Tonkenizer};

@@ -26,4 +26,5 @@ test() {
 prepare
 test 2 42
 test 3 55
+test 4 7
 echo Ok

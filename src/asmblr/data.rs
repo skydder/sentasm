@@ -158,10 +158,21 @@ impl<'a> DataSet<'a> {
         }
     }
 
-    pub fn is_memory(&self) -> bool {
+    pub fn expect_memory(self) -> Option<Self> {
         match self.data {
-            Data::_Memory(_) | Data::Memory(_) => true,
-            _ => false,
+            Data::_Memory(mem) => {
+                let m = if let Some(memory) = Memory::new().parse(mem).ok() {
+                    memory
+                } else {
+                    return None;
+                };
+                Some(Self {
+                    data: Data::Memory(m),
+                    loc: self.loc,
+                })
+            },
+            Data::Memory(_) => Some(self),
+            _ => None,
         }
     }
 
@@ -171,6 +182,8 @@ impl<'a> DataSet<'a> {
             _ => false,
         }
     }
+
+
 }
 
 impl<'a> std::fmt::Debug for DataSet<'a> {
@@ -199,35 +212,6 @@ impl<'a> Data<'a> {
             Data::Prepositon(p)
         } else {
             Data::Label(token)
-        }
-    }
-
-    pub fn reg(self) -> Result<Register> {
-        match self {
-            Self::Register(reg) => Ok(reg),
-            _ => {
-                eprintln!("expected register, but found other token");
-                Err(())
-            }
-        }
-    }
-
-    pub fn imm(self) -> Result<i64> {
-        match self {
-            Self::Immediate(imm) => Ok(imm),
-            _ => {
-                eprintln!("expected immediate, but found other token");
-                Err(())
-            }
-        }
-    }
-    pub fn mem(self) -> Option<&'a str> {
-        match self {
-            Self::_Memory(mem) => Some(mem),
-            _ => {
-                eprintln!("expected memory, but found other token");
-                None
-            }
         }
     }
 }
@@ -268,13 +252,15 @@ pub(crate) enum Verb {
     Call,
     Compare,
     LoadEffectiveAddress,
+    Push,
+    Pop,
     // intransitive verbs
     Return,
     Leave,
     NoOperation,
     SystemCall,
     Halt,
-    // pesudo instruction verb
+    // pseudo instruction verb
     Define,
 }
 
@@ -296,7 +282,9 @@ impl Verb {
             "shift-left" => Some(Self::ShiftLeft),
             "call" => Some(Verb::Call),
             "compare" => Some(Self::Compare),
-            "load-effective-adress" => Some(Self::LoadEffectiveAddress),
+            "load-effective-address" => Some(Self::LoadEffectiveAddress),
+            "push" => Some(Self::Push),
+            "pop" => Some(Self::Pop),
 
             "return" => Some(Self::Return),
             "halt" => Some(Self::Halt),
@@ -334,6 +322,8 @@ impl std::fmt::Debug for Verb {
             Self::Halt => write!(f, "hlt"),
             Self::LoadEffectiveAddress => write!(f, "lea"),
             Self::Define => write!(f, "def"),
+            Self::Push =>write!(f, "push"),
+            Self::Pop =>write!(f, "pop"),
         }
     }
 }

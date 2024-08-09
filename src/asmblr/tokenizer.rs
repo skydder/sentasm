@@ -1,4 +1,4 @@
-use std::{cell::Cell, fmt::write};
+use std::cell::Cell;
 
 use super::DataSet;
 

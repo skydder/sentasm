@@ -1,8 +1,8 @@
 use std::{
     cell::RefCell,
     collections::HashMap,
-    fs::File,
-    io::{BufRead, BufReader},
+    // fs::File,
+    // io::{BufRead, BufReader},
 };
 
 use super::{Data, DataSet, Label, Loc, Preposition, Result, Tonkenizer, Verb};
@@ -17,17 +17,21 @@ impl<'a> PrepositionPhrases<'a> {
         let mut data: HashMap<Preposition, DataSet<'a>> = HashMap::new();
         while let Some(DataSet {
             data: Data::Prepositon(p),
-            loc: _,
+            loc,
         }) = tokenizer.next()
         {
             data.insert(
                 p,
                 match tokenizer.peek() {
                     Some(data) => data.expect_object().ok_or_else(|| {
-                        eprintln!("preposition must take an object, but found nothing")
+                        eprintln!("preposition must take an object, but found nothing\n->{}",
+                        loc
+                    );
                     })?,
                     None => {
-                        eprintln!("preposition must take an object, but found nothing");
+                        eprintln!("preposition must take an object, but found nothing\n->{}",
+                        loc
+                    );
                         return Err(());
                     }
                 },
@@ -51,23 +55,23 @@ impl<'a> PrepositionPhrases<'a> {
     }
 }
 
-enum RawData {
-    Int(Vec<i64>),
-    Float(Vec<f64>),
-    Str(Vec<char>),
-}
+// enum RawData {
+//     Int(Vec<i64>),
+//     Float(Vec<f64>),
+//     Str(Vec<char>),
+// }
 
-struct SectionSentense<'a> {
-    size: usize,
-    name: Label<'a>,
-    data: RawData,
-}
+// struct SectionSentense<'a> {
+//     size: usize,
+//     name: Label<'a>,
+//     data: RawData,
+// }
 
-impl<'a> SectionSentense<'a> {
-    pub(crate) fn parse(tonkenizer: &'a Tonkenizer<'a>) -> Result<Self> {
-        todo!()
-    }
-}
+// impl<'a> SectionSentense<'a> {
+//     pub(crate) fn parse(tonkenizer: &'a Tonkenizer<'a>) -> Result<Self> {
+//         todo!()
+//     }
+// }
 
 pub enum Code<'a> {
     Sentence {
@@ -81,7 +85,7 @@ pub enum Code<'a> {
 }
 
 impl<'a> Code<'a> {
-    pub fn parse(mut tonkenizer: &'a Tonkenizer<'a>) -> Result<Self> {
+    pub fn parse(tonkenizer: &'a Tonkenizer<'a>) -> Result<Self> {
         match tonkenizer.next() {
             Some(DataSet {
                 data: Data::Verb(v),
@@ -115,7 +119,10 @@ impl<'a> Code<'a> {
                 {
                     Ok(Self::LabelDef(l))
                 } else {
-                    eprintln!("expected label definition, but this is not the label definition.");
+                    eprintln!(
+                        "expected label definition, but this is not the label definition.\n->{}",
+                        loc
+                    );
                     Err(())
                 }
             }

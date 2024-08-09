@@ -33,4 +33,8 @@ shift-right eax by 8
 not eax
 call printf
 jump to main if <
+push rax
+pop rax
+load-effective-address @[rax] to rbx
 (this is comment)
+(test
