@@ -13,7 +13,8 @@ run() {
 test() {
     expected="$2"
     run test/test$1.asm > test/target/test$1.S
-    cc -o test/target/test$1 test/target/test$1.S
+    nasm -f elf64 -o test/target/test$1.o test/target/test$1.S
+    ld -o test/target/test$1 test/target/test$1.o -m elf_x86_64
     ./test/target/test$1
     actual="$?"
     if [ "$actual" = "$expected" ]; then

@@ -1,5 +1,5 @@
 use core::str;
-use std::fmt::Debug;
+
 
 use super::{Loc, Result};
 
@@ -94,7 +94,7 @@ pub enum Data<'a> {
     Memory(Memory),
     Label(Label<'a>),
     LabelDef,
-    LabelSpecial,
+    Section,
     Keyword(Keyword),
 }
 
@@ -176,6 +176,20 @@ impl<'a> DataSet<'a> {
         }
     }
 
+    pub fn expect_imm(self) -> Option<Self> {
+        match self.data {
+            Data::Immediate(_) => Some(self),
+            _ => None,
+        }
+    }
+
+    pub fn expect_keyword(self) -> Option<Self> {
+        match self.data {
+            Data::Keyword(_) => Some(self),
+            _ => None,
+        }
+    }
+
     pub fn is_register(&self) -> bool {
         match self.data {
             Data::Register(_) => true,
@@ -196,9 +210,9 @@ impl<'a> Data<'a> {
     pub(crate) fn parse(token: &'a str) -> Data {
         if token.starts_with("@[") {
             Data::_Memory(token)
+        } else if token == "@" {
+            Data::Section
         } else if token == "#" {
-            Data::LabelSpecial
-        } else if token == ":" {
             Data::LabelDef
         } else if let Some(v) = Verb::parse(token) {
             Data::Verb(v)
@@ -227,7 +241,7 @@ impl<'a> std::fmt::Debug for Data<'a> {
             Self::Memory(arg0) => write!(f, "{:?}", arg0),
             Self::Label(arg0) => write!(f, "{}", arg0),
             Self::LabelDef => write!(f, "LabelDef"),
-            Self::LabelSpecial => write!(f, "LabelSpecial"),
+            Self::Section => write!(f, "section"),
             Self::Keyword(arg0) => write!(f, "{:?}", arg0),
         }
     }
@@ -262,6 +276,7 @@ pub(crate) enum Verb {
     Halt,
     // pseudo instruction verb
     Define,
+    Globalize,
 }
 
 impl Verb {
@@ -292,6 +307,7 @@ impl Verb {
             "no-operation" => Some(Self::NoOperation),
             "systemcall" => Some(Self::SystemCall),
             "define" => Some(Self::Define),
+            "globalize" => Some(Self::Globalize),
             _ => None,
         }
     }
@@ -324,6 +340,7 @@ impl std::fmt::Debug for Verb {
             Self::Define => write!(f, "def"),
             Self::Push =>write!(f, "push"),
             Self::Pop =>write!(f, "pop"),
+            Self::Globalize => write!(f, "global"),
         }
     }
 }
@@ -579,6 +596,10 @@ pub(crate) enum Keyword {
     NE,
     GE,
     LE,
+    Bit8,
+    Bit16,
+    Bit32,
+    Bit64,
 }
 
 impl std::fmt::Debug for Keyword {
@@ -594,6 +615,11 @@ impl std::fmt::Debug for Keyword {
             Keyword::NE => write!(f, "ne"),
             Keyword::GE => write!(f, "ge"),
             Keyword::LE => write!(f, "le"),
+            Keyword::Bit8 => write!(f, "b"),
+            Keyword::Bit16 => write!(f, "w"),
+            Keyword::Bit32 => write!(f, "d"),
+            Keyword::Bit64 => write!(f, "q"),
+            
         }
     }
 }
@@ -611,6 +637,10 @@ impl Keyword {
             "<=" => Some(Self::LE),
             ">" => Some(Self::G),
             ">=" => Some(Self::GE),
+            "8bit" => Some(Self::Bit8),
+            "16bit" => Some(Self::Bit16),
+            "32bit" => Some(Self::Bit32),
+            "64bit" => Some(Self::Bit64),
             _ => None,
         }
     }

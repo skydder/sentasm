@@ -8,6 +8,7 @@ pub fn codegen(code: Code) -> Result<String> {
     match code {
         Code::NullStmt => Ok(format!("")),
         Code::LabelDef(l) => Ok(format!("{}:", l)),
+        Code::Section(l) => Ok(format!("section {}", l)),
         Code::Sentence {
             verb,
             verb_loc,
@@ -86,6 +87,9 @@ fn codegen_sentence(
         Verb::Pop => gen_ins_pop(verb, verb_loc, object, &mut preposition_phrases),
         Verb::Push => gen_ins_push(verb, verb_loc, object, &mut preposition_phrases),
         Verb::LoadEffectiveAddress => gen_ins_lea(verb, verb_loc, object, &mut preposition_phrases),
+
+        Verb::Define => gen_ins_def(verb, verb_loc, object, preposition_phrases),
+        Verb::Globalize => gen_ins_global(verb, verb_loc, object, preposition_phrases),
         // Verb::Return => gen_ins_ret(verb, verb_loc, object, preposition_phrases),
         // Verb::Leave => gen_ins_leave(verb, verb_loc, object, preposition_phrases),
         // Verb::NoOperation => gen_ins_nop(verb, verb_loc, object, preposition_phrases),
@@ -421,4 +425,43 @@ fn gen_ins_push(
         .map_or_else(|| None, |date| date.expect_object())
         .ok_or_else(|| eprintln!("expected object, but could not find it"))?;
     Ok(format!("{:?} {:?}", verb, obj))
+}
+
+fn gen_ins_def(
+    _verb: Verb,
+    _verb_loc: Loc,
+    object: Option<DataSet>,
+    preposition_phrases: &mut PrepositionPhrases,
+) -> Result<String> {
+    let obj = object
+        .map_or_else(|| None, |date| date.expect_label())
+        .ok_or_else(|| eprintln!("expected label, but could not find it"))?;
+    let az = preposition_phrases
+        .get_object(Preposition::As)
+        .map_or_else(|| None, |date| date.expect_imm())
+        .ok_or_else(|| eprintln!("expected 'as' phrase, but could not find it"))?;
+    let by = preposition_phrases
+        .get_object(Preposition::By)
+        .map_or_else(|| None, |date| date.expect_keyword())
+        .ok_or_else(|| eprintln!("expected 'by' phrase, but could not find it"))?;
+
+    match (obj.data, az.data, by.data) {
+        (Data::Label(l), Data::Immediate(i), Data::Keyword(super::data::Keyword::Bit8)) => Ok(format!("{}: db {}", l, i)),
+        (Data::Label(l), Data::Immediate(i), Data::Keyword(super::data::Keyword::Bit16)) => Ok(format!("{}: dw {}", l, i)),
+        (Data::Label(l), Data::Immediate(i), Data::Keyword(super::data::Keyword::Bit32)) => Ok(format!("{}: dd {}", l, i)),
+        (Data::Label(l), Data::Immediate(i), Data::Keyword(super::data::Keyword::Bit64)) => Ok(format!("{}: dq {}", l, i)),
+        _ => todo!(),
+    }
+}
+
+fn gen_ins_global(
+    _verb: Verb,
+    _verb_loc: Loc,
+    object: Option<DataSet>,
+    _preposition_phrases: &mut PrepositionPhrases,
+) -> Result<String> {
+    let obj = object
+        .map_or_else(|| None, |date| date.expect_label())
+        .ok_or_else(|| eprintln!("expected label, but could not find it"))?;
+    Ok(format!("global {:?}", obj))
 }

@@ -81,6 +81,7 @@ pub enum Code<'a> {
         preposition_phrases: PrepositionPhrases<'a>,
     },
     LabelDef(Label<'a>),
+    Section(Label<'a>),
     NullStmt,
 }
 
@@ -109,14 +110,15 @@ impl<'a> Code<'a> {
                 ret
             }
             Some(DataSet {
-                data: Data::Label(l),
+                data: Data::LabelDef,
                 loc,
             }) => {
                 if let Some(DataSet {
-                    data: Data::LabelDef,
+                    data: Data::Label(l),
                     loc: _,
                 }) = tonkenizer.peek()
                 {
+                    tonkenizer.next();
                     Ok(Self::LabelDef(l))
                 } else {
                     eprintln!(
@@ -126,8 +128,30 @@ impl<'a> Code<'a> {
                     Err(())
                 }
             }
+            Some(DataSet {
+                data: Data::Section,
+                loc,
+            }) => {
+                if let Some(DataSet {
+                    data: Data::Label(l),
+                    loc: _,
+                }) = tonkenizer.peek()
+                {
+                    tonkenizer.next();
+                    Ok(Self::Section(l))
+                } else {
+                    eprintln!(
+                        "expected label definition, but this is not the label definition.\n->{}",
+                        loc
+                    );
+                    Err(())
+                }
+            }
             None => Ok(Self::NullStmt),
-            _ => todo!(),
+            _ => {
+                eprintln!("unexpected token:{:?}\n->{}",tonkenizer, tonkenizer.loc());
+                Err(())
+            },
         }
     }
 }

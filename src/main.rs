@@ -25,9 +25,6 @@ fn read_args<'a>() -> Result<String, ()> {
 }
 
 fn compile_file(file: &str) {
-    println!(".intel_syntax noprefix");
-    println!(".global main");
-
     for (ln, line_result) in BufReader::new(File::open(file).unwrap())
         .lines()
         .enumerate()
