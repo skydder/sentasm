@@ -171,6 +171,13 @@ impl<'a> DataSet<'a> {
         }
     }
 
+    pub fn expect_immediate(self) -> Option<Self> {
+        match self.data {
+            Data::Immediate(_) => Some(self),
+            _ => None,
+        }
+    }
+
     pub fn expect_memory(self) -> Option<Self> {
         match self.data {
             Data::_Memory(mem) => {
@@ -305,6 +312,7 @@ pub(crate) enum Verb {
     // pseudo instruction verb
     Define,
     Globalize,
+    Allocate,
 }
 
 impl Verb {
@@ -336,6 +344,7 @@ impl Verb {
             "systemcall" => Some(Self::SystemCall),
             "define" => Some(Self::Define),
             "globalize" => Some(Self::Globalize),
+            "allocate" => Some(Self::Allocate),
             _ => None,
         }
     }
@@ -365,10 +374,11 @@ impl std::fmt::Debug for Verb {
             Self::SystemCall => write!(f, "syscall"),
             Self::Halt => write!(f, "hlt"),
             Self::LoadEffectiveAddress => write!(f, "lea"),
-            Self::Define => write!(f, "def"),
+            Self::Define => write!(f, "data"),
             Self::Push =>write!(f, "push"),
             Self::Pop =>write!(f, "pop"),
             Self::Globalize => write!(f, "global"),
+            Self::Allocate => write!(f, "bss")
         }
     }
 }
@@ -682,6 +692,7 @@ pub(crate) enum Preposition {
     As,
     With,
     If, // unofficial
+    For,
 }
 
 impl Preposition {
@@ -693,6 +704,7 @@ impl Preposition {
             "as" => Some(Self::As),
             "with" => Some(Self::With),
             "if" => Some(Self::If),
+            "for" => Some(Self::For),
             _ => None,
         }
     }
@@ -854,9 +866,9 @@ impl<'a> Define<'a> {
     }
 
     pub fn parse(mut self, token: &'a str) -> Result<Self> {
-        eprintln!("{}", token);
+        // eprintln!("{}", token);
         let list = Self::tokenize(&token[1..token.len() - 1]);
-        eprintln!("{:?}", list);
+        // eprintln!("{:?}", list);
         for i in 0..list.len() {
             self.list.push(Self::parse_item(list[i])?);
         }

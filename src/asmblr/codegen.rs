@@ -94,6 +94,7 @@ fn codegen_sentence(
 
         Verb::Define => gen_ins_def(verb, verb_loc, object, preposition_phrases),
         Verb::Globalize => gen_ins_global(verb, verb_loc, object, preposition_phrases),
+        Verb::Allocate => gen_ins_alloc(verb, verb_loc, object, preposition_phrases),
         // Verb::Return => gen_ins_ret(verb, verb_loc, object, preposition_phrases),
         // Verb::Leave => gen_ins_leave(verb, verb_loc, object, preposition_phrases),
         // Verb::NoOperation => gen_ins_nop(verb, verb_loc, object, preposition_phrases),
@@ -442,7 +443,7 @@ fn gen_ins_def(
         .ok_or_else(|| eprintln!("expected label, but could not find it"))?;
     let az = preposition_phrases
         .get_object(Preposition::As)
-        .map_or_else(|| None, |date| {eprintln!("{:?}", date);date.expect_define()})
+        .map_or_else(|| None, |date| date.expect_define())
         .ok_or_else(|| eprintln!("expected 'as' phrase, but could not find it"))?;
     let by = preposition_phrases
         .get_object(Preposition::By)
@@ -468,4 +469,31 @@ fn gen_ins_global(
         .map_or_else(|| None, |date| date.expect_label())
         .ok_or_else(|| eprintln!("expected label, but could not find it"))?;
     Ok(format!("global {:?}", obj))
+}
+
+fn gen_ins_alloc(
+    _verb: Verb,
+    _verb_loc: Loc,
+    object: Option<DataSet>,
+    preposition_phrases: &mut PrepositionPhrases,
+) -> Result<String> {
+    let obj = object
+        .map_or_else(|| None, |date| date.expect_label())
+        .ok_or_else(|| eprintln!("expected label, but could not find it"))?;
+    let vor: DataSet = preposition_phrases
+        .get_object(Preposition::For)
+        .map_or_else(|| None, |date| date.expect_immediate())
+        .ok_or_else(|| eprintln!("expected 'for' phrase, but could not find it"))?;
+    let by = preposition_phrases
+        .get_object(Preposition::By)
+        .map_or_else(|| None, |date| date.expect_keyword())
+        .ok_or_else(|| eprintln!("expected 'by' phrase, but could not find it"))?;
+
+    match (obj.data, vor.data, by.data) {
+        (Data::Label(l), Data::Immediate(i), Data::Keyword(super::data::Keyword::Bit8)) => Ok(format!("{} resb {}", l, i)),
+        (Data::Label(l), Data::Immediate(i), Data::Keyword(super::data::Keyword::Bit16)) => Ok(format!("{} resw {}", l, i)),
+        (Data::Label(l), Data::Immediate(i), Data::Keyword(super::data::Keyword::Bit32)) => Ok(format!("{} resd {}", l, i)),
+        (Data::Label(l), Data::Immediate(i), Data::Keyword(super::data::Keyword::Bit64)) => Ok(format!("{} resq {}", l, i)),
+        _ => todo!(),
+    }
 }
