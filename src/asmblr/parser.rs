@@ -141,7 +141,7 @@ impl<'a> Code<'a> {
                     Ok(Self::Section(l))
                 } else {
                     eprintln!(
-                        "expected label definition, but this is not the label definition.\n->{}",
+                        "expected label definition, but this is not the label definition.{}",
                         loc
                     );
                     Err(())
@@ -149,7 +149,7 @@ impl<'a> Code<'a> {
             }
             None => Ok(Self::NullStmt),
             _ => {
-                eprintln!("unexpected token:{:?}\n->{}",tonkenizer, tonkenizer.loc());
+                eprintln!("unexpected token:{:?}{}",tonkenizer, tonkenizer.loc());
                 Err(())
             },
         }

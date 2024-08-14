@@ -21,7 +21,7 @@ impl<'a> Loc<'a> {
 
 impl<'a> std::fmt::Display for Loc<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:{}:{}", self.file_name, self.line + 1, self.column + 1)
+        write!(f, "\n->{}:{}:{}", self.file_name, self.line + 1, self.column + 1)
     }
 }
 
@@ -50,7 +50,7 @@ impl<'a> Tonkenizer<'a> {
         {
             loc.column += 1;
         }
-
+        // skip comments
         if self.sourse.chars().nth(loc.column).unwrap_or('*') == '(' {
             while self.sourse.chars().nth(loc.column).unwrap_or(')') != ')' {
                 loc.column += 1;
@@ -65,6 +65,8 @@ impl<'a> Tonkenizer<'a> {
     fn length_of_symbol(&self) -> usize {
         let mut len = 0;
         let column = self.loc.get().column;
+
+        // memory, section, label, define
         if self.sourse[column..].starts_with("@[") | self.sourse[column..].starts_with("[") {
             while self.sourse.chars().nth(column + len).unwrap_or(']') != ']' {
                 len += 1;

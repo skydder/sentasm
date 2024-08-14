@@ -12,5 +12,5 @@ compare ebx to 10
 jump to loop if <=
 move rax to rdi
 move 60 to rax
-(systemcall
-syscall
+systemcall
+(syscall

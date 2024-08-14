@@ -84,7 +84,7 @@ pub struct DataSet<'a> {
     pub loc: Loc<'a>,
 }
 
-#[derive(Clone, Copy)]
+
 pub enum Data<'a> {
     Verb(Verb),
     Register(Register),
@@ -96,6 +96,8 @@ pub enum Data<'a> {
     LabelDef,
     Section,
     Keyword(Keyword),
+    _Define(&'a str),
+    Define(Define<'a>)
 }
 
 impl<'a> DataSet<'a> {
@@ -118,6 +120,17 @@ impl<'a> DataSet<'a> {
                 };
                 Some(Self {
                     data: Data::Memory(m),
+                    loc: self.loc,
+                })
+            }
+            Data::_Define(def) => {
+                let d = if let Some(defn) = Define::new().parse(def).ok() {
+                    defn
+                } else {
+                    return None;
+                };
+                Some(Self {
+                    data: Data::Define(d),
                     loc: self.loc,
                 })
             }
@@ -176,9 +189,20 @@ impl<'a> DataSet<'a> {
         }
     }
 
-    pub fn expect_imm(self) -> Option<Self> {
+    pub fn expect_define(self) -> Option<Self> {
         match self.data {
-            Data::Immediate(_) => Some(self),
+            Data::_Define(def) => {
+                let d = if let Some(defn) = Define::new().parse(def).ok() {
+                    defn
+                } else {
+                    return None;
+                };
+                Some(Self {
+                    data: Data::Define(d),
+                    loc: self.loc,
+                })
+            },
+            Data::Define(_) => Some(self),
             _ => None,
         }
     }
@@ -210,6 +234,8 @@ impl<'a> Data<'a> {
     pub(crate) fn parse(token: &'a str) -> Data {
         if token.starts_with("@[") {
             Data::_Memory(token)
+        } else if token.starts_with("[") & token.ends_with("]") {
+            Data::_Define(token)
         } else if token == "@" {
             Data::Section
         } else if token == "#" {
@@ -243,6 +269,8 @@ impl<'a> std::fmt::Debug for Data<'a> {
             Self::LabelDef => write!(f, "LabelDef"),
             Self::Section => write!(f, "section"),
             Self::Keyword(arg0) => write!(f, "{:?}", arg0),
+            Self::_Define(_) => todo!(),
+            Self::Define(arg0) => write!(f, "{:?}", arg0),
         }
     }
 }
@@ -796,5 +824,111 @@ impl std::fmt::Debug for Memory {
             }
         }
         write!(f, "]")
+    }
+}
+
+// later to implement float
+enum DefItem<'a> {
+    Int(i64),
+    Str(&'a str),
+}
+
+impl<'a> std::fmt::Debug for DefItem<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DefItem::Int(i) => write!(f, "{}", i),
+            DefItem::Str(s) => write!(f, "\"{}\"", s),
+        }
+    }
+}
+
+pub struct Define<'a> {
+    list: Vec<DefItem<'a>>
+}
+
+impl<'a> Define<'a> {
+    // Define = [DefItem (, DefItem)*]
+    // DefItem = number | "string"
+    pub fn new() -> Self {
+        Self { list: Vec::new() }
+    }
+
+    pub fn parse(mut self, token: &'a str) -> Result<Self> {
+        eprintln!("{}", token);
+        let list = Self::tokenize(&token[1..token.len() - 1]);
+        eprintln!("{:?}", list);
+        for i in 0..list.len() {
+            self.list.push(Self::parse_item(list[i])?);
+        }
+        Ok(self)
+
+    }
+
+    fn tokenize(token: &'a str) -> Vec<&'a str> {
+        let mut pos = 0;
+        let mut list: Vec<&'a str> = Vec::new();
+        while token.chars().nth(pos).is_some() {
+            Self::skip_whitespase(token, &mut pos);
+            let len = Self::length_of_symbol(token, pos);
+            list.push(&token[pos..pos + len]);
+            pos += len;
+        }
+        list
+    }
+    // todo: treat '"' in "string"
+    fn length_of_symbol(token: &'a str, pos: usize) -> usize {
+        let mut len = 0;
+
+        if token[pos..].starts_with("\"") {
+            len += 1;
+            while token.chars().nth(pos + len).unwrap_or('"') != '"'{
+                len += 1;
+            }
+            return len + 1;
+        }
+
+        while !token
+            .chars()
+            .nth(pos + len)
+            .unwrap_or('\n')
+            .is_whitespace()
+        {
+            len += 1;
+        }
+        len
+    }
+
+    fn skip_whitespase(token: &'a str, pos: &mut usize) {
+        while token
+            .chars()
+            .nth(*pos)
+            .unwrap_or('*')
+            .is_whitespace()||  token.chars().nth(*pos).unwrap_or(',') == ','
+        {
+            *pos += 1;
+        }
+    }
+
+    fn parse_item(token: &'a str) -> Result<DefItem> {
+        if let Ok(i )= token.parse() {
+            Ok(DefItem::Int(i))
+        } else if token.starts_with('"') & token.ends_with('"'){
+            Ok(DefItem::Str(&token[1..token.len()-1]))
+        } else {
+            Err(())
+        }
+    }
+}
+
+
+impl<'a> std::fmt::Debug for Define<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut pos = 1;
+        write!(f, "{:?}", self.list[0])?;
+        while pos < self.list.len() {
+            write!(f, ", {:?}", self.list[pos])?;
+            pos += 1;
+        }
+        Ok(())
     }
 }

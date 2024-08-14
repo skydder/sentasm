@@ -28,4 +28,5 @@ prepare
 test 2 42
 test 3 55
 test 4 7
+test 5 0
 echo Ok

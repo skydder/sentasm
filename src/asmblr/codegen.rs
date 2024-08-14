@@ -36,6 +36,10 @@ macro_rules! check_operand {
             ();
         } else if let Data::Memory(_) = $prep.data {
             ();
+        } else if let Data::Label(_) = $obj.data {
+            ();
+        } else if let Data::Label(_) = $prep.data {
+            ();
         } else if let Data::Immediate(_) = $obj.data {
             if $obj.size() >= $prep.size() {
                 eprintln!(
@@ -438,7 +442,7 @@ fn gen_ins_def(
         .ok_or_else(|| eprintln!("expected label, but could not find it"))?;
     let az = preposition_phrases
         .get_object(Preposition::As)
-        .map_or_else(|| None, |date| date.expect_imm())
+        .map_or_else(|| None, |date| {eprintln!("{:?}", date);date.expect_define()})
         .ok_or_else(|| eprintln!("expected 'as' phrase, but could not find it"))?;
     let by = preposition_phrases
         .get_object(Preposition::By)
@@ -446,10 +450,10 @@ fn gen_ins_def(
         .ok_or_else(|| eprintln!("expected 'by' phrase, but could not find it"))?;
 
     match (obj.data, az.data, by.data) {
-        (Data::Label(l), Data::Immediate(i), Data::Keyword(super::data::Keyword::Bit8)) => Ok(format!("{}: db {}", l, i)),
-        (Data::Label(l), Data::Immediate(i), Data::Keyword(super::data::Keyword::Bit16)) => Ok(format!("{}: dw {}", l, i)),
-        (Data::Label(l), Data::Immediate(i), Data::Keyword(super::data::Keyword::Bit32)) => Ok(format!("{}: dd {}", l, i)),
-        (Data::Label(l), Data::Immediate(i), Data::Keyword(super::data::Keyword::Bit64)) => Ok(format!("{}: dq {}", l, i)),
+        (Data::Label(l), Data::Define(i), Data::Keyword(super::data::Keyword::Bit8)) => Ok(format!("{} db {:?}", l, i)),
+        (Data::Label(l), Data::Define(i), Data::Keyword(super::data::Keyword::Bit16)) => Ok(format!("{} dw {:?}", l, i)),
+        (Data::Label(l), Data::Define(i), Data::Keyword(super::data::Keyword::Bit32)) => Ok(format!("{} dd {:?}", l, i)),
+        (Data::Label(l), Data::Define(i), Data::Keyword(super::data::Keyword::Bit64)) => Ok(format!("{} dq {:?}", l, i)),
         _ => todo!(),
     }
 }
