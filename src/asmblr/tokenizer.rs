@@ -102,6 +102,7 @@ impl<'a> Tonkenizer<'a> {
 
     pub fn next(&self) -> Option<DataSet> {
         let next = self.peek();
+        // println!("{:?}", next);
         let column = self.loc.get().column + self.length_of_symbol();
         self.loc.set(Loc::new(
             self.loc.get().file_name,

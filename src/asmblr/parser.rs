@@ -24,12 +24,13 @@ impl<'a> PrepositionPhrases<'a> {
                 p,
                 match tokenizer.peek() {
                     Some(data) => data.expect_object().ok_or_else(|| {
-                        eprintln!("preposition must take an object, but found nothing\n->{}",
+                        
+                        eprintln!("preposition must take an object, but found nothing1{}",
                         loc
                     );
                     })?,
                     None => {
-                        eprintln!("preposition must take an object, but found nothing\n->{}",
+                        eprintln!("preposition must take an object, but found nothing.{}",
                         loc
                     );
                         return Err(());

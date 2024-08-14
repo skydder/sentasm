@@ -79,6 +79,7 @@ impl std::fmt::Debug for Register {
     }
 }
 
+
 pub struct DataSet<'a> {
     pub data: Data<'a>,
     pub loc: Loc<'a>,
@@ -91,7 +92,7 @@ pub enum Data<'a> {
     Prepositon(Preposition),
     Immediate(i64),
     _Memory(&'a str),
-    Memory(Memory),
+    Memory(Memory<'a>),
     Label(Label<'a>),
     LabelDef,
     Section,
@@ -108,6 +109,7 @@ impl<'a> DataSet<'a> {
         }
     }
     pub fn expect_object(self) -> Option<Self> {
+        // println!("{:?}", self);
         match self.data {
             Data::Immediate(_) | Data::Keyword(_) | Data::Label(_) | Data::Register(_) => {
                 Some(self)
@@ -152,7 +154,7 @@ impl<'a> DataSet<'a> {
                     64
                 }
             }
-            Data::Memory(mem) => mem.size,
+            Data::Memory(ref mem) => mem.size,
             _ => 0,
         }
     }
@@ -303,6 +305,8 @@ pub(crate) enum Verb {
     LoadEffectiveAddress,
     Push,
     Pop,
+    SetByte,
+    ExtendAXReg,
     // intransitive verbs
     Return,
     Leave,
@@ -331,11 +335,13 @@ impl Verb {
             "negate" => Some(Self::Negate),
             "shift-right" => Some(Self::ShiftRight),
             "shift-left" => Some(Self::ShiftLeft),
-            "call" => Some(Verb::Call),
+            "call" => Some(Self::Call),
             "compare" => Some(Self::Compare),
             "load-effective-address" => Some(Self::LoadEffectiveAddress),
             "push" => Some(Self::Push),
             "pop" => Some(Self::Pop),
+            "set-byte" => Some(Self::SetByte),
+            "extend-*ax-reg" => Some(Self::ExtendAXReg),
 
             "return" => Some(Self::Return),
             "halt" => Some(Self::Halt),
@@ -378,7 +384,9 @@ impl std::fmt::Debug for Verb {
             Self::Push =>write!(f, "push"),
             Self::Pop =>write!(f, "pop"),
             Self::Globalize => write!(f, "global"),
-            Self::Allocate => write!(f, "bss")
+            Self::Allocate => write!(f, "bss"),
+            Self::SetByte => write!(f, "set"),
+            Self::ExtendAXReg => write!(f, "cqo, etc"),
         }
     }
 }
@@ -626,8 +634,8 @@ impl std::fmt::Debug for _Register {
 pub(crate) enum Keyword {
     DoublePrecisionFloat,
     SinglePrecisionFloat,
-    Signed,
-    ZeroExtened,
+    Sign,
+    Zero,
     E,
     G,
     L,
@@ -645,8 +653,8 @@ impl std::fmt::Debug for Keyword {
         match self {
             Keyword::DoublePrecisionFloat => write!(f, "sd"),
             Keyword::SinglePrecisionFloat => write!(f, "ss"),
-            Keyword::Signed => todo!(),
-            Keyword::ZeroExtened => todo!(),
+            Keyword::Sign => todo!(),
+            Keyword::Zero => todo!(),
             Keyword::E => write!(f, "e"),
             Keyword::G => write!(f, "g"),
             Keyword::L => write!(f, "l"),
@@ -667,8 +675,8 @@ impl Keyword {
         match token {
             "single-precision-float" => Some(Self::SinglePrecisionFloat),
             "double-precision-float" => Some(Self::DoublePrecisionFloat),
-            "signed" => Some(Self::Signed),
-            "zero-extended" => Some(Self::ZeroExtened),
+            "sign-extention" => Some(Self::Sign),
+            "zero-extention" => Some(Self::Zero),
             "=" => Some(Self::E),
             "!=" => Some(Self::NE),
             "<" => Some(Self::L),
@@ -712,16 +720,16 @@ impl Preposition {
 
 pub(crate) type Label<'a> = &'a str;
 
-#[derive(Clone, Copy)]
-pub struct Memory {
+
+pub struct Memory<'a> {
     pub(crate) base: Option<Register>,
-    pub(crate) displacement: Option<i64>,
+    pub(crate) displacement: Option<Box<DataSet<'a>>>,
     pub(crate) index: Option<Register>,
     pub(crate) scale: Option<usize>,
     pub(crate) size: usize,
 }
 
-impl Memory {
+impl<'a> Memory<'a> {
     pub fn new() -> Self {
         Self {
             base: None,
@@ -737,14 +745,8 @@ impl Memory {
     // scale = 1|2|4|8
     // disp = num
     // mem = '['((base ('+' index ('*' scale)?)? ('+' disp)? ]) | (index '*' scale '+')? disp]))
-    pub fn parse<'a>(mut self, token: &'a str) -> Result<Self> {
-        let tokens = token
-            .replace("@[", "[ ")
-            .replace("]", " ]")
-            .replace("*", " * ")
-            .replace("+", " + ")
-            .replace("-", " - ");
-        let token_seq = tokens.split_ascii_whitespace().collect::<Vec<&str>>();
+    pub fn parse(mut self, token: &'a str) -> Result<Self> {
+        let token_seq = Self::tokenize(token);
         let mut pos = 1;
         self.parse_base(&token_seq, &mut pos)?;
         // println!("{}", token);
@@ -752,7 +754,7 @@ impl Memory {
         Ok(self)
     }
 
-    fn parse_base(&mut self, token_seq: &Vec<&str>, pos: &mut usize) -> Result<()> {
+    fn parse_base(&mut self, token_seq: &Vec<&'a str>, pos: &mut usize) -> Result<()> {
         if Register::is_reg(token_seq[*pos]) {
             if token_seq[*pos + 1] == "]"
                 || token_seq[*pos + 1] == "+"
@@ -765,7 +767,7 @@ impl Memory {
         self.parse_idx_scl(token_seq, pos)
     }
 
-    fn parse_idx_scl(&mut self, token_seq: &Vec<&str>, pos: &mut usize) -> Result<()> {
+    fn parse_idx_scl(&mut self, token_seq: &Vec<&'a str>, pos: &mut usize) -> Result<()> {
         if token_seq[*pos] == "+" {
             *pos += 1;
         }
@@ -787,7 +789,7 @@ impl Memory {
         self.parse_disp(token_seq, pos)
     }
 
-    fn parse_disp(&mut self, token_seq: &Vec<&str>, pos: &mut usize) -> Result<()> {
+    fn parse_disp(&mut self, token_seq: &Vec<&'a str>, pos: &mut usize) -> Result<()> {
         let sgn: i64;
         if token_seq[*pos] == "+" {
             *pos += 1;
@@ -801,13 +803,125 @@ impl Memory {
             sgn = 1
         }
         // todo: emit error data
-        self.displacement = Some(sgn * token_seq[*pos].parse::<i64>().or_else(|_| Err(()))?);
-        Ok(())
+
+        let  data = DataSet::new(token_seq[*pos], Loc::new("", 0, 0));
+        match data.data {
+            Data::Immediate(i) => {
+                self.displacement = Some(Box::new(DataSet{
+                    data:Data::Immediate(sgn*i),
+                    loc:data.loc
+                }))
+            },
+            Data::Label(_) => self.displacement = Some(Box::new(data)),
+            _ => {
+                eprintln!("unexpected!");
+                return  Err(());
+            }
+        }
+        
+        *pos += 1;
+        self.parse_size(token_seq, pos)
     }
+
+    fn parse_size(&mut self, token_seq: &Vec<&str>, pos: &mut usize) -> Result<()> {
+        if token_seq[*pos] == "by" {
+            *pos += 1;
+            match token_seq[*pos] {
+                "8bit" => self.size = 8,
+                "16bit" => self.size = 16,
+                "32bit" => self.size = 32,
+                "64bit" => self.size = 64,
+                _ => return Err(()),
+            };
+        } else {
+            self.size = 0;
+        }
+        if token_seq[*pos] == "]" {
+            Ok(())
+        } else {
+            Err(())
+        }
+    }
+
+    fn tokenize(token: &'a str) -> Vec<&'a str> {
+        let mut pos = 0;
+        let mut list: Vec<&'a str> = Vec::new();
+        while token.chars().nth(pos).is_some() {
+            Self::skip_whitespase(token, &mut pos);
+            let len = Self::length_of_symbol(token, pos);
+            list.push(&token[pos..pos + len]);
+            pos += len;
+        }
+        list
+    }
+    // todo: treat '"' in "string"
+    fn length_of_symbol(token: &'a str, pos: usize) -> usize {
+        let mut len = 0;
+
+        if &token[pos..pos + 1] == "+" {
+            return 1;
+        } else if &token[pos..pos + 1] == "-" {
+            return 1;
+        } else if &token[pos..pos + 1] == "*" {
+            return 1;
+        } else if &token[pos..pos + 1] == "]" {
+            return 1;
+        }else if &token[pos..pos + 2] == "@[" {
+            return 2;
+        }
+
+        while !token
+            .chars()
+            .nth(pos + len)
+            .unwrap_or('\n')
+            .is_whitespace() 
+            ||token
+            .chars()
+            .nth(pos + len)
+            .unwrap_or('\n') != '+'
+            ||token
+            .chars()
+            .nth(pos + len)
+            .unwrap_or('\n') != '-'
+            ||token
+            .chars()
+            .nth(pos + len)
+            .unwrap_or('\n') != ']'
+            ||token
+            .chars()
+            .nth(pos + len)
+            .unwrap_or('\n') != '*'
+
+        {
+            len += 1;
+        }
+        len
+    }
+
+    fn skip_whitespase(token: &'a str, pos: &mut usize) {
+        while token
+            .chars()
+            .nth(*pos)
+            .unwrap_or('*')
+            .is_whitespace()
+        {
+            *pos += 1;
+        }
+    }
+
 }
 
-impl std::fmt::Debug for Memory {
+impl<'a> std::fmt::Debug for Memory<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.size != 0 {
+            match self.size {
+                8 => write!(f, "byte"),
+                16 => write!(f, "word"),
+                32 => write!(f, "dword"),
+                64 => write!(f, "qword"),
+                _ => write!(f, ""), // should be error ....
+            }?;
+        }
         write!(f, "[")?;
         let mut count = 0;
         if let Some(base) = self.base {
@@ -825,14 +939,21 @@ impl std::fmt::Debug for Memory {
             }
         }
 
-        if let Some(disp) = self.displacement {
-            if disp > 0 {
-                if count > 0 {
-                    write!(f, " + ")?;
-                }
-                write!(f, "{}", disp)?;
-            } else {
-                write!(f, "{}", disp)?;
+        if let Some(disp) = &self.displacement {
+            match **disp {
+                DataSet { data:Data::Immediate(i), loc:_ } => {
+                    if i > 0 && count > 0{
+                        write!(f, "+")?;
+                    }
+                    write!(f, "{}", i)?;
+                },
+                DataSet { data: Data::Label(l), loc:_ } => {
+                    if  count > 0{
+                        write!(f, "+")?;
+                    }
+                    write!(f, "{}", l)?;
+                },
+                _ => todo!()
             }
         }
         write!(f, "]")
@@ -903,8 +1024,8 @@ impl<'a> Define<'a> {
             .chars()
             .nth(pos + len)
             .unwrap_or('\n')
-            .is_whitespace()
-        {
+            .is_whitespace() && token.chars().nth(pos + len).unwrap_or(',') != ','
+        {   
             len += 1;
         }
         len
@@ -915,7 +1036,7 @@ impl<'a> Define<'a> {
             .chars()
             .nth(*pos)
             .unwrap_or('*')
-            .is_whitespace()||  token.chars().nth(*pos).unwrap_or(',') == ','
+            .is_whitespace() ||  token.chars().nth(*pos).unwrap_or(',') == ','
         {
             *pos += 1;
         }

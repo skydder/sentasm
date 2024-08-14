@@ -1,4 +1,4 @@
-use super::{Code, Data, DataSet, Loc, Preposition, PrepositionPhrases, Result, Verb};
+use super::{data::Keyword, Code, Data, DataSet, Loc, Preposition, PrepositionPhrases, Result, Verb};
 
 // pub fn assemble(section: Section) {
 
@@ -91,6 +91,8 @@ fn codegen_sentence(
         Verb::Pop => gen_ins_pop(verb, verb_loc, object, &mut preposition_phrases),
         Verb::Push => gen_ins_push(verb, verb_loc, object, &mut preposition_phrases),
         Verb::LoadEffectiveAddress => gen_ins_lea(verb, verb_loc, object, &mut preposition_phrases),
+        Verb::SetByte => gen_ins_set(verb, verb_loc, object, preposition_phrases),
+        Verb::ExtendAXReg => gen_ins_extend(verb, verb_loc, object, preposition_phrases),
 
         Verb::Define => gen_ins_def(verb, verb_loc, object, preposition_phrases),
         Verb::Globalize => gen_ins_global(verb, verb_loc, object, preposition_phrases),
@@ -157,17 +159,30 @@ fn gen_ins_mul(
     let by = preposition_phrases
         .get_object(Preposition::By)
         .ok_or_else(|| eprintln!("expected 'by' phrase, but could not find it"))?;
-    match object.map_or_else(|| None, |date| date.expect_object()) {
+    let obj = object.map_or_else(|| None, |date| date.expect_object());
+    let with = match preposition_phrases
+        .get_object(Preposition::With)
+        {
+            Some(DataSet { data:Data::Keyword(Keyword::Sign), loc:_ })=> "i",
+            None => "",
+            _ => {
+                eprintln!("mul instruction don't take 'with' except the time when with 'sign-extenction'");
+                return Err(());
+            }
+    };
+    
+
+    match obj {
         Some(obj) => {
             check_operand!(obj, by);
-            Ok(format!("{:?} {:?}, {:?}", verb, by, obj))
+            Ok(format!("{}{:?} {:?}, {:?}", with, verb, by, obj))
         }
         None => {
             if by.is_register() {
                 eprintln!("mismatched operand size!! refer to the document");
                 return Err(());
             }
-            Ok(format!("{:?} {:?}", verb, by))
+            Ok(format!("{}{:?} {:?}",with, verb, by))
         }
     }
 }
@@ -176,10 +191,21 @@ fn gen_ins_div(
     verb: Verb,
     _verb_loc: Loc,
     object: Option<DataSet>,
-    _preposition_phrases: &mut PrepositionPhrases,
+    preposition_phrases: &mut PrepositionPhrases,
 ) -> Result<String> {
+    let with = match preposition_phrases
+        .get_object(Preposition::With)
+        {
+            Some(DataSet { data:Data::Keyword(Keyword::Sign), loc:_ })=> "i",
+            None => "",
+            _ => {
+                eprintln!("mul instruction don't take 'with' except the time when with 'sign-extenction'");
+                return Err(());
+            }
+    };
     Ok(format!(
-        "{:?} {:?}",
+        "{}{:?} {:?}",
+        with,
         verb,
         object
             .map_or_else(|| None, |date| date.expect_register())
@@ -188,7 +214,7 @@ fn gen_ins_div(
 }
 
 fn gen_ins_mov(
-    verb: Verb,
+    _verb: Verb,
     _verb_loc: Loc,
     object: Option<DataSet>,
     preposition_phrases: &mut PrepositionPhrases,
@@ -196,16 +222,41 @@ fn gen_ins_mov(
     let to = preposition_phrases
         .get_object(Preposition::To)
         .ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it\n->{}", _verb_loc))?;
-    let az = if let Some(ap) = preposition_phrases.get_object(Preposition::As) {
-        format!("{:?}", ap)
-    } else {
-        format!("")
-    };
+    let az = preposition_phrases.get_object(Preposition::As).map_or_else(|| None, |date| date.expect_keyword());
+    
     let obj = object
         .map_or_else(|| None, |date| date.expect_object())
         .ok_or_else(|| eprintln!("expected object, but could not find it\n->{}", _verb_loc))?;
-    check_operand!(obj, to);
-    Ok(format!("{:?}{} {:?}, {:?}", verb, az, to, obj))
+
+    let with = preposition_phrases.get_object(Preposition::With).map_or_else(|| None, |date| date.expect_keyword());
+    
+    match (az, with) {
+        (None, None) => {
+            check_operand!(obj, to);
+            Ok(format!("mov {:?}, {:?}", to, obj))
+        },
+        (Some(DataSet { data:Data::Keyword(Keyword::SinglePrecisionFloat), loc:_}), None) => Ok(format!("movss {:?}, {:?}", to, obj)),
+        (Some(DataSet { data:Data::Keyword(Keyword::DoublePrecisionFloat),  loc: _ }), None) => Ok(format!("movsd {:?}, {:?}", to, obj)),
+        
+        (None, Some(DataSet { data:Data::Keyword(Keyword::Zero), loc:_})) => Ok(format!("movzx {:?}, {:?}", to, obj)),
+        (None, Some(DataSet { data:Data::Keyword(Keyword::Sign), loc:_})) => {
+            if obj.size() > 16 && to.size() > 16 {
+                Ok(format!("movsxd {:?}, {:?}", to, obj))
+            } else if obj.size() == 16 && to.size() == 16 {
+                Ok(format!("movsxd {:?}, {:?}", to, obj))
+            } else if obj.size() <= 16 && to.size() <= 16 {
+                Ok(format!("movsx {:?}, {:?}", to, obj))
+            } else {
+                eprintln!("unmatched operand.{}", _verb_loc);
+                return Err(());
+            }
+        },
+        _ => todo!(),
+    }
+
+
+    // check_operand!(obj, to);
+    // Ok(format!("{:?}{} {:?}, {:?}", verb, az, to, obj))
 }
 
 fn gen_ins_jmp(
@@ -397,6 +448,7 @@ fn gen_ins_lea(
     object: Option<DataSet>,
     preposition_phrases: &mut PrepositionPhrases,
 ) -> Result<String> {
+    eprintln!("{:?}{:?}{:?}", verb, object,preposition_phrases);
     let to = preposition_phrases
         .get_object(Preposition::To)
         .map_or_else(|| None, |date| date.expect_register())
@@ -495,5 +547,44 @@ fn gen_ins_alloc(
         (Data::Label(l), Data::Immediate(i), Data::Keyword(super::data::Keyword::Bit32)) => Ok(format!("{} resd {}", l, i)),
         (Data::Label(l), Data::Immediate(i), Data::Keyword(super::data::Keyword::Bit64)) => Ok(format!("{} resq {}", l, i)),
         _ => todo!(),
+    }
+}
+
+fn gen_ins_set(
+    _verb: Verb,
+    _verb_loc: Loc,
+    _object: Option<DataSet>,
+    preposition_phrases: &mut PrepositionPhrases,
+) -> Result<String> {
+    // this code is specifying 'label' as the object, but in machine code, memory address also can be the object.
+    let to = preposition_phrases
+        .get_object(Preposition::To)
+        .map_or_else(|| None, |date| date.expect_label())
+        .ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
+    let az = if let Some(ap) = preposition_phrases.get_object(Preposition::If) {
+        format!("set{:?}", ap)
+    } else {
+        eprintln!("This instruction needs 'if'.{}", _verb_loc);
+        return Err(());
+    };
+
+    Ok(format!("{} {:?}", az, to))
+}
+
+fn gen_ins_extend(
+    _verb: Verb,
+    _verb_loc: Loc,
+    _object: Option<DataSet>,
+    preposition_phrases: &mut PrepositionPhrases,
+) -> Result<String> {
+    // this code is specifying 'label' as the object, but in machine code, memory address also can be the object.
+    match preposition_phrases.get_object(Preposition::By) {
+        Some(DataSet { data:Data::Keyword(Keyword::Bit16), loc:_ }) => Ok(format!("cwd")),
+        Some(DataSet { data:Data::Keyword(Keyword::Bit32), loc:_ }) => Ok(format!("cdq")),
+        Some(DataSet { data:Data::Keyword(Keyword::Bit64), loc:_ }) => Ok(format!("cqo")),
+        _ => {
+            eprintln!("unexpected!{}", _verb_loc);
+            return Err(());
+        },
     }
 }
