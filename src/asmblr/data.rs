@@ -18,7 +18,7 @@ const REG32: &[&'static str] = &[
 ];
 const REG64: &[&'static str] = &[
     "rax", "rbx", "rcx", "rdx", "rdi", "rsi", "rbp", "rsp", "r8", "r9", "r10", "r11", "r12", "r13",
-    "r14", "r15",
+    "r14", "r15", "rip"
 ];
 const XMM: &[&'static str] = &[
     "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7",
@@ -109,9 +109,8 @@ impl<'a> DataSet<'a> {
         }
     }
     pub fn expect_object(self) -> Option<Self> {
-        // println!("{:?}", self);
         match self.data {
-            Data::Immediate(_) | Data::Keyword(_) | Data::Label(_) | Data::Register(_) => {
+            Data::Immediate(_) | Data::Keyword(_) | Data::Label(_) | Data::Register(_)| Data::Memory(_) | Data::Define(_) => {
                 Some(self)
             }
             Data::_Memory(mem) => {
@@ -317,6 +316,7 @@ pub(crate) enum Verb {
     Define,
     Globalize,
     Allocate,
+    Extern,
 }
 
 impl Verb {
@@ -351,6 +351,7 @@ impl Verb {
             "define" => Some(Self::Define),
             "globalize" => Some(Self::Globalize),
             "allocate" => Some(Self::Allocate),
+            "extern" => Some(Self::Extern),
             _ => None,
         }
     }
@@ -387,6 +388,7 @@ impl std::fmt::Debug for Verb {
             Self::Allocate => write!(f, "bss"),
             Self::SetByte => write!(f, "set"),
             Self::ExtendAXReg => write!(f, "cqo, etc"),
+            Self::Extern => write!(f, "extern"),
         }
     }
 }
@@ -458,7 +460,8 @@ enum _Register {
     R12,
     R13,
     R14,
-    R15, //  quadword
+    R15,
+    RIP, //  quadword
 
     XMM0,
     XMM1,
@@ -545,6 +548,7 @@ impl _Register {
             "xmm5" => Some(Self::XMM5),
             "xmm6" => Some(Self::XMM6),
             "xmm7" => Some(Self::XMM7),
+            "rip" => Some(Self::RIP),
             _ => None,
         }
     }
@@ -625,6 +629,7 @@ impl std::fmt::Debug for _Register {
             Self::XMM5 => "xmm5",
             Self::XMM6 => "xmm6",
             Self::XMM7 => "xmm7",
+            Self::RIP => "rip",
         };
         write!(f, "{}", reg)
     }
@@ -677,7 +682,7 @@ impl Keyword {
             "double-precision-float" => Some(Self::DoublePrecisionFloat),
             "sign-extention" => Some(Self::Sign),
             "zero-extention" => Some(Self::Zero),
-            "=" => Some(Self::E),
+            "==" => Some(Self::E),
             "!=" => Some(Self::NE),
             "<" => Some(Self::L),
             "<=" => Some(Self::LE),
@@ -747,10 +752,9 @@ impl<'a> Memory<'a> {
     // mem = '['((base ('+' index ('*' scale)?)? ('+' disp)? ]) | (index '*' scale '+')? disp]))
     pub fn parse(mut self, token: &'a str) -> Result<Self> {
         let token_seq = Self::tokenize(token);
+        // eprintln!("{:?}", token_seq);
         let mut pos = 1;
         self.parse_base(&token_seq, &mut pos)?;
-        // println!("{}", token);
-        // println!("{:?}", self);
         Ok(self)
     }
 
@@ -759,6 +763,7 @@ impl<'a> Memory<'a> {
             if token_seq[*pos + 1] == "]"
                 || token_seq[*pos + 1] == "+"
                 || token_seq[*pos + 1] == "-"
+                || token_seq[*pos + 1] == "by"
             {
                 self.base = Register::parse(token_seq[*pos]);
                 *pos += 1;
@@ -799,6 +804,8 @@ impl<'a> Memory<'a> {
             sgn = -1;
         } else if token_seq[*pos] == "]" {
             return Ok(());
+        } else if token_seq[*pos] == "by" {
+            return self.parse_size(token_seq, pos);
         } else {
             sgn = 1
         }
@@ -812,9 +819,10 @@ impl<'a> Memory<'a> {
                     loc:data.loc
                 }))
             },
-            Data::Label(_) => self.displacement = Some(Box::new(data)),
+            Data::Label(_) => self.displacement = {
+                Some(Box::new(data))
+            },
             _ => {
-                eprintln!("unexpected!");
                 return  Err(());
             }
         }
@@ -833,6 +841,7 @@ impl<'a> Memory<'a> {
                 "64bit" => self.size = 64,
                 _ => return Err(()),
             };
+            *pos += 1;
         } else {
             self.size = 0;
         }
@@ -854,7 +863,7 @@ impl<'a> Memory<'a> {
         }
         list
     }
-    // todo: treat '"' in "string"
+
     fn length_of_symbol(token: &'a str, pos: usize) -> usize {
         let mut len = 0;
 
@@ -875,19 +884,19 @@ impl<'a> Memory<'a> {
             .nth(pos + len)
             .unwrap_or('\n')
             .is_whitespace() 
-            ||token
+            &&token
             .chars()
             .nth(pos + len)
             .unwrap_or('\n') != '+'
-            ||token
+            &&token
             .chars()
             .nth(pos + len)
             .unwrap_or('\n') != '-'
-            ||token
+            &&token
             .chars()
             .nth(pos + len)
             .unwrap_or('\n') != ']'
-            ||token
+            && token
             .chars()
             .nth(pos + len)
             .unwrap_or('\n') != '*'
@@ -942,7 +951,7 @@ impl<'a> std::fmt::Debug for Memory<'a> {
         if let Some(disp) = &self.displacement {
             match **disp {
                 DataSet { data:Data::Immediate(i), loc:_ } => {
-                    if i > 0 && count > 0{
+                    if i >= 0 && count > 0{
                         write!(f, "+")?;
                     }
                     write!(f, "{}", i)?;

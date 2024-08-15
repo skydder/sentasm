@@ -67,7 +67,7 @@ impl<'a> Tonkenizer<'a> {
         let column = self.loc.get().column;
 
         // memory, section, label, define
-        if self.sourse[column..].starts_with("@[") | self.sourse[column..].starts_with("[") {
+        if self.sourse[column..].starts_with("@[") || self.sourse[column..].starts_with("[") {
             while self.sourse.chars().nth(column + len).unwrap_or(']') != ']' {
                 len += 1;
             }

@@ -1,6 +1,6 @@
 @.text
 globalize _start
-globalize main
+extern main
 
 #_start
 call main
