@@ -176,7 +176,7 @@ fn gen_ins_mul(
     match obj {
         Some(obj) => {
             check_operand!(obj, by);
-            Ok(format!("{}{:?} {:?}, {:?}", with, verb, by, obj))
+            Ok(format!("{}{:?} {:?}, {:?}", with, verb, obj, by))
         }
         None => {
             if by.is_register() {
