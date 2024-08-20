@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-
-main:
-move 42 to rax
-return
-=======
 @.text
 globalize _start
 
@@ -12,4 +6,3 @@ globalize _start
 move 60 to rax
 move 42 to rdi
 systemcall
->>>>>>> new

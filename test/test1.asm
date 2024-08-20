@@ -1,8 +1,5 @@
 main:
 add 1 to eax
-<<<<<<< HEAD
-substract 1 from [ax]
-=======
 (add rax to eax(this should be error)
 substract 1 from @[1](disp)("@[memory location]" indicates memory locaion )
 substract 1 from @[ax](base)
@@ -19,7 +16,6 @@ substract 1 from @[ax-1](base+disp)
 substract 1 from @[ax+rax*1-1](base+idx*scl+disp)
 substract 1 from @[ax   *  1-1]
 
->>>>>>> new
 multiply eax by ebx
 divide eax
 move 1 to eax
