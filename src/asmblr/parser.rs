@@ -22,20 +22,7 @@ impl<'a> PrepositionPhrases<'a> {
         {
             data.insert(
                 p,
-                match tokenizer.peek() {
-                    Some(data) => data.expect_object().ok_or_else(|| {
-                        
-                        eprintln!("preposition must take an object, but found nothing1{}",
-                        loc
-                    );
-                    })?,
-                    None => {
-                        eprintln!("preposition must take an object, but found nothing.{}",
-                        loc
-                    );
-                        return Err(());
-                    }
-                },
+                tokenizer.peek().map_or_else(|| None, |date| date.expect_object()).ok_or_else(||  eprintln!("preposition must take an object, but found nothing.{}", loc))?
             );
             tokenizer.next();
         }

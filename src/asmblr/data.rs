@@ -25,7 +25,7 @@ const XMM: &[&'static str] = &[
 ];
 #[derive(Clone, Copy)]
 pub(crate) struct Register {
-    size: usize,
+    pub(crate) size: usize,
     kind: _Register,
 }
 

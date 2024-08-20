@@ -107,26 +107,52 @@ fn codegen_sentence(
     }
 }
 
+// macro_rules! CaseSome {
+//     ($data:pat) => {Some(DataSet {data:$data, loc:_})};
+// }
+
 fn gen_ins_add(
-    verb: Verb,
+    _verb: Verb,
     _verb_loc: Loc,
-    object: Option<DataSet>,
-    preposition_phrases: &mut PrepositionPhrases,
+    _object: Option<DataSet>,
+    _preposition_phrases: &mut PrepositionPhrases,
 ) -> Result<String> {
-    let to = preposition_phrases
+    let _to = _preposition_phrases
         .get_object(Preposition::To)
         .map_or_else(|| None, |date| date.expect_object())
         .ok_or_else(|| eprintln!("expected 'to' phrase, but could not find it"))?;
-    let az = if let Some(ap) = preposition_phrases.get_object(Preposition::As) {
+    let _as = if let Some(ap) = _preposition_phrases.get_object(Preposition::As) {
         format!("{:?}", ap)
     } else {
         format!("")
     };
-    let obj = object
-        .map_or_else(|| None, |date| date.expect_object())
-        .ok_or_else(|| eprintln!("expected object, but could not find it"))?;
-    check_operand!(obj, to);
-    Ok(format!("{:?}{} {:?}, {:?}", verb, az, to, obj))
+    let obj = _object.ok_or_else(|| eprintln!("this instructoin needs object"))?;
+    check_operand!(obj, _to);
+    Ok(format!("{:?}{} {:?}, {:?}", _verb, _as, _to, obj))
+
+    // match (&obj, &_to, &_as) {
+    //     (CaseSome!(Data::Register(Register{size: 8, ..})), CaseSome!(Data::Register(Register{size: 8, ..})), None) => Ok(format!("add {:?}, {:?}", _to, obj)),
+    //     (CaseSome!(Data::Register(Register{size: 16, ..})), CaseSome!(Data::Register(Register{size: 16, ..})), None) => Ok(format!("add {:?}, {:?}", _to, obj)),
+    //     (CaseSome!(Data::Register(Register{size: 32, ..})), CaseSome!(Data::Register(Register{size: 32, ..})), None) => Ok(format!("add {:?}, {:?}", _to, obj)),
+    //     (CaseSome!(Data::Register(Register{size: 64, ..})), CaseSome!(Data::Register(Register{size: 64, ..})), None) => Ok(format!("add {:?}, {:?}", _to, obj)),
+        
+    //     (CaseSome!(Data::Memory(Memory{size:0,..})), CaseSome!(Data::Register(Register{size: 8, ..})), None) => Ok(format!("add {:?}, {:?}", _to, obj)),
+    //     (CaseSome!(Data::Memory(Memory{size:0,..})), CaseSome!(Data::Register(Register{size: 16, ..})), None) => Ok(format!("add {:?}, {:?}", _to, obj)),
+    //     (CaseSome!(Data::Memory(Memory{size:0,..})), CaseSome!(Data::Register(Register{size: 32, ..})), None) => Ok(format!("add {:?}, {:?}", _to, obj)),
+    //     (CaseSome!(Data::Memory(Memory{size:0,..})), CaseSome!(Data::Register(Register{size: 64, ..})), None) => Ok(format!("add {:?}, {:?}", _to, obj)),
+        
+    //     (CaseSome!(Data::Memory(Memory{size:0,..})), CaseSome!(Data::Register(Register{size: 8, ..})), None) => Ok(format!("add {:?}, {:?}", _to, obj)),
+    //     (CaseSome!(Data::Memory(Memory{size:0,..})), CaseSome!(Data::Register(Register{size: 16, ..})), None) => Ok(format!("add {:?}, {:?}", _to, obj)),
+    //     (CaseSome!(Data::Memory(Memory{size:0,..})), CaseSome!(Data::Register(Register{size: 32, ..})), None) => Ok(format!("add {:?}, {:?}", _to, obj)),
+    //     (CaseSome!(Data::Memory(Memory{size:0,..})), CaseSome!(Data::Register(Register{size: 64, ..})), None) => Ok(format!("add {:?}, {:?}", _to, obj)),
+        
+    //     (None, None, None) => todo!(),
+    //     _ => {
+    //         eprintln!("mismatched operand size!! refer to the document{}",  _verb_loc);
+    //         Err(())
+    //     }
+    // }
+
 }
 
 fn gen_ins_sub(

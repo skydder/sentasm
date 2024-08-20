@@ -33,7 +33,7 @@ check() {
 }
 
 test_file() {
-    if [ -f 'test/target/5cc/$1' ]; then
+    if [ ! -d test/target/5cc/$1 ]; then
         mkdir test/target/5cc/$1
     fi
     assemble $1
