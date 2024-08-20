@@ -1,11 +1,5 @@
 #! /bin/bash
 
-prepare() {
-    if [ ! -d "test/target" ]; then
-        mkdir test/target
-    fi
-}
-
 run() {
     cargo run $1
 }
@@ -24,7 +18,6 @@ test() {
     fi
 }
 
-prepare
 test 2 42
 test 3 55
 test 4 7

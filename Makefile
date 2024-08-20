@@ -1,7 +1,7 @@
 prep:make-target.sh
 	./make-target.sh
 
-test:test/test.sh
+test:test/test.sh prep
 	./test/test.sh
 
 test-5cc:test/test2.sh 5cc prep
