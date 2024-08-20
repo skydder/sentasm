@@ -1,5 +1,5 @@
 if [ ! -d target ]; then
-    mkdir test/target
+    mkdir target
 fi
 
 if [ ! -d test/target ]; then

@@ -1,5 +1,4 @@
 prepare_main() {
-
     cargo run test/main.asm > test/target/5cc/main.s
     nasm -f elf64 test/target/5cc/main.s -o test/target/5cc/main.o
     gcc -c  -o test/5cc-n/target/test/common.o -xc test/5cc-n/test/common
