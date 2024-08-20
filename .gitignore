@@ -1,3 +1,9 @@
+<<<<<<< HEAD
 /target
 /dev_docs
 /test/target
+=======
+/target/
+/test/target
+/dev_docs/
+>>>>>>> new
