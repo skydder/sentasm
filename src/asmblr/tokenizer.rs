@@ -33,14 +33,14 @@ impl<'a> std::fmt::Display for Loc<'a> {
 
 #[derive(Debug)]
 pub struct Tonkenizer<'a> {
-    sourse: String,
+    sourse: &'a str,
     loc: Cell<Loc<'a>>,
 }
 
 impl<'a> Tonkenizer<'a> {
     pub fn new(sourse: &'a str, loc: Loc<'a>) -> Self {
         Self {
-            sourse: sourse.replace('#', " # ").replace(':', " : "),
+            sourse,//: sourse.replace('#', " # ").replace(':', " : "),
             loc: Cell::new(loc),
         }
     }
@@ -73,7 +73,12 @@ impl<'a> Tonkenizer<'a> {
         let column = self.loc.get().column;
 
         // memory, section, label, define
-        if self.sourse[column..].starts_with("@[") || self.sourse[column..].starts_with("[") {
+        if self.sourse[column..].starts_with("*(") {
+            while self.sourse.chars().nth(column + len).unwrap_or(']') != ')' {
+                len += 1;
+            }
+            return len + 1;
+        } else if self.sourse[column..].starts_with("[") {
             while self.sourse.chars().nth(column + len).unwrap_or(']') != ']' {
                 len += 1;
             }
@@ -108,7 +113,6 @@ impl<'a> Tonkenizer<'a> {
 
     pub fn next(&self) -> Option<DataSet> {
         let next = self.peek();
-        // println!("{:?}", next);
         let column = self.loc.get().column + self.length_of_symbol();
         self.loc.set(Loc::new(
             self.loc.get().file_name,

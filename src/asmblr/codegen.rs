@@ -1,10 +1,8 @@
+use crate::emit_error_msg;
 use super::{
     data::Keyword, Code, Data, DataSet, Loc, Preposition, PrepositionPhrases, Result, Verb,
+    
 };
-
-// pub fn assemble(section: Section) {
-
-// }
 
 pub fn codegen(code: Code) -> Result<String> {
     match code {
@@ -20,20 +18,8 @@ pub fn codegen(code: Code) -> Result<String> {
             "\t{}",
             codegen_sentence(verb, verb_loc, object, &mut preposition_phrases)?
         )),
-        // _ => todo!(),
     }
 }
-
-// fn check_intransitive(
-//     object: Option<DataSet>,
-//     preposition_phrases: &mut PrepositionPhrases,
-// ) -> bool {
-//     if object.is_none() & preposition_phrases.expect_empty().ok().is_some() {
-//         true
-//     } else {
-//         false
-//     }
-// }
 
 macro_rules! check_operand {
     ($obj:expr, $prep:expr) => {
@@ -47,23 +33,23 @@ macro_rules! check_operand {
             ();
         } else if let Data::Immediate(_) = $obj.data {
             if $obj.size() >= $prep.size() {
-                eprintln!(
-                    "mismatched operand size!! refer to the document\n->{}",
+                emit_error_msg!(
+                    "mismatched operand size!! refer to the document",
                     $obj.loc
                 );
                 return Err(());
             }
         } else if let Data::Immediate(_) = $prep.data {
             if $obj.size() <= $prep.size() {
-                eprintln!(
-                    "mismatched operand size!! refer to the document\n->{}",
+                emit_error_msg!(
+                    "mismatched operand size!! refer to the document",
                     $obj.loc
                 );
                 return Err(());
             }
         } else if $obj.size() != $prep.size() {
-            eprintln!(
-                "mismatched operand size!! refer to the document\n->{}",
+            emit_error_msg!(
+                "mismatched operand size!! refer to the document",
                 $obj.loc
             );
             return Err(());
@@ -111,7 +97,7 @@ fn codegen_sentence(
         Verb("systemcall") => gen_ins_syscall(verb, verb_loc, object, preposition_phrases),
         Verb("halt") => gen_ins_hlt(verb, verb_loc, object, preposition_phrases),
         _ => {
-            eprintln!("what!");
+            emit_error_msg!("Not implemented yet", verb_loc);
             Err(())
         }
     }
@@ -635,16 +621,16 @@ fn gen_ins_alloc(
 
     match (obj.data, vor.data, by.data) {
         (Data::Label(l), Data::Immediate(i), Data::Keyword(super::data::Keyword("8bit"))) => {
-            Ok(format!("{} resb {}", l.0, i))
+            Ok(format!("{} resb {}", l.0, i.0))
         }
         (Data::Label(l), Data::Immediate(i), Data::Keyword(super::data::Keyword("16bit"))) => {
-            Ok(format!("{} resw {}", l.0, i))
+            Ok(format!("{} resw {}", l.0, i.0))
         }
         (Data::Label(l), Data::Immediate(i), Data::Keyword(super::data::Keyword("32bit"))) => {
-            Ok(format!("{} resd {}", l.0, i))
+            Ok(format!("{} resd {}", l.0, i.0))
         }
         (Data::Label(l), Data::Immediate(i), Data::Keyword(super::data::Keyword("64bit"))) => {
-            Ok(format!("{} resq {}", l.0, i))
+            Ok(format!("{} resq {}", l.0, i.0))
         }
         _ => todo!(),
     }

@@ -1,3 +1,5 @@
+use crate::emit_error_msg;
+
 use super::{Loc, Result};
 use core::str;
 
@@ -67,11 +69,14 @@ pub struct DataSet<'a> {
     pub loc: Loc<'a>,
 }
 
+#[derive(Clone, Copy)]
+pub(crate) struct Immediate(pub(crate) i64);
+
 pub enum Data<'a> {
     Verb(Verb<'a>),
     Register(Register<'a>),
     Prepositon(Preposition<'a>),
-    Immediate(i64),
+    Immediate(Immediate),
     _Memory(&'a str),
     Memory(Memory<'a>),
     Label(Label<'a>),
@@ -124,14 +129,14 @@ impl<'a> DataSet<'a> {
     }
 
     pub fn size(&self) -> usize {
-        match self.data {
+        match &self.data {
             Data::Register(reg) => reg.1,
             Data::Immediate(imm) => {
-                if (imm as u64) < (2 << 8) {
+                if (imm.0 as u64) < (2 << 8) {
                     8
-                } else if (imm as u64) < (2 << 16) {
+                } else if (imm.0 as u64) < (2 << 16) {
                     16
-                } else if (imm as u64) < (2 << 16) {
+                } else if (imm.0 as u64) < (2 << 16) {
                     32
                 } else {
                     64
@@ -222,7 +227,7 @@ impl<'a> std::fmt::Debug for DataSet<'a> {
 
 impl<'a> Data<'a> {
     pub(crate) fn parse(token: &'a str) -> Data {
-        if token.starts_with("@[") {
+        if token.starts_with("*(") {
             Data::_Memory(token)
         } else if token.starts_with("[") & token.ends_with("]") {
             Data::_Define(token)
@@ -235,7 +240,7 @@ impl<'a> Data<'a> {
         } else if let Some(r) = Register::parse(token) {
             Data::Register(r)
         } else if let Ok(i) = token.parse::<i64>() {
-            Data::Immediate(i)
+            Data::Immediate(Immediate(i))
         } else if let Some(k) = Keyword::parse(token) {
             Data::Keyword(k)
         } else if let Some(p) = Preposition::parse(token) {
@@ -252,7 +257,7 @@ impl<'a> std::fmt::Debug for Data<'a> {
             Self::Verb(arg0) => write!(f, "{:?}", arg0),
             Self::Register(arg0) => write!(f, "{:?}", arg0),
             Self::Prepositon(arg0) => write!(f, "{:?}", arg0),
-            Self::Immediate(arg0) => write!(f, "{}", arg0),
+            Self::Immediate(arg0) => write!(f, "{}", arg0.0),
             Self::_Memory(arg0) => write!(f, "{:?}", arg0),
             Self::Memory(arg0) => write!(f, "{:?}", arg0),
             Self::Label(arg0) => write!(f, "{}", arg0.0),
@@ -443,7 +448,6 @@ impl<'a> Memory<'a> {
     // mem = '['((base ('+' index ('*' scale)?)? ('+' disp)? ]) | (index '*' scale '+')? disp]))
     pub fn parse(mut self, token: &'a str) -> Result<Self> {
         let token_seq = Self::tokenize(token);
-        // eprintln!("{:?}", token_seq);
         let mut pos = 1;
         self.parse_base(&token_seq, &mut pos)?;
         Ok(self)
@@ -451,7 +455,7 @@ impl<'a> Memory<'a> {
 
     fn parse_base(&mut self, token_seq: &Vec<&'a str>, pos: &mut usize) -> Result<()> {
         if Register::is_reg(token_seq[*pos]) {
-            if token_seq[*pos + 1] == "]"
+            if token_seq[*pos + 1] == ")"
                 || token_seq[*pos + 1] == "+"
                 || token_seq[*pos + 1] == "-"
                 || token_seq[*pos + 1] == "by"
@@ -468,7 +472,7 @@ impl<'a> Memory<'a> {
             *pos += 1;
         }
         if Register::is_reg(token_seq[*pos]) {
-            if token_seq[*pos + 1] == "]"
+            if token_seq[*pos + 1] == ")"
                 || token_seq[*pos + 1] == "+"
                 || token_seq[*pos + 1] == "-"
             {
@@ -493,7 +497,7 @@ impl<'a> Memory<'a> {
         } else if token_seq[*pos] == "-" {
             *pos += 1;
             sgn = -1;
-        } else if token_seq[*pos] == "]" {
+        } else if token_seq[*pos] == ")" {
             return Ok(());
         } else if token_seq[*pos] == "by" {
             return self.parse_size(token_seq, pos);
@@ -506,12 +510,13 @@ impl<'a> Memory<'a> {
         match data.data {
             Data::Immediate(i) => {
                 self.displacement = Some(Box::new(DataSet {
-                    data: Data::Immediate(sgn * i),
+                    data: Data::Immediate(Immediate(sgn * i.0)),
                     loc: data.loc,
                 }))
             }
-            Data::Label(_) => self.displacement = { Some(Box::new(data)) },
+            Data::Label(_) => self.displacement = Some(Box::new(data)),
             _ => {
+                emit_error_msg!("unexpected grammar", data.loc);
                 return Err(());
             }
         }
@@ -534,7 +539,7 @@ impl<'a> Memory<'a> {
         } else {
             self.size = 0;
         }
-        if token_seq[*pos] == "]" {
+        if token_seq[*pos] == ")" {
             Ok(())
         } else {
             Err(())
@@ -550,6 +555,7 @@ impl<'a> Memory<'a> {
             list.push(&token[pos..pos + len]);
             pos += len;
         }
+        
         list
     }
 
@@ -558,20 +564,20 @@ impl<'a> Memory<'a> {
 
         if &token[pos..pos + 1] == "+" {
             return 1;
+        } else if token[pos..].starts_with("*(") {
+            return 2;
         } else if &token[pos..pos + 1] == "-" {
             return 1;
         } else if &token[pos..pos + 1] == "*" {
             return 1;
-        } else if &token[pos..pos + 1] == "]" {
+        } else if &token[pos..pos + 1] == ")" {
             return 1;
-        } else if &token[pos..pos + 2] == "@[" {
-            return 2;
-        }
+        } 
 
         while !token.chars().nth(pos + len).unwrap_or('\n').is_whitespace()
             && token.chars().nth(pos + len).unwrap_or('\n') != '+'
             && token.chars().nth(pos + len).unwrap_or('\n') != '-'
-            && token.chars().nth(pos + len).unwrap_or('\n') != ']'
+            && token.chars().nth(pos + len).unwrap_or('\n') != ')'
             && token.chars().nth(pos + len).unwrap_or('\n') != '*'
         {
             len += 1;
@@ -620,10 +626,10 @@ impl<'a> std::fmt::Debug for Memory<'a> {
                     data: Data::Immediate(i),
                     loc: _,
                 } => {
-                    if i >= 0 && count > 0 {
+                    if i.0 >= 0 && count > 0 {
                         write!(f, "+")?;
                     }
-                    write!(f, "{}", i)?;
+                    write!(f, "{}", i.0)?;
                 }
                 DataSet {
                     data: Data::Label(l),
@@ -668,9 +674,7 @@ impl<'a> Define<'a> {
     }
 
     pub fn parse(mut self, token: &'a str) -> Result<Self> {
-        // eprintln!("{}", token);
         let list = Self::tokenize(&token[1..token.len() - 1]);
-        // eprintln!("{:?}", list);
         for i in 0..list.len() {
             self.list.push(Self::parse_item(list[i])?);
         }

@@ -13,3 +13,9 @@ pub(crate) use parser::PrepositionPhrases;
 pub use tokenizer::{Loc, Tonkenizer};
 
 pub type Result<T> = result::Result<T, ()>;
+
+#[macro_export] macro_rules! emit_error_msg {
+    ($msg:expr, $loc:expr) => {
+        eprintln!("{}", format!("{}{}", $msg, $loc))
+    };
+}
