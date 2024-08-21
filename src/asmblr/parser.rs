@@ -1,15 +1,10 @@
-use std::{
-    cell::RefCell,
-    collections::HashMap,
-    // fs::File,
-    // io::{BufRead, BufReader},
-};
+use std::{cell::RefCell, collections::HashMap};
 
 use super::{Data, DataSet, Label, Loc, Preposition, Result, Tonkenizer, Verb};
 
 #[derive(Debug)]
 pub(crate) struct PrepositionPhrases<'a> {
-    data: RefCell<HashMap<Preposition, DataSet<'a>>>,
+    data: RefCell<HashMap<Preposition<'a>, DataSet<'a>>>,
 }
 
 impl<'a> PrepositionPhrases<'a> {
@@ -22,7 +17,12 @@ impl<'a> PrepositionPhrases<'a> {
         {
             data.insert(
                 p,
-                tokenizer.peek().map_or_else(|| None, |date| date.expect_object()).ok_or_else(||  eprintln!("preposition must take an object, but found nothing.{}", loc))?
+                tokenizer
+                    .peek()
+                    .map_or_else(|| None, |date| date.expect_object())
+                    .ok_or_else(|| {
+                        eprintln!("preposition must take an object, but found nothing.{}", loc)
+                    })?,
             );
             tokenizer.next();
         }
@@ -30,15 +30,15 @@ impl<'a> PrepositionPhrases<'a> {
             data: RefCell::new(data),
         })
     }
-    pub(crate) fn expect_empty(&self) -> Result<()> {
-        if self.data.borrow().is_empty() {
-            Ok(())
-        } else {
-            eprintln!("expected no more preposition phrases, but found it");
-            Err(())
-        }
-    }
-    pub(crate) fn get_object(&self, p: Preposition) -> Option<DataSet> {
+    // pub(crate) fn expect_empty(&self) -> Result<()> {
+    //     if self.data.borrow().is_empty() {
+    //         Ok(())
+    //     } else {
+    //         eprintln!("expected no more preposition phrases, but found it");
+    //         Err(())
+    //     }
+    // }
+    pub(crate) fn get_object(&self, p: Preposition<'a>) -> Option<DataSet> {
         self.data.borrow_mut().remove(&p)
     }
 }
@@ -63,7 +63,7 @@ impl<'a> PrepositionPhrases<'a> {
 
 pub enum Code<'a> {
     Sentence {
-        verb: Verb,
+        verb: Verb<'a>,
         verb_loc: Loc<'a>,
         object: Option<DataSet<'a>>,
         preposition_phrases: PrepositionPhrases<'a>,
@@ -137,9 +137,9 @@ impl<'a> Code<'a> {
             }
             None => Ok(Self::NullStmt),
             _ => {
-                eprintln!("unexpected token:{:?}{}",tonkenizer, tonkenizer.loc());
+                eprintln!("unexpected token:{:?}{}", tonkenizer, tonkenizer.loc());
                 Err(())
-            },
+            }
         }
     }
 }

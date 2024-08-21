@@ -21,7 +21,13 @@ impl<'a> Loc<'a> {
 
 impl<'a> std::fmt::Display for Loc<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "\n->{}:{}:{}", self.file_name, self.line + 1, self.column + 1)
+        write!(
+            f,
+            "\n->{}:{}:{}",
+            self.file_name,
+            self.line + 1,
+            self.column + 1
+        )
     }
 }
 
@@ -72,7 +78,7 @@ impl<'a> Tonkenizer<'a> {
                 len += 1;
             }
             return len + 1;
-        } else if  self.sourse[column..].starts_with("@") | self.sourse[column..].starts_with("#") {
+        } else if self.sourse[column..].starts_with("@") | self.sourse[column..].starts_with("#") {
             return 1;
         }
         while !self
@@ -90,7 +96,7 @@ impl<'a> Tonkenizer<'a> {
     pub fn peek(&self) -> Option<DataSet> {
         self.skip_whitespase();
         let column = self.loc.get().column;
-        
+
         match self.length_of_symbol() {
             0 => None,
             _ => Some(DataSet::new(
@@ -119,6 +125,10 @@ impl<'a> Tonkenizer<'a> {
 
 impl<'a> std::fmt::Display for Tonkenizer<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", &self.sourse[self.loc().column..self.loc().column + self.length_of_symbol()])
+        write!(
+            f,
+            "{:?}",
+            &self.sourse[self.loc().column..self.loc().column + self.length_of_symbol()]
+        )
     }
 }

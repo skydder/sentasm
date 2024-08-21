@@ -15,6 +15,7 @@ test() {
         echo "test$1 => Ok($actual)"
     else
         echo "test$1 => Err($expected expected, but got $actual)"
+        exit 1
     fi
 }
 
