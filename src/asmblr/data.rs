@@ -1,7 +1,6 @@
 use crate::emit_error_msg;
 
 use super::{Loc, Result};
-use core::str;
 
 // use someday
 const REG8: &[&'static str] = &[
@@ -357,6 +356,7 @@ const KEYWORD: &[&'static str] = &[
     "double-precision-float",
     "sign-extention",
     "zero-extention",
+    "signed",
     "==",
     "!=",
     "<",
@@ -387,6 +387,7 @@ impl<'a> std::fmt::Debug for Keyword<'a> {
             Keyword("16bit") => write!(f, "w"),
             Keyword("32bit") => write!(f, "d"),
             Keyword("64bit") => write!(f, "q"),
+            Keyword("signed") => write!(f, ""),
             _ => write!(f, "**"),
         }
     }
@@ -421,6 +422,8 @@ impl<'a> Preposition<'a> {
 
 #[derive(Clone, Copy)]
 pub(crate) struct Label<'a>(pub(crate) &'a str);
+
+// this should have segment register
 
 pub struct Memory<'a> {
     pub(crate) base: Option<Register<'a>>,
