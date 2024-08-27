@@ -1,6 +1,6 @@
 /target/
 /test/target
 /dev_docs/
-/src/asmblr/gen.py
-/src/asmblr/gen_gen.rs
-/src/asmblr/grammar.txt
+/src/asmblr/auto/__pycache__
+/src/asmblr/auto/script/__pycache__
+/.vscode/

@@ -5,8 +5,6 @@ mod data;
 mod parser;
 mod tokenizer;
 
-mod gen_gen;
-
 pub use codegen::codegen;
 pub use data::{Data, DataSet};
 pub use parser::Code;
@@ -16,7 +14,8 @@ pub type Result<T> = result::Result<T, ()>;
 pub(crate) use data::{Label, Preposition, Verb, Register, Keyword, Immediate, Memory};
 pub(crate) use parser::PrepositionPhrases;
 
-
+mod auto;
+pub(crate) use auto::*;
 
 #[macro_export] macro_rules! emit_error_msg {
     ($msg:expr, $loc:expr) => {

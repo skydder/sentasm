@@ -1,0 +1,15 @@
+single-precision-float
+double-precision-float
+sign-extention
+zero-extention
+signed
+==
+!=
+<
+<=
+>
+>=
+8bit
+16bit
+32bit
+64bit

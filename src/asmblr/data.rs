@@ -1,27 +1,7 @@
 use crate::emit_error_msg;
 
 use super::{Loc, Result};
-
-// use someday
-const REG8: &[&'static str] = &[
-    "al", "bl", "cl", "dl", "dil", "sil", "bpl", "spl", "r8b", "r9b", "r10b", "r11b", "r12b",
-    "r13b", "r14b", "r15b",
-];
-const REG16: &[&'static str] = &[
-    "ax", "bx", "cx", "dx", "di", "si", "bp", "sp", "r8w", "r9w", "r10w", "r11w", "r12w", "r13w",
-    "r14w", "r15w",
-];
-const REG32: &[&'static str] = &[
-    "eax", "ebx", "ecx", "edx", "edi", "esi", "ebp", "esp", "r8d", "r9d", "r10d", "r11d", "r12d",
-    "r13d", "r14d", "r15d",
-];
-const REG64: &[&'static str] = &[
-    "rax", "rbx", "rcx", "rdx", "rdi", "rsi", "rbp", "rsp", "r8", "r9", "r10", "r11", "r12", "r13",
-    "r14", "r15", "rip",
-];
-// const XMM: &[&'static str] = &[
-//     "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7",
-// ];
+use super::{REG8, REG16, REG32, REG64, KEYWORD, VERB, PSEUDO, PREPOSITION};
 
 // second parameter represents its size, and the third represents its value
 #[derive(Clone, Copy)]
@@ -127,32 +107,6 @@ impl<'a> DataSet<'a> {
         }
     }
 
-    pub fn size(&self) -> usize {
-        match &self.data {
-            Data::Register(reg) => reg.1,
-            Data::Immediate(imm) => {
-                if (imm.0 as u64) < (2 << 8) {
-                    8
-                } else if (imm.0 as u64) < (2 << 16) {
-                    16
-                } else if (imm.0 as u64) < (2 << 16) {
-                    32
-                } else {
-                    64
-                }
-            }
-            Data::Memory(ref mem) => mem.size,
-            _ => 0,
-        }
-    }
-
-    pub fn expect_register(self) -> Option<Self> {
-        match self.data {
-            Data::Register(_) => Some(self),
-            _ => None,
-        }
-    }
-
     pub fn expect_label(self) -> Option<Self> {
         match self.data {
             Data::Label(_) => Some(self),
@@ -163,24 +117,6 @@ impl<'a> DataSet<'a> {
     pub fn expect_immediate(self) -> Option<Self> {
         match self.data {
             Data::Immediate(_) => Some(self),
-            _ => None,
-        }
-    }
-
-    pub fn expect_memory(self) -> Option<Self> {
-        match self.data {
-            Data::_Memory(mem) => {
-                let m = if let Some(memory) = Memory::new().parse(mem).ok() {
-                    memory
-                } else {
-                    return None;
-                };
-                Some(Self {
-                    data: Data::Memory(m),
-                    loc: self.loc,
-                })
-            }
-            Data::Memory(_) => Some(self),
             _ => None,
         }
     }
@@ -207,13 +143,6 @@ impl<'a> DataSet<'a> {
         match self.data {
             Data::Keyword(_) => Some(self),
             _ => None,
-        }
-    }
-
-    pub fn is_register(&self) -> bool {
-        match self.data {
-            Data::Register(_) => true,
-            _ => false,
         }
     }
 }
@@ -269,44 +198,17 @@ impl<'a> std::fmt::Debug for Data<'a> {
     }
 }
 
-const VERB: &[&'static str] = &[
-    "add",
-    "substract",
-    "multiply",
-    "divide",
-    "move",
-    "jump",
-    "and",
-    "or",
-    "xor",
-    "not",
-    "negate",
-    "shift-rigt",
-    "shift-left",
-    "call",
-    "compare",
-    "load-effective-address",
-    "push",
-    "pop",
-    "set-byte",
-    "extend-*ax-reg",
-    "return",
-    "halt",
-    "leave",
-    "no-operation",
-    "systemcall",
-    "define",
-    "globalize",
-    "allocate",
-    "extern",
-];
-
 #[derive(Clone, Copy)]
 pub(crate) struct Verb<'a>(pub(crate) &'a str);
 
 impl<'a> Verb<'a> {
     fn parse(token: &'a str) -> Option<Self> {
         for verb in VERB {
+            if token == *verb {
+                return Some(Self(token));
+            }
+        }
+        for verb in PSEUDO {
             if token == *verb {
                 return Some(Self(token));
             }
@@ -351,24 +253,6 @@ impl<'a> std::fmt::Debug for Verb<'a> {
     }
 }
 
-const KEYWORD: &[&'static str] = &[
-    "single-precision-float",
-    "double-precision-float",
-    "sign-extention",
-    "zero-extention",
-    "signed",
-    "==",
-    "!=",
-    "<",
-    "<=",
-    ">",
-    ">=",
-    "8bit",
-    "16bit",
-    "32bit",
-    "64bit",
-];
-
 #[derive(Clone, Copy)]
 pub(crate) struct Keyword<'a>(pub(crate) &'a str);
 
@@ -403,8 +287,6 @@ impl<'a> Keyword<'a> {
         None
     }
 }
-
-const PREPOSITION: &[&'static str] = &["to", "from", "by", "as", "with", "if", "for"];
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Copy)]
 pub(crate) struct Preposition<'a>(pub(crate) &'a str);
