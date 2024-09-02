@@ -1,5 +1,5 @@
 (add (obj to as)
-     (reg reg|mem None (add #to, #obj))
+     (reg mem None (add #to, #obj))
      (reg|mem mem None (add #to, #obj))
      (imm mem None (add #to, #obj))
      (imm reg None (add #to, #obj))

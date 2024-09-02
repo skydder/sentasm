@@ -3,37 +3,51 @@ use crate::emit_error_msg;
 use super::{Loc, Result};
 use super::{REG8, REG16, REG32, REG64, KEYWORD, VERB, PSEUDO, PREPOSITION};
 
-// second parameter represents its size, and the third represents its value
+// second parameter represents its size, and the third represents its value, which later use in mod-rm part.
+// the forth represents wheather reg is in 64 mode or not.
 #[derive(Clone, Copy)]
-pub(crate) struct Register<'a>(pub(crate) &'a str, pub(crate) usize, pub(crate) usize);
+pub(crate) struct Register<'a>(pub(crate) &'a str, pub(crate) usize, pub(crate) u8, pub(crate) bool);
 
-// todo: to store rigit value, change the alignents of REGs
+// todo: add other register
 impl<'a> Register<'a> {
     fn parse(token: &'a str) -> Option<Self> {
         for (i, reg) in REG8.into_iter().enumerate() {
             if token == *reg {
-                return Some(Self(token, 8, i));
+                let val = i as u8;
+                return Some(Self(token, 8, val & 7, i >= 7));
             }
         }
         for (i, reg) in REG16.into_iter().enumerate() {
             if token == *reg {
-                return Some(Self(token, 16, i));
+                let val = i as u8;
+                return Some(Self(token, 16, val & 7, i >= 7));
             }
         }
         for (i, reg) in REG32.into_iter().enumerate() {
             if token == *reg {
-                return Some(Self(token, 32, i));
+                let val = i as u8;
+                return Some(Self(token, 32, val & 7, i >= 7));
             }
         }
         for (i, reg) in REG64.into_iter().enumerate() {
             if token == *reg {
-                return Some(Self(token, 64, i));
+                let val = i as u8;
+                return Some(Self(token, 64, val & 7, i >= 7));
             }
         }
         None
     }
     pub fn is_reg(token: &'a str) -> bool {
         Self::parse(token).is_some()
+    }
+    pub fn is_64(&self) -> bool {
+        self.3
+    }
+    pub fn reg(&self) -> u8 {
+        self.2
+    }
+    pub fn size(&self) -> usize {
+        self.1
     }
 }
 
@@ -475,6 +489,58 @@ impl<'a> Memory<'a> {
             *pos += 1;
         }
     }
+
+    pub fn check_size_of_reg(&self, size: usize) -> bool {
+        if self.base.is_some() && self.base.unwrap().size() != size {
+            return false;
+        }
+        if self.base.is_some() && self.index.unwrap().size() != size {
+            return false;
+        }
+        true
+    }
+    pub fn size(&self) -> usize {
+        self.size
+    }
+    // the first represents mod, 2nd rm, 3rd disp
+    pub fn mod_rm(&self) -> Result<(u8, u8, u32)> {
+        match self {
+            // disp
+            Self { base:None, displacement: Some(disp), index: None, scale: None, size } => {
+                todo!();
+            }
+            // disp + idx * scl
+            Self { base:None, displacement: Some(disp), index: Some(idx), scale: Some(scl), size } => {
+                todo!();
+            }
+            // base
+            Self { base:  Some(base), displacement: None, index: None, scale: None, size } => {
+                todo!();
+            }
+            // base + disp
+            Self { base:Some(base), displacement: Some(disp), index: None, scale: None, size } => {
+                todo!();
+            }
+            // base + idx
+            Self { base:Some(base), displacement: None, index: Some(idx), scale: None, size } => {
+                todo!();
+            }
+            // base + idx * scl
+            Self { base:Some(base), displacement: None, index: Some(idx), scale: Some(scl), size } => {
+                todo!();
+            }
+            // base + idx + disp
+            Self { base:Some(base), displacement: Some(disp), index: Some(idx), scale: None, size } => {
+                todo!();
+            }
+            // base + idx * scl + disp
+            Self { base:Some(base), displacement: Some(disp), index: Some(idx), scale: Some(scl), size } => {
+                todo!();
+            }
+            _ => todo!()
+        }
+    }
+
 }
 
 impl<'a> std::fmt::Debug for Memory<'a> {

@@ -83,7 +83,7 @@ class CodeGenMatchPat:
             case 'mem':
                 pat += 'CaseSome!(Data::Memory(Memory{{size:{}, ..}}))'.format(CodeGenMatchPat.read_size(param))
             case 'reg':
-                pat += 'CaseSome!(Data::Register(Register({}, {}, _)))'.format(CodeGenMatchPat.read_name(param), CodeGenMatchPat.read_size(param))
+                pat += 'CaseSome!(Data::Register(Register({}, {}, ..)))'.format(CodeGenMatchPat.read_name(param), CodeGenMatchPat.read_size(param))
             case 'label':
                 pat += 'CaseSome!(Data::Label(_))'
             case 'imm':

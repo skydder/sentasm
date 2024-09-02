@@ -47,10 +47,10 @@ pub fn codegen_verb(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposit
 	let _as = _preposition_phrases.get_object(Preposition("as")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj, &_to, &_as) {
-		(CaseSome!(Data::Register(Register(_, _, _))), CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..})), None) => Ok(format!("add {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Memory(Memory{size:_, ..})), None) => Ok(format!("add {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, _, ..))), CaseSome!(Data::Memory(Memory{size:_, ..})), None) => Ok(format!("add {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Memory(Memory{size:_, ..})), None) => Ok(format!("add {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
 		(CaseSome!(Data::Immediate(Immediate(_))), CaseSome!(Data::Memory(Memory{size:_, ..})), None) => Ok(format!("add {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Immediate(Immediate(_))), CaseSome!(Data::Register(Register(_, _, _))), None) => Ok(format!("add {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Immediate(Immediate(_))), CaseSome!(Data::Register(Register(_, _, ..))), None) => Ok(format!("add {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
 		_ => {
 			emit_error_msg!("unmatched operand", _verb_loc);
 			Err(())
@@ -63,8 +63,8 @@ pub fn codegen_verb(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposit
 	let _as = _preposition_phrases.get_object(Preposition("as")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj, &_from, &_as) {
-		(CaseSome!(Data::Register(Register(_, _, _))), CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..})), None) => Ok(format!("sub {:?}, {:?}", _from.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Immediate(Immediate(_))), CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..})), None) => Ok(format!("sub {:?}, {:?}", _from.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, _, ..))), CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), None) => Ok(format!("sub {:?}, {:?}", _from.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Immediate(Immediate(_))), CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), None) => Ok(format!("sub {:?}, {:?}", _from.unwrap(), _obj.unwrap())),
 		_ => {
 			emit_error_msg!("unmatched operand", _verb_loc);
 			Err(())
@@ -77,9 +77,9 @@ pub fn codegen_verb(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposit
 	let _as = _preposition_phrases.get_object(Preposition("as")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj, &_by, &_as) {
-		(None, CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..})), None) => Ok(format!("mul {:?}", _by.unwrap())),
-		(None, CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Keyword(Keyword("signed")))) => Ok(format!("imul {:?}", _by.unwrap())),
-		(CaseSome!(Data::Register(Register(_, _, _))), CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Keyword(Keyword("signed")))) => Ok(format!("imul {:?}, {:?}", _obj.unwrap(), _by.unwrap())),
+		(None, CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), None) => Ok(format!("mul {:?}", _by.unwrap())),
+		(None, CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Keyword(Keyword("signed")))) => Ok(format!("imul {:?}", _by.unwrap())),
+		(CaseSome!(Data::Register(Register(_, _, ..))), CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Keyword(Keyword("signed")))) => Ok(format!("imul {:?}, {:?}", _obj.unwrap(), _by.unwrap())),
 		_ => {
 			emit_error_msg!("unmatched operand", _verb_loc);
 			Err(())
@@ -92,8 +92,8 @@ pub fn codegen_verb(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposit
 	let _as = _preposition_phrases.get_object(Preposition("as")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj, &_by, &_as) {
-		(None, CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..})), None) => Ok(format!("div {:?}", _by.unwrap())),
-		(None, CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Keyword(Keyword("signed")))) => Ok(format!("idiv {:?}", _by.unwrap())),
+		(None, CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), None) => Ok(format!("div {:?}", _by.unwrap())),
+		(None, CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Keyword(Keyword("signed")))) => Ok(format!("idiv {:?}", _by.unwrap())),
 		_ => {
 			emit_error_msg!("unmatched operand", _verb_loc);
 			Err(())
@@ -107,23 +107,23 @@ pub fn codegen_verb(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposit
 	let _with = _preposition_phrases.get_object(Preposition("with")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj, &_to, &_as, &_with) {
-		(CaseSome!(Data::Register(Register(_, _, _))), CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..})), None, None) => Ok(format!("mov {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..})) | CaseSome!(Data::Label(_)), CaseSome!(Data::Register(Register(_, _, _))), None, None) => Ok(format!("mov {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Immediate(Immediate(_))), CaseSome!(Data::Register(Register(_, _, _))), None, None) => Ok(format!("mov {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Immediate(Immediate(_))), CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..})), None, None) => Ok(format!("mov {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Register(Register(_, 8 | 0, _))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Register(Register(_, 16 | 0, _))), None, CaseSome!(Data::Keyword(Keyword("sign-extention")))) => Ok(format!("movsx {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Register(Register(_, 8 | 0, _))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Register(Register(_, 32 | 0, _))), None, CaseSome!(Data::Keyword(Keyword("sign-extention")))) => Ok(format!("movsx {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Register(Register(_, 8 | 0, _))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Register(Register(_, 64 | 0, _))), None, CaseSome!(Data::Keyword(Keyword("sign-extention")))) => Ok(format!("movsx {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Register(Register(_, 16 | 0, _))) | CaseSome!(Data::Memory(Memory{size:16 | 0, ..})), CaseSome!(Data::Register(Register(_, 32 | 0, _))), None, CaseSome!(Data::Keyword(Keyword("sign-extention")))) => Ok(format!("movsx {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Register(Register(_, 16 | 0, _))) | CaseSome!(Data::Memory(Memory{size:16 | 0, ..})), CaseSome!(Data::Register(Register(_, 64 | 0, _))), None, CaseSome!(Data::Keyword(Keyword("sign-extention")))) => Ok(format!("movsx {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Register(Register(_, 16 | 0, _))) | CaseSome!(Data::Memory(Memory{size:16 | 0, ..})), CaseSome!(Data::Register(Register(_, 16 | 0, _))), None, CaseSome!(Data::Keyword(Keyword("sign-extention")))) => Ok(format!("movsxd {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Register(Register(_, 32 | 0, _))) | CaseSome!(Data::Memory(Memory{size:32 | 0, ..})), CaseSome!(Data::Register(Register(_, 32 | 0, _))), None, CaseSome!(Data::Keyword(Keyword("sign-extention")))) => Ok(format!("movsxd {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Register(Register(_, 32 | 0, _))) | CaseSome!(Data::Memory(Memory{size:32 | 0, ..})), CaseSome!(Data::Register(Register(_, 64 | 0, _))), None, CaseSome!(Data::Keyword(Keyword("sign-extention")))) => Ok(format!("movsxd {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Register(Register(_, 8 | 0, _))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Register(Register(_, 16 | 0, _))), None, CaseSome!(Data::Keyword(Keyword("zero-extention")))) => Ok(format!("movzx {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Register(Register(_, 8 | 0, _))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Register(Register(_, 32 | 0, _))), None, CaseSome!(Data::Keyword(Keyword("zero-extention")))) => Ok(format!("movzx {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Register(Register(_, 8 | 0, _))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Register(Register(_, 64 | 0, _))), None, CaseSome!(Data::Keyword(Keyword("zero-extention")))) => Ok(format!("movzx {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Register(Register(_, 16 | 0, _))) | CaseSome!(Data::Memory(Memory{size:16 | 0, ..})), CaseSome!(Data::Register(Register(_, 32 | 0, _))), None, CaseSome!(Data::Keyword(Keyword("zero-extention")))) => Ok(format!("movzx {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Register(Register(_, 16 | 0, _))) | CaseSome!(Data::Memory(Memory{size:16 | 0, ..})), CaseSome!(Data::Register(Register(_, 64 | 0, _))), None, CaseSome!(Data::Keyword(Keyword("zero-extention")))) => Ok(format!("movzx {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, _, ..))), CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), None, None) => Ok(format!("mov {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})) | CaseSome!(Data::Label(_)), CaseSome!(Data::Register(Register(_, _, ..))), None, None) => Ok(format!("mov {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Immediate(Immediate(_))), CaseSome!(Data::Register(Register(_, _, ..))), None, None) => Ok(format!("mov {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Immediate(Immediate(_))), CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), None, None) => Ok(format!("mov {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, 8 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Register(Register(_, 16 | 0, ..))), None, CaseSome!(Data::Keyword(Keyword("sign-extention")))) => Ok(format!("movsx {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, 8 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Register(Register(_, 32 | 0, ..))), None, CaseSome!(Data::Keyword(Keyword("sign-extention")))) => Ok(format!("movsx {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, 8 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Register(Register(_, 64 | 0, ..))), None, CaseSome!(Data::Keyword(Keyword("sign-extention")))) => Ok(format!("movsx {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, 16 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:16 | 0, ..})), CaseSome!(Data::Register(Register(_, 32 | 0, ..))), None, CaseSome!(Data::Keyword(Keyword("sign-extention")))) => Ok(format!("movsx {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, 16 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:16 | 0, ..})), CaseSome!(Data::Register(Register(_, 64 | 0, ..))), None, CaseSome!(Data::Keyword(Keyword("sign-extention")))) => Ok(format!("movsx {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, 16 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:16 | 0, ..})), CaseSome!(Data::Register(Register(_, 16 | 0, ..))), None, CaseSome!(Data::Keyword(Keyword("sign-extention")))) => Ok(format!("movsxd {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, 32 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:32 | 0, ..})), CaseSome!(Data::Register(Register(_, 32 | 0, ..))), None, CaseSome!(Data::Keyword(Keyword("sign-extention")))) => Ok(format!("movsxd {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, 32 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:32 | 0, ..})), CaseSome!(Data::Register(Register(_, 64 | 0, ..))), None, CaseSome!(Data::Keyword(Keyword("sign-extention")))) => Ok(format!("movsxd {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, 8 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Register(Register(_, 16 | 0, ..))), None, CaseSome!(Data::Keyword(Keyword("zero-extention")))) => Ok(format!("movzx {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, 8 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Register(Register(_, 32 | 0, ..))), None, CaseSome!(Data::Keyword(Keyword("zero-extention")))) => Ok(format!("movzx {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, 8 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Register(Register(_, 64 | 0, ..))), None, CaseSome!(Data::Keyword(Keyword("zero-extention")))) => Ok(format!("movzx {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, 16 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:16 | 0, ..})), CaseSome!(Data::Register(Register(_, 32 | 0, ..))), None, CaseSome!(Data::Keyword(Keyword("zero-extention")))) => Ok(format!("movzx {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, 16 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:16 | 0, ..})), CaseSome!(Data::Register(Register(_, 64 | 0, ..))), None, CaseSome!(Data::Keyword(Keyword("zero-extention")))) => Ok(format!("movzx {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
 		_ => {
 			emit_error_msg!("unmatched operand", _verb_loc);
 			Err(())
@@ -154,8 +154,8 @@ pub fn codegen_verb(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposit
 	let _with = _preposition_phrases.get_object(Preposition("with")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj, &_with) {
-		(CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Register(Register(_, _, _)))) => Ok(format!("and {:?}, {:?}", _obj.unwrap(), _with.unwrap())),
-		(CaseSome!(Data::Register(Register(_, _, _))), CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..}))) => Ok(format!("and {:?}, {:?}", _obj.unwrap(), _with.unwrap())),
+		(CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Register(Register(_, _, ..)))) => Ok(format!("and {:?}, {:?}", _obj.unwrap(), _with.unwrap())),
+		(CaseSome!(Data::Register(Register(_, _, ..))), CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..}))) => Ok(format!("and {:?}, {:?}", _obj.unwrap(), _with.unwrap())),
 		_ => {
 			emit_error_msg!("unmatched operand", _verb_loc);
 			Err(())
@@ -167,8 +167,8 @@ pub fn codegen_verb(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposit
 	let _with = _preposition_phrases.get_object(Preposition("with")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj, &_with) {
-		(CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Register(Register(_, _, _)))) => Ok(format!("or {:?}, {:?}", _obj.unwrap(), _with.unwrap())),
-		(CaseSome!(Data::Register(Register(_, _, _))), CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..}))) => Ok(format!("or {:?}, {:?}", _obj.unwrap(), _with.unwrap())),
+		(CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Register(Register(_, _, ..)))) => Ok(format!("or {:?}, {:?}", _obj.unwrap(), _with.unwrap())),
+		(CaseSome!(Data::Register(Register(_, _, ..))), CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..}))) => Ok(format!("or {:?}, {:?}", _obj.unwrap(), _with.unwrap())),
 		_ => {
 			emit_error_msg!("unmatched operand", _verb_loc);
 			Err(())
@@ -180,8 +180,8 @@ pub fn codegen_verb(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposit
 	let _with = _preposition_phrases.get_object(Preposition("with")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj, &_with) {
-		(CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Register(Register(_, _, _)))) => Ok(format!("xor {:?}, {:?}", _obj.unwrap(), _with.unwrap())),
-		(CaseSome!(Data::Register(Register(_, _, _))), CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..}))) => Ok(format!("xor {:?}, {:?}", _obj.unwrap(), _with.unwrap())),
+		(CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Register(Register(_, _, ..)))) => Ok(format!("xor {:?}, {:?}", _obj.unwrap(), _with.unwrap())),
+		(CaseSome!(Data::Register(Register(_, _, ..))), CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..}))) => Ok(format!("xor {:?}, {:?}", _obj.unwrap(), _with.unwrap())),
 		_ => {
 			emit_error_msg!("unmatched operand", _verb_loc);
 			Err(())
@@ -192,7 +192,7 @@ pub fn codegen_verb(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposit
 	let _obj = _object.map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj) {
-		(CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..}))) => Ok(format!("not {:?}", _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..}))) => Ok(format!("not {:?}", _obj.unwrap())),
 		_ => {
 			emit_error_msg!("unmatched operand", _verb_loc);
 			Err(())
@@ -203,7 +203,7 @@ pub fn codegen_verb(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposit
 	let _obj = _object.map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj) {
-		(CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..}))) => Ok(format!("neg {:?}", _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..}))) => Ok(format!("neg {:?}", _obj.unwrap())),
 		_ => {
 			emit_error_msg!("unmatched operand", _verb_loc);
 			Err(())
@@ -215,8 +215,8 @@ pub fn codegen_verb(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposit
 	let _by = _preposition_phrases.get_object(Preposition("by")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj, &_by) {
-		(CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Immediate(Immediate(_)))) => Ok(format!("shr {:?}, {:?}", _obj.unwrap(), _by.unwrap())),
-		(CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Register(Register("cl", _, _)))) => Ok(format!("shr {:?}, {:?}", _obj.unwrap(), _by.unwrap())),
+		(CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Immediate(Immediate(_)))) => Ok(format!("shr {:?}, {:?}", _obj.unwrap(), _by.unwrap())),
+		(CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Register(Register("cl", _, ..)))) => Ok(format!("shr {:?}, {:?}", _obj.unwrap(), _by.unwrap())),
 		_ => {
 			emit_error_msg!("unmatched operand", _verb_loc);
 			Err(())
@@ -228,8 +228,8 @@ pub fn codegen_verb(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposit
 	let _by = _preposition_phrases.get_object(Preposition("by")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj, &_by) {
-		(CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Immediate(Immediate(_)))) => Ok(format!("shl {:?}, {:?}", _obj.unwrap(), _by.unwrap())),
-		(CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Register(Register("cl", _, _)))) => Ok(format!("shl {:?}, {:?}", _obj.unwrap(), _by.unwrap())),
+		(CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Immediate(Immediate(_)))) => Ok(format!("shl {:?}, {:?}", _obj.unwrap(), _by.unwrap())),
+		(CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Register(Register("cl", _, ..)))) => Ok(format!("shl {:?}, {:?}", _obj.unwrap(), _by.unwrap())),
 		_ => {
 			emit_error_msg!("unmatched operand", _verb_loc);
 			Err(())
@@ -252,9 +252,9 @@ pub fn codegen_verb(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposit
 	let _with = _preposition_phrases.get_object(Preposition("with")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj, &_with) {
-		(CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Register(Register(_, _, _)))) => Ok(format!("cmp {:?}, {:?}", _with.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Register(Register(_, _, _))), CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..}))) => Ok(format!("cmp {:?}, {:?}", _with.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Immediate(Immediate(_))), CaseSome!(Data::Register(Register(_, _, _))) | CaseSome!(Data::Memory(Memory{size:_, ..}))) => Ok(format!("cmp {:?}, {:?}", _with.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Register(Register(_, _, ..)))) => Ok(format!("cmp {:?}, {:?}", _with.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, _, ..))), CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..}))) => Ok(format!("cmp {:?}, {:?}", _with.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Immediate(Immediate(_))), CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..}))) => Ok(format!("cmp {:?}, {:?}", _with.unwrap(), _obj.unwrap())),
 		_ => {
 			emit_error_msg!("unmatched operand", _verb_loc);
 			Err(())
@@ -321,7 +321,7 @@ pub fn codegen_verb(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposit
 	let _to = _preposition_phrases.get_object(Preposition("to")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj, &_to) {
-		(CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Register(Register(_, _, _)))) => Ok(format!("lea {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Register(Register(_, _, ..)))) => Ok(format!("lea {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
 		_ => {
 			emit_error_msg!("unmatched operand", _verb_loc);
 			Err(())
@@ -332,10 +332,10 @@ pub fn codegen_verb(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposit
 	let _obj = _object.map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj) {
-		(CaseSome!(Data::Register(Register(_, 16 | 0, _)))) => Ok(format!("pop {:?}", _obj.unwrap())),
-		(CaseSome!(Data::Register(Register(_, 64 | 0, _)))) => Ok(format!("pop {:?}", _obj.unwrap())),
-		(CaseSome!(Data::Register(Register(_, 16 | 0, _))) | CaseSome!(Data::Memory(Memory{size:16 | 0, ..}))) => Ok(format!("pop {:?}", _obj.unwrap())),
-		(CaseSome!(Data::Register(Register(_, 64 | 0, _))) | CaseSome!(Data::Memory(Memory{size:64 | 0, ..}))) => Ok(format!("pop {:?}", _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, 16 | 0, ..)))) => Ok(format!("pop {:?}", _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, 64 | 0, ..)))) => Ok(format!("pop {:?}", _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, 16 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:16 | 0, ..}))) => Ok(format!("pop {:?}", _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, 64 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:64 | 0, ..}))) => Ok(format!("pop {:?}", _obj.unwrap())),
 		_ => {
 			emit_error_msg!("unmatched operand", _verb_loc);
 			Err(())
@@ -346,10 +346,10 @@ pub fn codegen_verb(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposit
 	let _obj = _object.map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj) {
-		(CaseSome!(Data::Register(Register(_, 16 | 0, _)))) => Ok(format!("push {:?}", _obj.unwrap())),
-		(CaseSome!(Data::Register(Register(_, 64 | 0, _)))) => Ok(format!("push {:?}", _obj.unwrap())),
-		(CaseSome!(Data::Register(Register(_, 16 | 0, _))) | CaseSome!(Data::Memory(Memory{size:16 | 0, ..}))) => Ok(format!("push {:?}", _obj.unwrap())),
-		(CaseSome!(Data::Register(Register(_, 64 | 0, _))) | CaseSome!(Data::Memory(Memory{size:64 | 0, ..}))) => Ok(format!("push {:?}", _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, 16 | 0, ..)))) => Ok(format!("push {:?}", _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, 64 | 0, ..)))) => Ok(format!("push {:?}", _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, 16 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:16 | 0, ..}))) => Ok(format!("push {:?}", _obj.unwrap())),
+		(CaseSome!(Data::Register(Register(_, 64 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:64 | 0, ..}))) => Ok(format!("push {:?}", _obj.unwrap())),
 		_ => {
 			emit_error_msg!("unmatched operand", _verb_loc);
 			Err(())
@@ -362,13 +362,13 @@ pub fn codegen_verb(verb: Verb, verb_loc: Loc, object: Option<DataSet>, preposit
 	let _if = _preposition_phrases.get_object(Preposition("if")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj, &_to, &_if) {
-		(None, CaseSome!(Data::Register(Register(_, 8 | 0, _))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), None) => Ok(format!("set {:?}", _to.unwrap())),
-		(None, CaseSome!(Data::Register(Register(_, 8 | 0, _))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Keyword(Keyword("==")))) => Ok(format!("sete {:?}", _to.unwrap())),
-		(None, CaseSome!(Data::Register(Register(_, 8 | 0, _))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Keyword(Keyword("!=")))) => Ok(format!("setne {:?}", _to.unwrap())),
-		(None, CaseSome!(Data::Register(Register(_, 8 | 0, _))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Keyword(Keyword(">")))) => Ok(format!("setg {:?}", _to.unwrap())),
-		(None, CaseSome!(Data::Register(Register(_, 8 | 0, _))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Keyword(Keyword(">=")))) => Ok(format!("setge {:?}", _to.unwrap())),
-		(None, CaseSome!(Data::Register(Register(_, 8 | 0, _))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Keyword(Keyword("<")))) => Ok(format!("setl {:?}", _to.unwrap())),
-		(None, CaseSome!(Data::Register(Register(_, 8 | 0, _))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Keyword(Keyword("<=")))) => Ok(format!("setle {:?}", _to.unwrap())),
+		(None, CaseSome!(Data::Register(Register(_, 8 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), None) => Ok(format!("set {:?}", _to.unwrap())),
+		(None, CaseSome!(Data::Register(Register(_, 8 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Keyword(Keyword("==")))) => Ok(format!("sete {:?}", _to.unwrap())),
+		(None, CaseSome!(Data::Register(Register(_, 8 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Keyword(Keyword("!=")))) => Ok(format!("setne {:?}", _to.unwrap())),
+		(None, CaseSome!(Data::Register(Register(_, 8 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Keyword(Keyword(">")))) => Ok(format!("setg {:?}", _to.unwrap())),
+		(None, CaseSome!(Data::Register(Register(_, 8 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Keyword(Keyword(">=")))) => Ok(format!("setge {:?}", _to.unwrap())),
+		(None, CaseSome!(Data::Register(Register(_, 8 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Keyword(Keyword("<")))) => Ok(format!("setl {:?}", _to.unwrap())),
+		(None, CaseSome!(Data::Register(Register(_, 8 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Keyword(Keyword("<=")))) => Ok(format!("setle {:?}", _to.unwrap())),
 		_ => {
 			emit_error_msg!("unmatched operand", _verb_loc);
 			Err(())

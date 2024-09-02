@@ -1,11 +1,11 @@
 eax
-ebx
 ecx
 edx
-edi
-esi
-ebp
+ebx
 esp
+ebp
+esi
+edi
 r8d
 r9d
 r10d

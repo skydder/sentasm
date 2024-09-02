@@ -127,3 +127,45 @@ fn gen_ins_extern(
         .ok_or_else(|| eprintln!("expected label, but could not find it"))?;
     Ok(format!("extern {:?}", obj))
 }
+
+enum Rex {
+    REX = 0x40,
+    W = 0b1000,
+    R = 0b0100,
+    X = 0b0010,
+    B = 0b0001,
+}
+
+macro_rules! rex_prefix {
+    ($rex: expr) => {
+        ($rex as u8)
+    };
+    ($rex1: expr, $rex2: expr) => {
+        ($rex1 as u8) | ($rex2 as u8)
+    };
+    ($rex1: expr, $($rex2: tt)*) => {
+        ($rex1 as u8) | rex_prefix!($($rex2)*)
+    };
+}
+
+fn sib(scale: u8, index: u8, base: u8) -> u8 {
+    sib_scale(scale) << 6 | index << 3 | base
+}
+
+fn sib_scale(scale: u8) -> u8 {
+    match scale {
+        1 => 0b00,
+        2 => 0b01,
+        4 => 0b10,
+        8 => 0b11,
+        _ => panic!("unexpected!!")
+    }
+}
+
+fn mod_rm(mode: u8, reg: u8, rm: u8) -> u8 {
+    mode << 6 | reg << 3 | rm
+}
+
+fn instruction(opcode: Vec<u8>, prefix: Vec<u8>, mod_rm: u8, disp: Vec<u8>, imm: Vec<u8>) -> Vec<u8> {
+    todo!()
+}
