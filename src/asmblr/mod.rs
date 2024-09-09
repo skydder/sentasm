@@ -12,7 +12,7 @@ pub use tokenizer::{Loc, Tonkenizer};
 pub type Result<T> = result::Result<T, ()>;
 
 pub(crate) use data::{Label, Preposition, Verb, Register, Keyword, Immediate, Memory};
-pub(crate) use parser::PrepositionPhrases;
+pub(crate) use parser::{PrepositionPhrases, Sentence};
 
 mod auto;
 pub(crate) use auto::*;

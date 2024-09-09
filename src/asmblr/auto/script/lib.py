@@ -60,3 +60,40 @@ def display_list(lists: list[str]) -> str:
         display += '{}'.format(lists[-1])
     
     return display 
+
+def tokenize(s: str) -> list:
+    tokens = s.replace('(', ' ( ').replace(')', ' ) ').replace(',', ' , ').replace('#[', ' #[ ').replace(']', ' ] ').split()
+    return tokens
+
+def read_tokens(tokens: list[str]) -> list:
+    seq = []
+    token = tokens.pop(0)
+    if token == '(':
+        while tokens[0] != ')':
+            seq.append(read_tokens(tokens))
+        
+        tokens.pop(0)
+        return seq
+    if token == '#[':
+        while tokens[0] != ']':
+            tokens.pop(0)
+        tokens.pop(0)
+        return  None
+    else:
+        return token
+
+def read(tokens: list[str]) -> list:
+    seq = []
+    while len(tokens) != 0 and (tokens[0] == '(' or tokens[0].startswith('#[')):
+        if tokens[0] == '(':
+            seq.append(read_tokens(tokens))
+        elif tokens[0].startswith('#['):
+            read_tokens(tokens)
+        else:
+            print('Syntax Error!', file=sys.stderr)
+            exit(1)
+    return seq
+
+def read_list(path:str) -> list:
+    with open(path) as file:
+        return read(tokenize(file.read()))

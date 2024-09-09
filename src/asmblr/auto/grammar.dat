@@ -1,11 +1,13 @@
+#[maybe the order should be as to obj]
 (add (obj to as)
+     (reg reg None (add #to, #obj))
      (reg mem None (add #to, #obj))
-     (reg|mem mem None (add #to, #obj))
+     (mem reg None (add #to, #obj))
      (imm mem None (add #to, #obj))
      (imm reg None (add #to, #obj))
 )
 
-
+#[test comment]
 (substract (obj from as)
      (reg reg|mem None (sub #from, #obj))
      (imm reg|mem None (sub #from, #obj))

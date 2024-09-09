@@ -1,53 +1,52 @@
 use super::{
-    codegen_verb, Code, Data, DataSet, Loc, Preposition, PrepositionPhrases, Result, Verb
+    codegen_verb, parser::Sentence, Code, Data, DataSet, Loc, Preposition, PrepositionPhrases, Result, Verb
 };
 
-pub fn codegen(code: Code) -> Result<String> {
-    match code {
+pub fn codegen(code: Code, asm: &mut String) -> Result<()> {
+    let line = match code {
         Code::NullStmt => Ok(format!("")),
-        Code::LabelDef(l) => Ok(format!("{}:", l.0)),
-        Code::Section(l) => Ok(format!("section {}", l.0)),
-        Code::Sentence {
-            verb,
-            verb_loc,
-            object,
-            mut preposition_phrases,
-        } => Ok(format!(
-            "\t{}",
-            codegen_sentence(verb, verb_loc, object, &mut preposition_phrases)?
+        Code::LabelDef(l) => Ok(format!("{}:\n", l.0)),
+        Code::Section(l) => Ok(format!("section {}\n", l.0)),
+        Code::Sentence(sentense) => Ok(format!(
+            "\t{}\n",
+            codegen_sentence(sentense)?
         )),
-    }
+    }?;
+    asm.push_str(&line);
+    Ok(())
 }
 
 fn codegen_sentence(
-    verb: Verb,
-    verb_loc: Loc,
-    object: Option<DataSet>,
-    mut preposition_phrases: &mut PrepositionPhrases,
+    // verb: Verb,
+    // verb_loc: Loc,
+    // object: Option<DataSet>,
+    // mut preposition_phrases: &mut PrepositionPhrases,
+    sentence: Sentence
 ) -> Result<String> {
-    match verb {
-        Verb("define") => gen_ins_def(verb, verb_loc, object, preposition_phrases),
-        Verb("globalize") => gen_ins_global(verb, verb_loc, object, preposition_phrases),
-        Verb("allocate") => gen_ins_alloc(verb, verb_loc, object, preposition_phrases),
-        Verb("extern") => gen_ins_extern(verb, verb_loc, object, preposition_phrases),
-        _ => codegen_verb(verb, verb_loc, object, preposition_phrases)
+    match &sentence.verb {
+        Verb("define") => gen_ins_def(sentence),
+        Verb("globalize") => gen_ins_global(sentence),
+        Verb("allocate") => gen_ins_alloc(sentence),
+        Verb("extern") => gen_ins_extern(sentence),
+        _ => codegen_verb(sentence)
     }
 }
 
 fn gen_ins_def(
-    _verb: Verb,
-    _verb_loc: Loc,
-    object: Option<DataSet>,
-    preposition_phrases: &mut PrepositionPhrases,
+    // _verb: Verb,
+    // _verb_loc: Loc,
+    // object: Option<DataSet>,
+    // preposition_phrases: &mut PrepositionPhrases,
+    sentence: Sentence
 ) -> Result<String> {
-    let obj = object
+    let obj = sentence.object
         .map_or_else(|| None, |date| date.expect_label())
         .ok_or_else(|| eprintln!("expected label, but could not find it"))?;
-    let az = preposition_phrases
+    let az = sentence.preposition_phrases
         .get_object(Preposition("as"))
         .map_or_else(|| None, |date| date.expect_define())
         .ok_or_else(|| eprintln!("expected 'as' phrase, but could not find it"))?;
-    let by = preposition_phrases
+    let by = sentence.preposition_phrases
         .get_object(Preposition("by"))
         .map_or_else(|| None, |date| date.expect_keyword())
         .ok_or_else(|| eprintln!("expected 'by' phrase, but could not find it"))?;
@@ -70,31 +69,33 @@ fn gen_ins_def(
 }
 
 fn gen_ins_global(
-    _verb: Verb,
-    _verb_loc: Loc,
-    object: Option<DataSet>,
-    _preposition_phrases: &mut PrepositionPhrases,
+    // _verb: Verb,
+    // _verb_loc: Loc,
+    // object: Option<DataSet>,
+    // _preposition_phrases: &mut PrepositionPhrases,
+    sentence: Sentence
 ) -> Result<String> {
-    let obj = object
+    let obj = sentence.object
         .map_or_else(|| None, |date| date.expect_label())
         .ok_or_else(|| eprintln!("expected label, but could not find it"))?;
     Ok(format!("global {:?}", obj))
 }
 
 fn gen_ins_alloc(
-    _verb: Verb,
-    _verb_loc: Loc,
-    object: Option<DataSet>,
-    preposition_phrases: &mut PrepositionPhrases,
+    // _verb: Verb,
+    // _verb_loc: Loc,
+    // object: Option<DataSet>,
+    // _preposition_phrases: &mut PrepositionPhrases,
+    sentence: Sentence
 ) -> Result<String> {
-    let obj = object
+    let obj = sentence.object
         .map_or_else(|| None, |date| date.expect_label())
         .ok_or_else(|| eprintln!("expected label, but could not find it"))?;
-    let vor: DataSet = preposition_phrases
+    let vor: DataSet = sentence.preposition_phrases
         .get_object(Preposition("for"))
         .map_or_else(|| None, |date| date.expect_immediate())
         .ok_or_else(|| eprintln!("expected 'for' phrase, but could not find it"))?;
-    let by = preposition_phrases
+    let by = sentence.preposition_phrases
         .get_object(Preposition("by"))
         .map_or_else(|| None, |date| date.expect_keyword())
         .ok_or_else(|| eprintln!("expected 'by' phrase, but could not find it"))?;
@@ -117,12 +118,13 @@ fn gen_ins_alloc(
 }
 
 fn gen_ins_extern(
-    _verb: Verb,
-    _verb_loc: Loc,
-    object: Option<DataSet>,
-    _preposition_phrases: &mut PrepositionPhrases,
+    // _verb: Verb,
+    // _verb_loc: Loc,
+    // object: Option<DataSet>,
+    // _preposition_phrases: &mut PrepositionPhrases,
+    sentence: Sentence
 ) -> Result<String> {
-    let obj = object
+    let obj = sentence.object
         .map_or_else(|| None, |date| date.expect_label())
         .ok_or_else(|| eprintln!("expected label, but could not find it"))?;
     Ok(format!("extern {:?}", obj))
@@ -169,3 +171,7 @@ fn mod_rm(mode: u8, reg: u8, rm: u8) -> u8 {
 fn instruction(opcode: Vec<u8>, prefix: Vec<u8>, mod_rm: u8, disp: Vec<u8>, imm: Vec<u8>) -> Vec<u8> {
     todo!()
 }
+
+fn put_byte(byte: u8) -> String {
+    format!("db {:#02x}\n", byte)
+} 

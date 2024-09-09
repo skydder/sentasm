@@ -37,13 +37,14 @@ impl<'a> PrepositionPhrases<'a> {
     }
 }
 
+pub struct Sentence <'a> {
+    pub verb: Verb<'a>,
+    pub verb_loc: Loc<'a>,
+    pub object: Option<DataSet<'a>>,
+    pub preposition_phrases: PrepositionPhrases<'a>,
+}
 pub enum Code<'a> {
-    Sentence {
-        verb: Verb<'a>,
-        verb_loc: Loc<'a>,
-        object: Option<DataSet<'a>>,
-        preposition_phrases: PrepositionPhrases<'a>,
-    },
+    Sentence(Sentence<'a>),
     LabelDef(Label<'a>),
     Section(Label<'a>),
     NullStmt,
@@ -64,12 +65,12 @@ impl<'a> Code<'a> {
                 if object.is_some() {
                     tonkenizer.next();
                 }
-                let ret = Ok(Self::Sentence {
+                let ret = Ok(Self::Sentence(Sentence{
                     verb: v,
                     verb_loc: loc,
                     object,
                     preposition_phrases: PrepositionPhrases::parse(tonkenizer)?,
-                });
+                }));
 
                 ret
             }

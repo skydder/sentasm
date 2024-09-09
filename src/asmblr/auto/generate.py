@@ -1,6 +1,7 @@
 
 from script.gen_data import GenData, read_data
-from script.gen_gen import GenIns, gen_codegen_verb, read_grammar, gen_import, gen_macro
+from script.gen_gen import GenIns, gen_codegen_verb, gen_import, gen_macro
+from script.lib import read_list
 
 
 def generate_data() -> str:
@@ -14,7 +15,7 @@ def generate_codegen_verb() -> str:
     code = '{}\n{}\n'.format(gen_import(), gen_macro())
     verb = read_data('tokens/VERB.dat')
     code += '{}\n'.format(gen_codegen_verb(verb))
-    grammars = read_grammar('grammar.dat')
+    grammars = read_list('grammar.dat')
     for grammar in grammars:
         code += '{}\n'.format(GenIns(grammar[0], grammar[1], grammar[2:]).gen_ins())
     
