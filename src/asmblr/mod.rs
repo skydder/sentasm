@@ -4,6 +4,7 @@ mod codegen;
 mod data;
 mod parser;
 mod tokenizer;
+mod  analyze;
 
 pub use codegen::codegen;
 pub use data::{Data, DataSet};

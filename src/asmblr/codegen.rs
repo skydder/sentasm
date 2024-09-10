@@ -33,15 +33,13 @@ fn codegen_sentence(
 }
 
 fn gen_ins_def(
-    // _verb: Verb,
-    // _verb_loc: Loc,
-    // object: Option<DataSet>,
-    // preposition_phrases: &mut PrepositionPhrases,
     sentence: Sentence
 ) -> Result<String> {
-    let obj = sentence.object
+    let obj = sentence.preposition_phrases
+        .get_object(Preposition("obj"))
         .map_or_else(|| None, |date| date.expect_label())
         .ok_or_else(|| eprintln!("expected label, but could not find it"))?;
+
     let az = sentence.preposition_phrases
         .get_object(Preposition("as"))
         .map_or_else(|| None, |date| date.expect_define())
@@ -69,28 +67,24 @@ fn gen_ins_def(
 }
 
 fn gen_ins_global(
-    // _verb: Verb,
-    // _verb_loc: Loc,
-    // object: Option<DataSet>,
-    // _preposition_phrases: &mut PrepositionPhrases,
     sentence: Sentence
 ) -> Result<String> {
-    let obj = sentence.object
+    let obj = sentence.preposition_phrases
+        .get_object(Preposition("obj"))
         .map_or_else(|| None, |date| date.expect_label())
         .ok_or_else(|| eprintln!("expected label, but could not find it"))?;
+
     Ok(format!("global {:?}", obj))
 }
 
 fn gen_ins_alloc(
-    // _verb: Verb,
-    // _verb_loc: Loc,
-    // object: Option<DataSet>,
-    // _preposition_phrases: &mut PrepositionPhrases,
     sentence: Sentence
 ) -> Result<String> {
-    let obj = sentence.object
+    let obj = sentence.preposition_phrases
+        .get_object(Preposition("obj"))
         .map_or_else(|| None, |date| date.expect_label())
         .ok_or_else(|| eprintln!("expected label, but could not find it"))?;
+
     let vor: DataSet = sentence.preposition_phrases
         .get_object(Preposition("for"))
         .map_or_else(|| None, |date| date.expect_immediate())
@@ -118,15 +112,13 @@ fn gen_ins_alloc(
 }
 
 fn gen_ins_extern(
-    // _verb: Verb,
-    // _verb_loc: Loc,
-    // object: Option<DataSet>,
-    // _preposition_phrases: &mut PrepositionPhrases,
     sentence: Sentence
 ) -> Result<String> {
-    let obj = sentence.object
+    let obj = sentence.preposition_phrases
+        .get_object(Preposition("obj"))
         .map_or_else(|| None, |date| date.expect_label())
         .ok_or_else(|| eprintln!("expected label, but could not find it"))?;
+
     Ok(format!("extern {:?}", obj))
 }
 

@@ -49,6 +49,17 @@ class Const:
     def const(self) -> str:
         return '{} const {}: {} = {};'.format(self.visibility, self.name, self.type, self.expr)
 
+class Block:
+    def __init__(self, procedure: list[str]) -> None:
+        self.proc = procedure
+
+    def block(self) -> str:
+        code = '{\n'
+        for step in self.proc:
+            code += '\t{}\n'.format(step)
+        code += '}\n'
+        return code
+
 # recursive function might be better idea
 def display_list(lists: list[str]) -> str:
     length = len(lists)

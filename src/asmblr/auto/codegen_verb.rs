@@ -6,8 +6,8 @@ macro_rules! CaseSome {
 	($data:pat) => {Some(DataSet {data:$data, loc:_})};
 }
 macro_rules! emit_error_msg {
-($msg:expr, $loc:expr) => {
-eprintln!("{}", format!("{}{}", $msg, $loc))
+	($msg:expr, $loc:expr) => {
+		eprintln!("{}", format!("{}{}", $msg, $loc))
 };
 }
 
@@ -42,7 +42,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	}
 }
  fn gen_ins_add(sentence: Sentence) -> Result<String> {
-	let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());
+	let _obj = sentence.preposition_phrases.get_object(Preposition("obj")).map_or_else(|| None, |date| date.expect_object());
 	let _to = sentence.preposition_phrases.get_object(Preposition("to")).map_or_else(|| None, |date| date.expect_object());
 	let _as = sentence.preposition_phrases.get_object(Preposition("as")).map_or_else(|| None, |date| date.expect_object());
 	
@@ -59,7 +59,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	}
 }
  fn gen_ins_substract(sentence: Sentence) -> Result<String> {
-	let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());
+	let _obj = sentence.preposition_phrases.get_object(Preposition("obj")).map_or_else(|| None, |date| date.expect_object());
 	let _from = sentence.preposition_phrases.get_object(Preposition("from")).map_or_else(|| None, |date| date.expect_object());
 	let _as = sentence.preposition_phrases.get_object(Preposition("as")).map_or_else(|| None, |date| date.expect_object());
 	
@@ -73,7 +73,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	}
 }
  fn gen_ins_multiply(sentence: Sentence) -> Result<String> {
-	let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());
+	let _obj = sentence.preposition_phrases.get_object(Preposition("obj")).map_or_else(|| None, |date| date.expect_object());
 	let _by = sentence.preposition_phrases.get_object(Preposition("by")).map_or_else(|| None, |date| date.expect_object());
 	let _as = sentence.preposition_phrases.get_object(Preposition("as")).map_or_else(|| None, |date| date.expect_object());
 	
@@ -88,7 +88,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	}
 }
  fn gen_ins_divide(sentence: Sentence) -> Result<String> {
-	let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());
+	let _obj = sentence.preposition_phrases.get_object(Preposition("obj")).map_or_else(|| None, |date| date.expect_object());
 	let _by = sentence.preposition_phrases.get_object(Preposition("by")).map_or_else(|| None, |date| date.expect_object());
 	let _as = sentence.preposition_phrases.get_object(Preposition("as")).map_or_else(|| None, |date| date.expect_object());
 	
@@ -102,7 +102,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	}
 }
  fn gen_ins_move(sentence: Sentence) -> Result<String> {
-	let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());
+	let _obj = sentence.preposition_phrases.get_object(Preposition("obj")).map_or_else(|| None, |date| date.expect_object());
 	let _to = sentence.preposition_phrases.get_object(Preposition("to")).map_or_else(|| None, |date| date.expect_object());
 	let _as = sentence.preposition_phrases.get_object(Preposition("as")).map_or_else(|| None, |date| date.expect_object());
 	let _with = sentence.preposition_phrases.get_object(Preposition("with")).map_or_else(|| None, |date| date.expect_object());
@@ -132,7 +132,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	}
 }
  fn gen_ins_jump(sentence: Sentence) -> Result<String> {
-	let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());
+	let _obj = sentence.preposition_phrases.get_object(Preposition("obj")).map_or_else(|| None, |date| date.expect_object());
 	let _to = sentence.preposition_phrases.get_object(Preposition("to")).map_or_else(|| None, |date| date.expect_object());
 	let _if = sentence.preposition_phrases.get_object(Preposition("if")).map_or_else(|| None, |date| date.expect_object());
 	
@@ -151,7 +151,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	}
 }
  fn gen_ins_and(sentence: Sentence) -> Result<String> {
-	let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());
+	let _obj = sentence.preposition_phrases.get_object(Preposition("obj")).map_or_else(|| None, |date| date.expect_object());
 	let _with = sentence.preposition_phrases.get_object(Preposition("with")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj, &_with) {
@@ -164,7 +164,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	}
 }
  fn gen_ins_or(sentence: Sentence) -> Result<String> {
-	let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());
+	let _obj = sentence.preposition_phrases.get_object(Preposition("obj")).map_or_else(|| None, |date| date.expect_object());
 	let _with = sentence.preposition_phrases.get_object(Preposition("with")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj, &_with) {
@@ -177,7 +177,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	}
 }
  fn gen_ins_xor(sentence: Sentence) -> Result<String> {
-	let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());
+	let _obj = sentence.preposition_phrases.get_object(Preposition("obj")).map_or_else(|| None, |date| date.expect_object());
 	let _with = sentence.preposition_phrases.get_object(Preposition("with")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj, &_with) {
@@ -190,7 +190,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	}
 }
  fn gen_ins_not(sentence: Sentence) -> Result<String> {
-	let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());
+	let _obj = sentence.preposition_phrases.get_object(Preposition("obj")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj) {
 		(CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..}))) => Ok(format!("not {:?}", _obj.unwrap())),
@@ -201,7 +201,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	}
 }
  fn gen_ins_negate(sentence: Sentence) -> Result<String> {
-	let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());
+	let _obj = sentence.preposition_phrases.get_object(Preposition("obj")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj) {
 		(CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..}))) => Ok(format!("neg {:?}", _obj.unwrap())),
@@ -212,7 +212,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	}
 }
  fn gen_ins_shift_right(sentence: Sentence) -> Result<String> {
-	let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());
+	let _obj = sentence.preposition_phrases.get_object(Preposition("obj")).map_or_else(|| None, |date| date.expect_object());
 	let _by = sentence.preposition_phrases.get_object(Preposition("by")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj, &_by) {
@@ -225,7 +225,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	}
 }
  fn gen_ins_shift_left(sentence: Sentence) -> Result<String> {
-	let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());
+	let _obj = sentence.preposition_phrases.get_object(Preposition("obj")).map_or_else(|| None, |date| date.expect_object());
 	let _by = sentence.preposition_phrases.get_object(Preposition("by")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj, &_by) {
@@ -238,7 +238,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	}
 }
  fn gen_ins_call(sentence: Sentence) -> Result<String> {
-	let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());
+	let _obj = sentence.preposition_phrases.get_object(Preposition("obj")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj) {
 		(CaseSome!(Data::Label(_))) => Ok(format!("call {:?}", _obj.unwrap())),
@@ -249,7 +249,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	}
 }
  fn gen_ins_compare(sentence: Sentence) -> Result<String> {
-	let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());
+	let _obj = sentence.preposition_phrases.get_object(Preposition("obj")).map_or_else(|| None, |date| date.expect_object());
 	let _with = sentence.preposition_phrases.get_object(Preposition("with")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj, &_with) {
@@ -263,7 +263,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	}
 }
  fn gen_ins_return(sentence: Sentence) -> Result<String> {
-	let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());
+	let _obj = sentence.preposition_phrases.get_object(Preposition("obj")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj) {
 		(None) => Ok(format!("ret", )),
@@ -274,7 +274,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	}
 }
  fn gen_ins_leave(sentence: Sentence) -> Result<String> {
-	let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());
+	let _obj = sentence.preposition_phrases.get_object(Preposition("obj")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj) {
 		(None) => Ok(format!("leave", )),
@@ -285,7 +285,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	}
 }
  fn gen_ins_no_operation(sentence: Sentence) -> Result<String> {
-	let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());
+	let _obj = sentence.preposition_phrases.get_object(Preposition("obj")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj) {
 		(None) => Ok(format!("nop", )),
@@ -296,7 +296,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	}
 }
  fn gen_ins_systemcall(sentence: Sentence) -> Result<String> {
-	let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());
+	let _obj = sentence.preposition_phrases.get_object(Preposition("obj")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj) {
 		(None) => Ok(format!("syscall", )),
@@ -307,7 +307,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	}
 }
  fn gen_ins_halt(sentence: Sentence) -> Result<String> {
-	let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());
+	let _obj = sentence.preposition_phrases.get_object(Preposition("obj")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj) {
 		(None) => Ok(format!("hlt", )),
@@ -318,7 +318,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	}
 }
  fn gen_ins_load_effective_address(sentence: Sentence) -> Result<String> {
-	let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());
+	let _obj = sentence.preposition_phrases.get_object(Preposition("obj")).map_or_else(|| None, |date| date.expect_object());
 	let _to = sentence.preposition_phrases.get_object(Preposition("to")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj, &_to) {
@@ -330,7 +330,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	}
 }
  fn gen_ins_pop(sentence: Sentence) -> Result<String> {
-	let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());
+	let _obj = sentence.preposition_phrases.get_object(Preposition("obj")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj) {
 		(CaseSome!(Data::Register(Register(_, 16 | 0, ..)))) => Ok(format!("pop {:?}", _obj.unwrap())),
@@ -344,7 +344,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	}
 }
  fn gen_ins_push(sentence: Sentence) -> Result<String> {
-	let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());
+	let _obj = sentence.preposition_phrases.get_object(Preposition("obj")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj) {
 		(CaseSome!(Data::Register(Register(_, 16 | 0, ..)))) => Ok(format!("push {:?}", _obj.unwrap())),
@@ -358,7 +358,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	}
 }
  fn gen_ins_set_byte(sentence: Sentence) -> Result<String> {
-	let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());
+	let _obj = sentence.preposition_phrases.get_object(Preposition("obj")).map_or_else(|| None, |date| date.expect_object());
 	let _to = sentence.preposition_phrases.get_object(Preposition("to")).map_or_else(|| None, |date| date.expect_object());
 	let _if = sentence.preposition_phrases.get_object(Preposition("if")).map_or_else(|| None, |date| date.expect_object());
 	
@@ -377,7 +377,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	}
 }
  fn gen_ins_extend__ax_reg(sentence: Sentence) -> Result<String> {
-	let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());
+	let _obj = sentence.preposition_phrases.get_object(Preposition("obj")).map_or_else(|| None, |date| date.expect_object());
 	let _by = sentence.preposition_phrases.get_object(Preposition("by")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj, &_by) {

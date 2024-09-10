@@ -8,9 +8,8 @@ class GenIns:
 
     def gen_proc(self) -> list[str]:
         seq = []
-        seq.append('let _obj = sentence.object.map_or_else(|| None, |date| date.expect_object());'.format())
-        
-        for parameter in self.parameters[1::]:
+
+        for parameter in self.parameters:
             seq.append('let _{} = sentence.preposition_phrases.get_object(Preposition(\"{}\")).map_or_else(|| None, |date| date.expect_object());'.format(parameter, parameter))
         
         seq.append("")
@@ -124,7 +123,7 @@ def gen_import() -> str:
     return 'use super::super::{\n\tdata::{Keyword, Register, Immediate, Memory}, Code, Data, DataSet, Loc, Preposition, PrepositionPhrases, Result, Verb, Sentence\n};\n'
 
 def gen_macro() -> str:
-    return 'macro_rules! CaseSome {\n\t($data:pat) => {Some(DataSet {data:$data, loc:_})};\n}\nmacro_rules! emit_error_msg {\n($msg:expr, $loc:expr) => {\neprintln!("{}", format!("{}{}", $msg, $loc))\n};\n}\n'
+    return 'macro_rules! CaseSome {\n\t($data:pat) => {Some(DataSet {data:$data, loc:_})};\n}\nmacro_rules! emit_error_msg {\n\t($msg:expr, $loc:expr) => {\n\t\teprintln!("{}", format!("{}{}", $msg, $loc))\n};\n}\n'
 
 def gen_codegen_verb(verb: list[str]) -> str:
     params = [('sentence', 'Sentence')]

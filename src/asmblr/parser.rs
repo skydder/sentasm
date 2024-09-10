@@ -10,8 +10,8 @@ pub(crate) struct PrepositionPhrases<'a> {
 }
 
 impl<'a> PrepositionPhrases<'a> {
-    fn parse(tokenizer: &'a Tonkenizer<'a>) -> Result<Self> {
-        let mut data: HashMap<Preposition, DataSet<'a>> = HashMap::new();
+    fn parse(tokenizer: &'a Tonkenizer<'a>, mut data:HashMap<Preposition<'a>, DataSet<'a>>) -> Result<Self> {
+        // let mut data: HashMap<Preposition, DataSet<'a>> = HashMap::new();
         while let Some(DataSet {
             data: Data::Prepositon(p),
             loc,
@@ -40,7 +40,6 @@ impl<'a> PrepositionPhrases<'a> {
 pub struct Sentence <'a> {
     pub verb: Verb<'a>,
     pub verb_loc: Loc<'a>,
-    pub object: Option<DataSet<'a>>,
     pub preposition_phrases: PrepositionPhrases<'a>,
 }
 pub enum Code<'a> {
@@ -57,6 +56,7 @@ impl<'a> Code<'a> {
                 data: Data::Verb(v),
                 loc,
             }) => {
+                let mut preps: HashMap<Preposition, DataSet<'a>> = HashMap::new();
                 let object = if let Some(data) = tonkenizer.peek() {
                     data.expect_object()
                 } else {
@@ -64,12 +64,12 @@ impl<'a> Code<'a> {
                 };
                 if object.is_some() {
                     tonkenizer.next();
+                    preps.insert(Preposition("obj"), object.unwrap());
                 }
                 let ret = Ok(Self::Sentence(Sentence{
                     verb: v,
                     verb_loc: loc,
-                    object,
-                    preposition_phrases: PrepositionPhrases::parse(tonkenizer)?,
+                    preposition_phrases: PrepositionPhrases::parse(tonkenizer, preps)?,
                 }));
 
                 ret
