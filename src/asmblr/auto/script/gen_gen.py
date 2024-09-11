@@ -1,5 +1,5 @@
 import sys
-from .lib import Match, Defun, FunCall, display_list, read, tokenize
+from lib import Match, Defun, FunCall, display_list, read, tokenize
 class GenIns:
     def __init__(self, verb_name: str, parameters: list[str], generate_rules: list[str]) -> None:
         self.verb_name = verb_name
