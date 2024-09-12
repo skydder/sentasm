@@ -17,10 +17,6 @@ pub fn codegen(code: Code, asm: &mut String) -> Result<()> {
 }
 
 fn codegen_sentence(
-    // verb: Verb,
-    // verb_loc: Loc,
-    // object: Option<DataSet>,
-    // mut preposition_phrases: &mut PrepositionPhrases,
     sentence: Sentence
 ) -> Result<String> {
     match &sentence.verb {
@@ -156,7 +152,7 @@ fn sib_scale(scale: u8) -> u8 {
     }
 }
 
-fn mod_rm(mode: u8, reg: u8, rm: u8) -> u8 {
+pub fn mod_rm_raw(mode: u8, reg: u8, rm: u8) -> u8 {
     mode << 6 | reg << 3 | rm
 }
 
@@ -166,4 +162,14 @@ fn instruction(opcode: Vec<u8>, prefix: Vec<u8>, mod_rm: u8, disp: Vec<u8>, imm:
 
 fn put_byte(byte: u8) -> String {
     format!("db {:#02x}\n", byte)
-} 
+}  
+
+fn mod_rm(reg: DataSet, rm: DataSet) -> u8 {
+    let reg_r = reg.get_register().unwrap();
+    
+    if rm.is_register() {
+        mod_rm_raw(0b11, reg_r.2, rm.get_register().unwrap().2)
+    } else {
+        todo!()
+    }
+}

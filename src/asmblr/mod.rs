@@ -6,7 +6,7 @@ mod parser;
 mod tokenizer;
 mod  analyze;
 
-pub use codegen::codegen;
+pub use codegen::{codegen, mod_rm_raw};
 pub use data::{Data, DataSet};
 pub use parser::Code;
 pub use tokenizer::{Loc, Tonkenizer};

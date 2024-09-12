@@ -107,16 +107,17 @@ class Instruction:
 
         pass
 
+def put_byte(byte_s: str) -> str:
+    return f'db 0x{byte_s}\n'
+    
 class GenMC:
     def __init__(self) -> None:
-        self.prefix = None
-        self.rex = None
-        self.opcode = None
-        self.mod_rm =  None
-        self.displacement = None
-        self.immediate = None
-        
+        self.opcode = []
 
+
+
+    
+    
 
 if __name__ == '__main__':
     seq = read_list('grammar.dat')

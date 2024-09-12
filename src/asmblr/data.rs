@@ -1,10 +1,10 @@
 use crate::emit_error_msg;
 
-use super::{Loc, Result};
+use super::{Loc, Result, mod_rm_raw};
 use super::{REG8, REG16, REG32, REG64, KEYWORD, VERB, PSEUDO, PREPOSITION};
 
 // second parameter represents its size, and the third represents its value, which later use in mod-rm part.
-// the forth represents wheather reg is in 64 mode or not.
+// the forth represents wheather reg is r8~r15.
 #[derive(Clone, Copy)]
 pub(crate) struct Register<'a>(pub(crate) &'a str, pub(crate) usize, pub(crate) u8, pub(crate) bool);
 
@@ -159,6 +159,48 @@ impl<'a> DataSet<'a> {
             _ => None,
         }
     }
+
+    pub fn is_register(&self) -> bool {
+        match self.data {
+            Data::Register(_) => true,
+            _ => false
+        }
+    }
+    pub fn get_register(&self) -> Option<Register> {
+        match self.data {
+            Data::Register(reg) => Some(reg),
+            _ => None
+        }
+    }
+
+    pub fn size(&self) -> usize{
+        match &self.data {
+            Data::Register(reg) => reg.size(),
+            Data::Memory(mem) => mem.size(),
+            Data::Label(_) => 32,
+            Data::Immediate(imm) => 8, // for now
+            _ => 0
+        }
+    }
+
+    // pub fn get_mod(&self) -> u8 {
+    //     match &self.data {
+    //         Data::Register(_) => 0b11,
+    //         Data::Memory(mem) => {
+    //             let disp = mem.disp_size;
+    //             if disp == 0 {
+    //                 0b00
+    //             } else if disp == 8 {
+    //                 0b01
+    //             } else if disp == 32 {
+    //                 0b10
+    //             } else {
+    //                 panic!("invalid memory form for mod_rm")
+    //             }
+    //         },
+    //         _ => panic!("invalid mod_rm")
+    //     }
+    // }
 }
 
 impl<'a> std::fmt::Debug for DataSet<'a> {
@@ -327,6 +369,7 @@ pub struct Memory<'a> {
     pub(crate) index: Option<Register<'a>>,
     pub(crate) scale: Option<usize>,
     pub(crate) size: usize,
+    pub(crate) disp_size: usize
 }
 
 impl<'a> Memory<'a> {
@@ -337,6 +380,7 @@ impl<'a> Memory<'a> {
             index: None,
             scale: None,
             size: 0,
+            disp_size: 0
         }
     }
 
@@ -502,43 +546,38 @@ impl<'a> Memory<'a> {
     pub fn size(&self) -> usize {
         self.size
     }
-    // the first represents mod, 2nd rm, 3rd disp
-    pub fn mod_rm(&self) -> Result<(u8, u8, u32)> {
-        match self {
-            // disp
-            Self { base:None, displacement: Some(disp), index: None, scale: None, size } => {
-                todo!();
-            }
-            // disp + idx * scl
-            Self { base:None, displacement: Some(disp), index: Some(idx), scale: Some(scl), size } => {
-                todo!();
-            }
-            // base
-            Self { base:  Some(base), displacement: None, index: None, scale: None, size } => {
-                todo!();
-            }
-            // base + disp
-            Self { base:Some(base), displacement: Some(disp), index: None, scale: None, size } => {
-                todo!();
-            }
-            // base + idx
-            Self { base:Some(base), displacement: None, index: Some(idx), scale: None, size } => {
-                todo!();
-            }
-            // base + idx * scl
-            Self { base:Some(base), displacement: None, index: Some(idx), scale: Some(scl), size } => {
-                todo!();
-            }
-            // base + idx + disp
-            Self { base:Some(base), displacement: Some(disp), index: Some(idx), scale: None, size } => {
-                todo!();
-            }
-            // base + idx * scl + disp
-            Self { base:Some(base), displacement: Some(disp), index: Some(idx), scale: Some(scl), size } => {
-                todo!();
-            }
-            _ => todo!()
+    pub fn mode(&self) -> (u8, u32) {
+        let disp = self.disp_size;
+        if disp == 0 {
+            (0b00, 0)
+        } else if disp == 8 {
+            (0b01, self.disp())
+        } else if disp == 32 {
+            (0b10, self.disp())
+        } else {
+            panic!("invalid memory form for mod_rm")
         }
+    }
+
+    pub fn disp(&self) -> u32 {
+        todo!()
+    }
+
+    pub fn mod_rm(&self, reg: u8) -> (u8, u8, u32) {
+        let (mut mode, mut disp) = self.mode();
+        let sib: u8 = 0;
+        let rm: u8 = match self.base {
+            Some(Register(_, 64, 4, _)) => todo!(),
+            Some(Register(_, 64, 5, _)) => {
+                mode = 0b10;
+                disp = 0;
+                5
+            },
+            Some(Register(_, 64, i, _)) => i,
+            None => todo!(),
+            _ => todo!()
+        };
+        (mod_rm_raw(mode, reg, rm), sib, disp)
     }
 
 }
