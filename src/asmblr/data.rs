@@ -1,6 +1,8 @@
+use std::hash::BuildHasher;
+
 use crate::emit_error_msg;
 
-use super::{Loc, Result, mod_rm_raw};
+use super::{Loc, Result, mod_rm_raw, sib_raw};
 use super::{REG8, REG16, REG32, REG64, KEYWORD, VERB, PSEUDO, PREPOSITION};
 
 // second parameter represents its size, and the third represents its value, which later use in mod-rm part.
@@ -63,7 +65,23 @@ pub struct DataSet<'a> {
 }
 
 #[derive(Clone, Copy)]
-pub(crate) struct Immediate(pub(crate) i64);
+pub(crate) struct Immediate(pub(crate) i64, pub(crate) usize);
+
+impl Immediate {
+    fn size(i: i64) -> usize {
+        if i > i8::MIN.into() && i < i8::MAX.into() {
+            8
+        } else if i > i16::MIN.into() && i < i16::MAX.into() {
+            16
+        } else if i > i32::MIN.into() && i < i32::MAX.into() {
+            32
+        } else if i > i64::MIN.into() && i < i64::MAX.into() {
+            64
+        } else {
+            todo!()
+        }
+    }
+}
 
 pub enum Data<'a> {
     Verb(Verb<'a>),
@@ -224,7 +242,7 @@ impl<'a> Data<'a> {
         } else if let Some(r) = Register::parse(token) {
             Data::Register(r)
         } else if let Ok(i) = token.parse::<i64>() {
-            Data::Immediate(Immediate(i))
+            Data::Immediate(Immediate(i, Immediate::size(i)))
         } else if let Some(k) = Keyword::parse(token) {
             Data::Keyword(k)
         } else if let Some(p) = Preposition::parse(token) {
@@ -367,7 +385,7 @@ pub struct Memory<'a> {
     pub(crate) base: Option<Register<'a>>,
     pub(crate) displacement: Option<Box<DataSet<'a>>>,
     pub(crate) index: Option<Register<'a>>,
-    pub(crate) scale: Option<usize>,
+    pub(crate) scale: Option<u8>,
     pub(crate) size: usize,
     pub(crate) disp_size: usize
 }
@@ -425,7 +443,7 @@ impl<'a> Memory<'a> {
                 self.index = Register::parse(token_seq[*pos]);
                 *pos += 2;
                 // todo: emit error data
-                self.scale = Some(token_seq[*pos].parse::<usize>().or_else(|_| Err(()))?);
+                self.scale = Some(token_seq[*pos].parse::<u8>().or_else(|_| Err(()))?);
                 *pos += 1;
             }
         }
@@ -453,11 +471,15 @@ impl<'a> Memory<'a> {
         match data.data {
             Data::Immediate(i) => {
                 self.displacement = Some(Box::new(DataSet {
-                    data: Data::Immediate(Immediate(sgn * i.0)),
+                    data: Data::Immediate(Immediate(sgn * i.0, Immediate::size(sgn * i.0))),
                     loc: data.loc,
-                }))
+                }));
+                self.disp_size = Immediate::size(sgn * i.0);
             }
-            Data::Label(_) => self.displacement = Some(Box::new(data)),
+            Data::Label(_) => {
+                self.displacement = Some(Box::new(data));
+                self.disp_size = 32; // for now
+            },
             _ => {
                 emit_error_msg!("unexpected grammar", data.loc);
                 return Err(());
@@ -546,40 +568,6 @@ impl<'a> Memory<'a> {
     pub fn size(&self) -> usize {
         self.size
     }
-    pub fn mode(&self) -> (u8, u32) {
-        let disp = self.disp_size;
-        if disp == 0 {
-            (0b00, 0)
-        } else if disp == 8 {
-            (0b01, self.disp())
-        } else if disp == 32 {
-            (0b10, self.disp())
-        } else {
-            panic!("invalid memory form for mod_rm")
-        }
-    }
-
-    pub fn disp(&self) -> u32 {
-        todo!()
-    }
-
-    pub fn mod_rm(&self, reg: u8) -> (u8, u8, u32) {
-        let (mut mode, mut disp) = self.mode();
-        let sib: u8 = 0;
-        let rm: u8 = match self.base {
-            Some(Register(_, 64, 4, _)) => todo!(),
-            Some(Register(_, 64, 5, _)) => {
-                mode = 0b10;
-                disp = 0;
-                5
-            },
-            Some(Register(_, 64, i, _)) => i,
-            None => todo!(),
-            _ => todo!()
-        };
-        (mod_rm_raw(mode, reg, rm), sib, disp)
-    }
-
 }
 
 impl<'a> std::fmt::Debug for Memory<'a> {

@@ -50,8 +50,8 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 		(CaseSome!(Data::Register(Register(_, _, ..))), CaseSome!(Data::Register(Register(_, _, ..))), None) => Ok(format!("add {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
 		(CaseSome!(Data::Register(Register(_, _, ..))), CaseSome!(Data::Memory(Memory{size:_, ..})), None) => Ok(format!("add {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
 		(CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Register(Register(_, _, ..))), None) => Ok(format!("add {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Immediate(Immediate(_))), CaseSome!(Data::Memory(Memory{size:_, ..})), None) => Ok(format!("add {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Immediate(Immediate(_))), CaseSome!(Data::Register(Register(_, _, ..))), None) => Ok(format!("add {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Immediate(Immediate(_, _))), CaseSome!(Data::Memory(Memory{size:_, ..})), None) => Ok(format!("add {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Immediate(Immediate(_, _))), CaseSome!(Data::Register(Register(_, _, ..))), None) => Ok(format!("add {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
 		_ => {
 			emit_error_msg!("unmatched operand", sentence.verb_loc);
 			Err(())
@@ -65,7 +65,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	
 	match (&_obj, &_from, &_as) {
 		(CaseSome!(Data::Register(Register(_, _, ..))), CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), None) => Ok(format!("sub {:?}, {:?}", _from.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Immediate(Immediate(_))), CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), None) => Ok(format!("sub {:?}, {:?}", _from.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Immediate(Immediate(_, _))), CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), None) => Ok(format!("sub {:?}, {:?}", _from.unwrap(), _obj.unwrap())),
 		_ => {
 			emit_error_msg!("unmatched operand", sentence.verb_loc);
 			Err(())
@@ -110,8 +110,8 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	match (&_obj, &_to, &_as, &_with) {
 		(CaseSome!(Data::Register(Register(_, _, ..))), CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), None, None) => Ok(format!("mov {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
 		(CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})) | CaseSome!(Data::Label(_)), CaseSome!(Data::Register(Register(_, _, ..))), None, None) => Ok(format!("mov {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Immediate(Immediate(_))), CaseSome!(Data::Register(Register(_, _, ..))), None, None) => Ok(format!("mov {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Immediate(Immediate(_))), CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), None, None) => Ok(format!("mov {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Immediate(Immediate(_, _))), CaseSome!(Data::Register(Register(_, _, ..))), None, None) => Ok(format!("mov {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Immediate(Immediate(_, _))), CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), None, None) => Ok(format!("mov {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
 		(CaseSome!(Data::Register(Register(_, 8 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Register(Register(_, 16 | 0, ..))), None, CaseSome!(Data::Keyword(Keyword("sign-extention")))) => Ok(format!("movsx {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
 		(CaseSome!(Data::Register(Register(_, 8 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Register(Register(_, 32 | 0, ..))), None, CaseSome!(Data::Keyword(Keyword("sign-extention")))) => Ok(format!("movsx {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
 		(CaseSome!(Data::Register(Register(_, 8 | 0, ..))) | CaseSome!(Data::Memory(Memory{size:8 | 0, ..})), CaseSome!(Data::Register(Register(_, 64 | 0, ..))), None, CaseSome!(Data::Keyword(Keyword("sign-extention")))) => Ok(format!("movsx {:?}, {:?}", _to.unwrap(), _obj.unwrap())),
@@ -216,7 +216,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	let _by = sentence.preposition_phrases.get_object(Preposition("by")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj, &_by) {
-		(CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Immediate(Immediate(_)))) => Ok(format!("shr {:?}, {:?}", _obj.unwrap(), _by.unwrap())),
+		(CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Immediate(Immediate(_, _)))) => Ok(format!("shr {:?}, {:?}", _obj.unwrap(), _by.unwrap())),
 		(CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Register(Register("cl", _, ..)))) => Ok(format!("shr {:?}, {:?}", _obj.unwrap(), _by.unwrap())),
 		_ => {
 			emit_error_msg!("unmatched operand", sentence.verb_loc);
@@ -229,7 +229,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	let _by = sentence.preposition_phrases.get_object(Preposition("by")).map_or_else(|| None, |date| date.expect_object());
 	
 	match (&_obj, &_by) {
-		(CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Immediate(Immediate(_)))) => Ok(format!("shl {:?}, {:?}", _obj.unwrap(), _by.unwrap())),
+		(CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Immediate(Immediate(_, _)))) => Ok(format!("shl {:?}, {:?}", _obj.unwrap(), _by.unwrap())),
 		(CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Register(Register("cl", _, ..)))) => Ok(format!("shl {:?}, {:?}", _obj.unwrap(), _by.unwrap())),
 		_ => {
 			emit_error_msg!("unmatched operand", sentence.verb_loc);
@@ -255,7 +255,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	match (&_obj, &_with) {
 		(CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..})), CaseSome!(Data::Register(Register(_, _, ..)))) => Ok(format!("cmp {:?}, {:?}", _with.unwrap(), _obj.unwrap())),
 		(CaseSome!(Data::Register(Register(_, _, ..))), CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..}))) => Ok(format!("cmp {:?}, {:?}", _with.unwrap(), _obj.unwrap())),
-		(CaseSome!(Data::Immediate(Immediate(_))), CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..}))) => Ok(format!("cmp {:?}, {:?}", _with.unwrap(), _obj.unwrap())),
+		(CaseSome!(Data::Immediate(Immediate(_, _))), CaseSome!(Data::Register(Register(_, _, ..))) | CaseSome!(Data::Memory(Memory{size:_, ..}))) => Ok(format!("cmp {:?}, {:?}", _with.unwrap(), _obj.unwrap())),
 		_ => {
 			emit_error_msg!("unmatched operand", sentence.verb_loc);
 			Err(())
