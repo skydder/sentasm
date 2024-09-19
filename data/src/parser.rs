@@ -5,7 +5,7 @@ use crate::emit_error_msg;
 use super::{Data, DataSet, Label, Loc, Preposition, Result, Tonkenizer, Verb};
 
 #[derive(Debug)]
-pub(crate) struct PrepositionPhrases<'a> {
+pub struct PrepositionPhrases<'a> {
     data: RefCell<HashMap<Preposition<'a>, DataSet<'a>>>,
 }
 
@@ -32,7 +32,7 @@ impl<'a> PrepositionPhrases<'a> {
             data: RefCell::new(data),
         })
     }
-    pub(crate) fn get_object(&self, p: Preposition<'a>) -> Option<DataSet> {
+    pub fn get_object(&self, p: Preposition<'a>) -> Option<DataSet> {
         self.data.borrow_mut().remove(&p)
     }
 }

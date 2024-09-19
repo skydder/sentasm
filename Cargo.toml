@@ -5,4 +5,15 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[workspace]
+member = [
+    "macros",
+    "data",
+    "codegen"
+]
+members = [ "codegen","data"]
+
 [dependencies]
+macros = { path = "./macros"}
+data = { path = "./data"}
+codegen = { path = "./codegen" }

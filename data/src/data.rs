@@ -1,14 +1,12 @@
-use std::hash::BuildHasher;
-
 use crate::emit_error_msg;
 
-use super::{Loc, Result, mod_rm_raw, sib_raw};
+use super::{Loc, Result};
 use super::{REG8, REG16, REG32, REG64, KEYWORD, VERB, PSEUDO, PREPOSITION};
 
 // second parameter represents its size, and the third represents its value, which later use in mod-rm part.
 // the forth represents wheather reg is r8~r15.
 #[derive(Clone, Copy)]
-pub(crate) struct Register<'a>(pub(crate) &'a str, pub(crate) usize, pub(crate) u8, pub(crate) bool);
+pub struct Register<'a>(pub &'a str, pub usize, pub u8, pub bool);
 
 // todo: add other register
 impl<'a> Register<'a> {
@@ -65,7 +63,7 @@ pub struct DataSet<'a> {
 }
 
 #[derive(Clone, Copy)]
-pub(crate) struct Immediate(pub(crate) i64, pub(crate) usize);
+pub struct Immediate(pub i64, pub usize);
 
 impl Immediate {
     fn size(i: i64) -> usize {
@@ -196,29 +194,10 @@ impl<'a> DataSet<'a> {
             Data::Register(reg) => reg.size(),
             Data::Memory(mem) => mem.size(),
             Data::Label(_) => 32,
-            Data::Immediate(imm) => 8, // for now
+            Data::Immediate(_imm) => 8, // for now
             _ => 0
         }
     }
-
-    // pub fn get_mod(&self) -> u8 {
-    //     match &self.data {
-    //         Data::Register(_) => 0b11,
-    //         Data::Memory(mem) => {
-    //             let disp = mem.disp_size;
-    //             if disp == 0 {
-    //                 0b00
-    //             } else if disp == 8 {
-    //                 0b01
-    //             } else if disp == 32 {
-    //                 0b10
-    //             } else {
-    //                 panic!("invalid memory form for mod_rm")
-    //             }
-    //         },
-    //         _ => panic!("invalid mod_rm")
-    //     }
-    // }
 }
 
 impl<'a> std::fmt::Debug for DataSet<'a> {
@@ -228,7 +207,7 @@ impl<'a> std::fmt::Debug for DataSet<'a> {
 }
 
 impl<'a> Data<'a> {
-    pub(crate) fn parse(token: &'a str) -> Data {
+    pub fn parse(token: &'a str) -> Data {
         if token.starts_with("*(") {
             Data::_Memory(token)
         } else if token.starts_with("[") & token.ends_with("]") {
@@ -273,7 +252,7 @@ impl<'a> std::fmt::Debug for Data<'a> {
 }
 
 #[derive(Clone, Copy)]
-pub(crate) struct Verb<'a>(pub(crate) &'a str);
+pub struct Verb<'a>(pub &'a str);
 
 impl<'a> Verb<'a> {
     fn parse(token: &'a str) -> Option<Self> {
@@ -328,7 +307,7 @@ impl<'a> std::fmt::Debug for Verb<'a> {
 }
 
 #[derive(Clone, Copy)]
-pub(crate) struct Keyword<'a>(pub(crate) &'a str);
+pub struct Keyword<'a>(pub &'a str);
 
 impl<'a> std::fmt::Debug for Keyword<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -363,7 +342,7 @@ impl<'a> Keyword<'a> {
 }
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Copy)]
-pub(crate) struct Preposition<'a>(pub(crate) &'a str);
+pub struct Preposition<'a>(pub &'a str);
 
 impl<'a> Preposition<'a> {
     fn parse(token: &'a str) -> Option<Self> {
@@ -377,17 +356,17 @@ impl<'a> Preposition<'a> {
 }
 
 #[derive(Clone, Copy)]
-pub(crate) struct Label<'a>(pub(crate) &'a str);
+pub struct Label<'a>(pub &'a str);
 
 // this should have segment register
 
 pub struct Memory<'a> {
-    pub(crate) base: Option<Register<'a>>,
-    pub(crate) displacement: Option<Box<DataSet<'a>>>,
-    pub(crate) index: Option<Register<'a>>,
-    pub(crate) scale: Option<u8>,
-    pub(crate) size: usize,
-    pub(crate) disp_size: usize
+    pub base: Option<Register<'a>>,
+    pub displacement: Option<Box<DataSet<'a>>>,
+    pub index: Option<Register<'a>>,
+    pub scale: Option<u8>,
+    pub size: usize,
+    pub disp_size: usize
 }
 
 impl<'a> Memory<'a> {

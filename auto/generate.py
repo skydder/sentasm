@@ -22,7 +22,7 @@ def generate_codegen_verb() -> str:
     return code
 
 if __name__ == '__main__':
-    with open('data.rs', 'wt') as file:
+    with open('../data/src/data_auto.rs', 'wt') as file:
         print(generate_data(), file=file)
-    with open('codegen_verb.rs', 'wt') as file:
+    with open('../codegen/src/codegen_verb.rs', 'wt') as file:
         print(generate_codegen_verb(), file=file)

@@ -110,9 +110,6 @@ class Instruction:
 def put_byte(byte_s: str) -> str:
     return f'db 0x{byte_s}\n'
     
-class GenMC:
-    def __init__(self) -> None:
-        self.opcode = []
 
 
 

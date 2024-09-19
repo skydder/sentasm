@@ -52,7 +52,9 @@ class CodeGenMatchPat:
             case 'mem':
                 pat += 'CaseSome!(Data::Memory(Memory{{size:{}, ..}}))'.format(CodeGenMatchPat.read_size(param))
             case 'reg':
-                pat += 'CaseSome!(Data::Register(Register({}, {}, ..)))'.format(CodeGenMatchPat.read_name(param), CodeGenMatchPat.read_size(param))
+                # pat += 'CaseSome!(Data::Register(Register({}, {}, ..)))'.format(CodeGenMatchPat.read_name(param), CodeGenMatchPat.read_size(param))
+                pat += 'match_data!(Register({}, {}, ..))'.format(CodeGenMatchPat.read_name(param), CodeGenMatchPat.read_size(param))
+            
             case 'label':
                 pat += 'CaseSome!(Data::Label(_))'
             case 'imm':
@@ -120,7 +122,7 @@ class CodeGenMatchExpr:
         return '{\n\t\temit_error_msg!(\"unmatched operand\", sentence.verb_loc);\n\t\tErr(())\n\t}'
 
 def gen_import() -> str:
-    return 'use super::super::{\n\tdata::{Keyword, Register, Immediate, Memory}, Code, Data, DataSet, Loc, Preposition, PrepositionPhrases, Result, Verb, Sentence\n};\n'
+    return 'use super::super::{\n\tdata::{Keyword, Register, Immediate, Memory}, Code, Data, DataSet, Loc, Preposition, PrepositionPhrases, Result, Verb, Sentence\n};\nuse macros::match_data;\n'
 
 def gen_macro() -> str:
     return 'macro_rules! CaseSome {\n\t($data:pat) => {Some(DataSet {data:$data, loc:_})};\n}\nmacro_rules! emit_error_msg {\n\t($msg:expr, $loc:expr) => {\n\t\teprintln!("{}", format!("{}{}", $msg, $loc))\n};\n}\n'

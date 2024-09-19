@@ -4,9 +4,8 @@ use std::{
     process::exit,
 };
 
-mod asmblr;
-
-use asmblr::{codegen, Code, Loc, Tonkenizer};
+use data::{Code, Loc, Tonkenizer};
+use codegen::codegen;
 
 fn main() {
     match read_args() {

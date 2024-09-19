@@ -1,5 +1,5 @@
 use super::{
-    codegen_verb, parser::Sentence, Code, Data, DataSet, Loc, Memory, Preposition, PrepositionPhrases, Result, Verb, Register
+    codegen_verb, Sentence, Code, Data, DataSet, Immediate, Memory, Preposition, Register, Result, Verb, Keyword
 };
 
 pub fn codegen(code: Code, asm: &mut String) -> Result<()> {
@@ -46,16 +46,16 @@ fn gen_ins_def(
         .ok_or_else(|| eprintln!("expected 'by' phrase, but could not find it"))?;
 
     match (obj.data, az.data, by.data) {
-        (Data::Label(l), Data::Define(i), Data::Keyword(super::data::Keyword("8bit"))) => {
+        (Data::Label(l), Data::Define(i), Data::Keyword(Keyword("8bit"))) => {
             Ok(format!("{} db {:?}", l.0, i))
         }
-        (Data::Label(l), Data::Define(i), Data::Keyword(super::data::Keyword("16bit"))) => {
+        (Data::Label(l), Data::Define(i), Data::Keyword(Keyword("16bit"))) => {
             Ok(format!("{} dw {:?}", l.0, i))
         }
-        (Data::Label(l), Data::Define(i), Data::Keyword(super::data::Keyword("32bit"))) => {
+        (Data::Label(l), Data::Define(i), Data::Keyword(Keyword("32bit"))) => {
             Ok(format!("{} dd {:?}", l.0, i))
         }
-        (Data::Label(l), Data::Define(i), Data::Keyword(super::data::Keyword("64bit"))) => {
+        (Data::Label(l), Data::Define(i), Data::Keyword(Keyword("64bit"))) => {
             Ok(format!("{} dq {:?}", l.0, i))
         }
         _ => todo!(),
@@ -91,16 +91,16 @@ fn gen_ins_alloc(
         .ok_or_else(|| eprintln!("expected 'by' phrase, but could not find it"))?;
 
     match (obj.data, vor.data, by.data) {
-        (Data::Label(l), Data::Immediate(i), Data::Keyword(super::data::Keyword("8bit"))) => {
+        (Data::Label(l), Data::Immediate(i), Data::Keyword(Keyword("8bit"))) => {
             Ok(format!("{} resb {}", l.0, i.0))
         }
-        (Data::Label(l), Data::Immediate(i), Data::Keyword(super::data::Keyword("16bit"))) => {
+        (Data::Label(l), Data::Immediate(i), Data::Keyword(Keyword("16bit"))) => {
             Ok(format!("{} resw {}", l.0, i.0))
         }
-        (Data::Label(l), Data::Immediate(i), Data::Keyword(super::data::Keyword("32bit"))) => {
+        (Data::Label(l), Data::Immediate(i), Data::Keyword(Keyword("32bit"))) => {
             Ok(format!("{} resd {}", l.0, i.0))
         }
-        (Data::Label(l), Data::Immediate(i), Data::Keyword(super::data::Keyword("64bit"))) => {
+        (Data::Label(l), Data::Immediate(i), Data::Keyword(Keyword("64bit"))) => {
             Ok(format!("{} resq {}", l.0, i.0))
         }
         _ => todo!(),
@@ -116,98 +116,6 @@ fn gen_ins_extern(
         .ok_or_else(|| eprintln!("expected label, but could not find it"))?;
 
     Ok(format!("extern {:?}", obj))
-}
-
-
-
-pub fn sib_raw(scale: u8, index: u8, base: u8) -> u8 {
-    sib_scale(scale) << 6 | index << 3 | base
-}
-
-fn sib_scale(scale: u8) -> u8 {
-    match scale {
-        1 => 0b00,
-        2 => 0b01,
-        4 => 0b10,
-        8 => 0b11,
-        _ => panic!("unexpected!!")
-    }
-}
-
-pub fn mod_rm_raw(mode: u8, reg: u8, rm: u8) -> u8 {
-    mode << 6 | reg << 3 | rm
-}
-
-fn instruction(opcode: Vec<u8>, prefix: Vec<u8>, mod_rm: u8, disp: Vec<u8>, imm: Vec<u8>) -> Vec<u8> {
-    todo!()
-}
-
-fn put_byte(byte: u8) -> String {
-    format!("db {:#02x}\n", byte)
-}
-
-impl<'a> Memory<'a> {
-    pub fn mode(&self) -> (u8, u32) {
-        let disp = self.disp_size;
-        if disp == 0 {
-            (0b00, 0)
-        } else if disp == 8 {
-            (0b01, self.disp())
-        } else if disp == 32 {
-            (0b10, self.disp())
-        } else {
-            panic!("invalid memory form for mod_rm")
-        }
-    }
-
-    pub fn disp(&self) -> u32 {
-        todo!()
-    }
-
-    pub fn mod_rm(&self, reg: u8) -> (u8, u8, u8, u32) {
-        let mut rex = Rex::new(); 
-        let (mut mode, mut disp) = self.mode();
-        let mut sib: u8 = 0;
-        let mut rm: u8 = match self.base {
-            Some(Register(_, 64, 4, b)) => todo!(),
-            Some(Register(_, 64, 5, b)) => {
-                mode = 0b10;
-                disp = 0;
-                rex.rex_b(b);
-                5
-            },
-            Some(Register(_, 64, i, b)) => { 
-                rex.rex_b(b);
-                i
-            },
-            None => todo!(),
-            _ => todo!()
-        };
-        if self.index.is_some() {
-            let idx = self.index.unwrap();
-            let scl = self.scale.unwrap_or(1);
-            rm = 4;
-            rex.rex_w(idx.3);
-            if let Some(base) = self.base {
-                rex.rex_b(base.3);
-                sib = sib_raw(scl, idx.2, base.2);
-            } else {
-                sib = sib_raw(scl, idx.2, 0b101);
-            }
-        }
-        (rex.generate(true), mod_rm_raw(mode, reg, rm), sib, disp)
-    }
-
-}
-
-fn mod_rm(reg: DataSet, rm: DataSet) -> u8 {
-    let reg_r = reg.get_register().unwrap();
-    
-    if rm.is_register() {
-        mod_rm_raw(0b11, reg_r.2, rm.get_register().unwrap().2)
-    } else {
-        todo!()
-    }
 }
 
 struct ModRM {
@@ -320,7 +228,7 @@ impl Rex {
     }
 }
 
-enum Disp {
+pub enum Disp {
     Disp8(i8),
     Disp16(i16),
     Disp32(i32),
@@ -485,8 +393,32 @@ impl Builder {
     }
 }
 
-// fn decide_operands(rm:DataSet, reg: DataSet, rex: bool) -> (Option<u8>, u8, Option<u8>, Disp) {
-//     match (&rm, &rex) {
-        
-//     }
-// }
+fn put_byte(byte: Byte) -> String {
+    format!("db {:#02x}\n", byte)
+}
+
+type Byte = u8;
+
+pub fn generate_machine_code(prefixes: Vec<Byte>, rex_prefix: Option<Byte>, opcode: Vec<Byte>, mod_rm: Option<Byte>, sib: Option<Byte>, disp: Option<Disp>, imm: Option<Immediate>) -> String {
+    let mut code: String = String::new();
+    for byte in prefixes {
+        code += &put_byte(byte);
+    }
+    if let Some(rex) = rex_prefix {
+        code += &put_byte(rex);
+    }
+    for byte in opcode {
+        code += &put_byte(byte);
+    }
+    if let Some(modrm) = mod_rm {
+        code += &put_byte(modrm);
+    }
+    if let Some(sib_b) = sib {
+        code += &put_byte(sib_b);
+    }
+    if let Some(modrm) = mod_rm {
+        code += &put_byte(modrm);
+    }
+    // not yet implemented
+    code
+}
