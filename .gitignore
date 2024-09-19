@@ -1,6 +1,6 @@
 /target/
 /test/target
 /dev_docs/
-/src/asmblr/auto/__pycache__
-/src/asmblr/auto/script/__pycache__
+/auto/__pycache__
+/auto/script/__pycache__
 /.vscode/

@@ -10,7 +10,7 @@ class GenIns:
         seq = []
 
         for parameter in self.parameters:
-            seq.append('let _{} = sentence.preposition_phrases.get_object(Preposition(\"{}\")).map_or_else(|| None, |date| date.expect_object());'.format(parameter, parameter))
+            seq.append('let_prep!(_{}, "{}");'.format(parameter, parameter))
         
         seq.append("")
         seq.append(self.gen_match())
@@ -58,7 +58,7 @@ class CodeGenMatchPat:
             case 'label':
                 pat += 'CaseSome!(Data::Label(_))'
             case 'imm':
-                pat += 'CaseSome!(Data::Immediate(Immediate(_, _)))'
+                pat += 'match_data!(Immediate(_, _, _))'
             case 'keyword':
                 pat += 'CaseSome!(Data::Keyword(Keyword({})))'.format(CodeGenMatchPat.read_name(param))
             case 'None':
@@ -122,7 +122,7 @@ class CodeGenMatchExpr:
         return '{\n\t\temit_error_msg!(\"unmatched operand\", sentence.verb_loc);\n\t\tErr(())\n\t}'
 
 def gen_import() -> str:
-    return 'use super::super::{\n\tdata::{Keyword, Register, Immediate, Memory}, Code, Data, DataSet, Loc, Preposition, PrepositionPhrases, Result, Verb, Sentence\n};\nuse macros::match_data;\n'
+    return 'use data::{\n\tKeyword, Register, Immediate, Memory, Code, Data, DataSet, Loc, Preposition, PrepositionPhrases, Result, Verb, Sentence\n};\nuse macros::{match_data, let_prep};\n'
 
 def gen_macro() -> str:
     return 'macro_rules! CaseSome {\n\t($data:pat) => {Some(DataSet {data:$data, loc:_})};\n}\nmacro_rules! emit_error_msg {\n\t($msg:expr, $loc:expr) => {\n\t\teprintln!("{}", format!("{}{}", $msg, $loc))\n};\n}\n'

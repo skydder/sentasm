@@ -63,10 +63,10 @@ pub struct DataSet<'a> {
 }
 
 #[derive(Clone, Copy)]
-pub struct Immediate(pub i64, pub usize);
+pub struct Immediate(pub u64, pub usize, pub bool);
 
 impl Immediate {
-    fn size(i: i64) -> usize {
+    fn size_signed(i: i64) -> usize {
         if i > i8::MIN.into() && i < i8::MAX.into() {
             8
         } else if i > i16::MIN.into() && i < i16::MAX.into() {
@@ -74,6 +74,19 @@ impl Immediate {
         } else if i > i32::MIN.into() && i < i32::MAX.into() {
             32
         } else if i > i64::MIN.into() && i < i64::MAX.into() {
+            64
+        } else {
+            todo!()
+        }
+    }
+    fn size(i: u64) -> usize {
+        if i > u8::MIN.into() && i < u8::MAX.into() {
+            8
+        } else if i > u16::MIN.into() && i < u16::MAX.into() {
+            16
+        } else if i > u32::MIN.into() && i < u32::MAX.into() {
+            32
+        } else if i > u64::MIN.into() && i < u64::MAX.into() {
             64
         } else {
             todo!()
@@ -221,7 +234,11 @@ impl<'a> Data<'a> {
         } else if let Some(r) = Register::parse(token) {
             Data::Register(r)
         } else if let Ok(i) = token.parse::<i64>() {
-            Data::Immediate(Immediate(i, Immediate::size(i)))
+            if i < 0 {
+                Data::Immediate(Immediate(i as u64, Immediate::size(i as u64), true))
+            } else {
+                Data::Immediate(Immediate(i as u64, Immediate::size(i as u64), false))
+            }
         } else if let Some(k) = Keyword::parse(token) {
             Data::Keyword(k)
         } else if let Some(p) = Preposition::parse(token) {
@@ -430,19 +447,19 @@ impl<'a> Memory<'a> {
     }
 
     fn parse_disp(&mut self, token_seq: &Vec<&'a str>, pos: &mut usize) -> Result<()> {
-        let sgn: i64;
+        let sgn: bool;
         if token_seq[*pos] == "+" {
             *pos += 1;
-            sgn = 1;
+            sgn = false;
         } else if token_seq[*pos] == "-" {
             *pos += 1;
-            sgn = -1;
+            sgn = true;
         } else if token_seq[*pos] == ")" {
             return Ok(());
         } else if token_seq[*pos] == "by" {
             return self.parse_size(token_seq, pos);
         } else {
-            sgn = 1
+            sgn = false
         }
         // todo: emit error data
 
@@ -450,10 +467,10 @@ impl<'a> Memory<'a> {
         match data.data {
             Data::Immediate(i) => {
                 self.displacement = Some(Box::new(DataSet {
-                    data: Data::Immediate(Immediate(sgn * i.0, Immediate::size(sgn * i.0))),
+                    data: Data::Immediate(Immediate(i.0, Immediate::size(i.0), sgn)),
                     loc: data.loc,
                 }));
-                self.disp_size = Immediate::size(sgn * i.0);
+                self.disp_size = Immediate::size(i.0);
             }
             Data::Label(_) => {
                 self.displacement = Some(Box::new(data));

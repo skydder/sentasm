@@ -24,7 +24,7 @@ impl Parse for ParsedData {
     }
 }
 
-pub fn match_data_impl(args: TokenStream) -> TokenStream {
+pub(crate) fn match_data_impl(args: TokenStream) -> TokenStream {
     let data = parse_macro_input!(args as ParsedData);
     let tup = match data.1 {
         Expr::Tuple(expr_tuple) => expr_tuple,
