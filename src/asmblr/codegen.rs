@@ -1,5 +1,3 @@
-use std::hash::BuildHasher;
-
 use super::{
     codegen_verb, parser::Sentence, Code, Data, DataSet, Loc, Memory, Preposition, PrepositionPhrases, Result, Verb, Register
 };
@@ -197,7 +195,7 @@ impl<'a> Memory<'a> {
                 sib = sib_raw(scl, idx.2, 0b101);
             }
         }
-        (rex.generate(), mod_rm_raw(mode, reg, rm), sib, disp)
+        (rex.generate(true), mod_rm_raw(mode, reg, rm), sib, disp)
     }
 
 }
@@ -240,6 +238,7 @@ impl ModRM {
     }
 }
 
+#[derive(Clone)]
 struct SIB {
     scale: u8,
     index: u8,
@@ -274,6 +273,7 @@ impl SIB {
     }
 }
 
+#[derive(Clone)]
 struct Rex {
    //rex: bool, //= 0x40,
     w: bool, //= 0b1000,
@@ -310,9 +310,9 @@ impl Rex {
         self.b = b;
     }
 
-    fn generate(self) -> u8{
+    pub fn generate(self, flag: bool) -> u8{
         let mut rex = 0b1000 * (self.w as u8) | 0b0100 * (self.r as u8) | 0b0010 * (self.x as u8) | 0b0001 * (self.b as u8);
-        if rex != 0 {
+        if rex != 0 || flag{
             0x40 | rex
         } else {
             0
@@ -328,76 +328,165 @@ enum Disp {
 }
 
 struct Builder {
-    rex: Rex,
+    rex: Option<Rex>,
     mod_rm: ModRM,
-    sib: SIB,
+    sib: Option<SIB>,
     disp: Disp
 }
 
 impl Builder {
-    fn new() -> Self {
-        Self { rex: Rex::new(), mod_rm: ModRM::new(), sib: SIB::new(), disp: Disp::None }
+    fn new(rex: Option<Rex>) -> Self {
+        Self { rex: rex, mod_rm: ModRM::new(), sib: None, disp: Disp::None }
     }
 
+    // fn custom(rex: Option<Rex>, mod_rm: ModRM, )
+
+    fn set_rex_b(&mut self, b: bool) {
+        let mut rex = self.rex.clone().unwrap_or_else(|| Rex::new());
+        rex.rex_b(b);
+        self.rex = Some(rex)
+    }
+
+    fn set_rex_r(&mut self, r: bool) {
+        let mut rex = self.rex.clone().unwrap_or_else(|| Rex::new());
+        rex.rex_r(r);
+        self.rex = Some(rex)
+    }
+
+    fn set_rex_x(&mut self, x: bool) {
+        let mut rex = self.rex.clone().unwrap_or_else(|| Rex::new());
+        rex.rex_x(x);
+        self.rex = Some(rex)
+    }
+
+    fn set_rex_w(&mut self, w: bool) {
+        let mut rex = self.rex.clone().unwrap_or_else(|| Rex::new());
+        rex.rex_w(w);
+        self.rex = Some(rex)
+    }
+    
+    fn set_sib_base(&mut self, base: u8) {
+        let mut sib = self.sib.clone().unwrap_or_else(|| SIB::new());
+        sib.set_base(base);
+        self.sib = Some(sib);
+    }
+
+    fn set_sib_index(&mut self, index: u8) {
+        let mut sib = self.sib.clone().unwrap_or_else(|| SIB::new());
+        sib.set_index(index);
+        self.sib = Some(sib);
+    }
+
+    fn set_sib_scale(&mut self, scale: u8) {
+        let mut sib = self.sib.clone().unwrap_or_else(|| SIB::new());
+        sib.set_scale(scale);
+        self.sib = Some(sib);
+    }
+
+    fn set_mod_rm_mod(&mut self, mode: u8) {
+        self.mod_rm.set_mode(mode);
+    }
+
+    fn set_mod_rm_reg(&mut self, reg: u8) {
+        self.mod_rm.set_reg(reg);
+    }
+
+    fn set_mod_rm_rm(&mut self, rm: u8) {
+        self.mod_rm.set_rm(rm);
+    }
+
+    fn set_disp_8(&mut self, disp: i8) {
+        self.disp = Disp::Disp8(disp);
+    }
+
+    fn set_disp_32(&mut self, disp: i32) {
+        self.disp = Disp::Disp32(disp);
+    }
+
+    fn set_disp_None(&mut self) {
+        self.disp = Disp::None;
+    }
+
+    // #####################################
     fn set_rm_reg(&mut self, reg: Register) {
-        self.mod_rm.set_mode(0b11);
-        self.mod_rm.set_rm(reg.2);
-        self.rex.rex_b(reg.3);
+        self.set_mod_rm_mod(0b11);
+        self.set_mod_rm_rm(reg.2);
+        self.set_rex_b(reg.3);
     }
 
     fn set_reg_reg(&mut self, reg: Register) {
-        self.mod_rm.set_reg(reg.2);
-        self.rex.rex_r(reg.3);
+        self.set_mod_rm_reg(reg.2);
+        self.set_rex_r(reg.3);
     }
 
     fn set_reg_op(&mut self, op: u8) {
-        self.mod_rm.set_reg(op);
+        self.set_mod_rm_reg(op);
     }
 
     fn set_rm_mem(&mut self, mem: Memory) {
         match mem.disp_size {
-            0 => self.mod_rm.set_mode(0b00),
+            0 => self.set_mod_rm_mod(0b00),
             8 => {
-                self.mod_rm.set_mode(0b01);
+                self.set_mod_rm_mod(0b01);
                 // self.disp = Disp::Disp8(mem.displacement.unwrap().)
             },
             16 | 32 => {
-                self.mod_rm.set_mode(0b11)
+                self.set_mod_rm_mod(0b11)
             },
             _ => todo!()
         }
 
+        // [<base> '+' <index> ('*' <scale>)*]
         if mem.index.is_some() {
-            self.mod_rm.set_rm(0b100);
+            self.set_mod_rm_mod(0b100);
 
             let index = mem.index.unwrap();
             let scale = mem.scale.unwrap_or(1);
             
-            self.sib.set_index(index.2);
-            self.rex.rex_x(index.3);
-            self.sib.set_scale(scale);
+            self.set_sib_index(index.2);
+            self.set_rex_x(index.3);
+            self.set_sib_scale(scale);
             
             if let Some(Register(_, 64, base, b)) = mem.base {
-                self.sib.set_base(base);
-                self.rex.rex_b(b);
+                self.set_sib_base(base);
+                self.set_rex_b(b);
             } else {
-                self.sib.set_base(0b101);
-                self.rex.rex_b(false);
+                self.set_sib_base(0b101);
+                self.set_rex_b(false);
             }
             return;
         }
 
         match mem.base {
-            Some(Register(_, 64, 4, _)) => todo!(),
-            Some(Register(_, 64, 5, _)) => todo!(),
+            Some(Register(_, 64, 4, b)) => {
+                todo!()
+            },
+            Some(Register(_, 64, 5, b)) => {
+                if mem.disp_size == 0 {
+                    self.set_rex_b(b);
+                    self.set_mod_rm_mod(0b01);
+                    self.set_disp_8(0);
+                } else {
+                    self.set_rex_b(b);
+                    self.set_mod_rm_rm(5);
+                }
+            },
             Some(Register(_, 64, rm, b)) => {
-                self.rex.rex_b(b);
-                self.mod_rm.set_rm(rm);
+                self.set_rex_b(b);
+                self.set_mod_rm_rm(rm);
             },
             None => todo!(),
             _ => todo!()
         }
+    }
 
-
+    fn generate(mut self, rex: bool) -> (Option<u8>, u8, Option<u8>, Disp) {
+        (self.rex.map(|rex_l|rex_l.generate(rex)), self.mod_rm.generate(), self.sib.map(|sib|sib.generate()), self.disp)
     }
 }
+
+// fn decide_operands(rm:DataSet, reg: DataSet, rex: bool) -> (Option<u8>, u8, Option<u8>, Disp) {
+//     match (&rm, &rex) {
+        
+//     }
+// }
