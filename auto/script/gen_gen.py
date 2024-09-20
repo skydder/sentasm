@@ -113,18 +113,26 @@ class CodeGenMatchExpr:
     
     def match_expr4nasm(self) -> str:
         params = []
-        match_code = "Ok(format!(\""
-        for s in self.gen_rule:
-            if s.startswith('#'):
-                params.append(s.replace('#', '_')+'.unwrap()')
-                match_code += ' {:?}'
-            else:
-                match_code += '{}'.format(s)
-        match_code += '\"'
-        if len(params) != 0:
-            match_code += ', '
+        match_code = 'Ok(gen_nasm!('
 
-        match_code += '{}))'.format(display_list(params))
+
+        # for s in self.gen_rule:
+        #     if s.startswith('#'):
+        #         params.append(s.replace('#', '_')+'.unwrap()')
+        #     else:
+        #         match_code += '"{}"'.format(s)
+        
+        # if len(params) != 0:
+        #     match_code += ', '
+
+        # match_code += '{}))'.format(display_list(params))
+        def stringify(x: str) -> str:
+            if x.startswith('#'):
+                return x.replace('#', '_')+'.unwrap()'
+            else:
+                return '"{}"'.format(x)
+
+        match_code += '{}))'.format(display_list(list(map(stringify, self.gen_rule))))
         return match_code
     
     @staticmethod
@@ -132,7 +140,7 @@ class CodeGenMatchExpr:
         return '{\n\t\temit_error_msg!(\"unmatched operand\", sentence.verb_loc);\n\t\tErr(())\n\t}'
 
 def gen_import() -> str:
-    return 'use data::{\n\tKeyword, Register, Immediate, Memory, Data, DataSet, Preposition, Result, Verb, Sentence, Label, emit_error_msg\n};\nuse macros::{match_data, let_prep};\n'
+    return 'use data::{\n\tKeyword, Register, Immediate, Memory, Data, DataSet, Preposition, Result, Verb, Sentence, Label, emit_error_msg\n};\nuse macros::{match_data, let_prep, gen_nasm};\n'
 
 def gen_codegen_verb(verb: list[str]) -> str:
     params = [('sentence', 'Sentence')]

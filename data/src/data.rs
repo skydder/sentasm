@@ -5,7 +5,7 @@ use super::{REG8, REG16, REG32, REG64, KEYWORD, VERB, PSEUDO, PREPOSITION};
 
 // second parameter represents its size, and the third represents its value, which later use in mod-rm part.
 // the forth represents wheather reg is r8~r15.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Register<'a>(pub &'a str, pub usize, pub u8, pub bool);
 
 // todo: add other register
@@ -51,18 +51,19 @@ impl<'a> Register<'a> {
     }
 }
 
-impl<'a> std::fmt::Debug for Register<'a> {
+impl<'a> std::fmt::Display for Register<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }
 }
 
+#[derive(Debug)]
 pub struct DataSet<'a> {
     pub data: Data<'a>,
     pub loc: Loc<'a>,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Immediate(pub u64, pub usize, pub bool);
 
 impl Immediate {
@@ -94,6 +95,17 @@ impl Immediate {
     }
 }
 
+impl std::fmt::Display for Immediate {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.2 {
+            write!(f, "-{}", self.0)
+        } else {
+            write!(f, "{}", self.0)
+        }
+    }
+}
+
+#[derive(Debug)]
 pub enum Data<'a> {
     Verb(Verb<'a>),
     Register(Register<'a>),
@@ -213,9 +225,9 @@ impl<'a> DataSet<'a> {
     }
 }
 
-impl<'a> std::fmt::Debug for DataSet<'a> {
+impl<'a> std::fmt::Display for DataSet<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self.data)
+        write!(f, "{}", self.data)
     }
 }
 
@@ -249,26 +261,26 @@ impl<'a> Data<'a> {
     }
 }
 
-impl<'a> std::fmt::Debug for Data<'a> {
+impl<'a> std::fmt::Display for Data<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Verb(arg0) => write!(f, "{:?}", arg0),
-            Self::Register(arg0) => write!(f, "{:?}", arg0),
-            Self::Prepositon(arg0) => write!(f, "{:?}", arg0),
+            Self::Verb(arg0) => write!(f, "{}", arg0),
+            Self::Register(arg0) => write!(f, "{}", arg0),
+            Self::Prepositon(arg0) => write!(f, "{}", arg0),
             Self::Immediate(arg0) => write!(f, "{}", arg0.0),
             Self::_Memory(arg0) => write!(f, "{:?}", arg0),
-            Self::Memory(arg0) => write!(f, "{:?}", arg0),
+            Self::Memory(arg0) => write!(f, "{}", arg0),
             Self::Label(arg0) => write!(f, "{}", arg0.0),
             Self::LabelDef => write!(f, "LabelDef"),
             Self::Section => write!(f, "section"),
-            Self::Keyword(arg0) => write!(f, "{:?}", arg0),
+            Self::Keyword(arg0) => write!(f, "{}", arg0),
             Self::_Define(_) => todo!(),
-            Self::Define(arg0) => write!(f, "{:?}", arg0),
+            Self::Define(arg0) => write!(f, "{}", arg0),
         }
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Verb<'a>(pub &'a str);
 
 impl<'a> Verb<'a> {
@@ -286,7 +298,7 @@ impl<'a> Verb<'a> {
         None
     }
 }
-impl<'a> std::fmt::Debug for Verb<'a> {
+impl<'a> std::fmt::Display for Verb<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self("add") => write!(f, "add"),
@@ -323,10 +335,10 @@ impl<'a> std::fmt::Debug for Verb<'a> {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Keyword<'a>(pub &'a str);
 
-impl<'a> std::fmt::Debug for Keyword<'a> {
+impl<'a> std::fmt::Display for Keyword<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Keyword("double-precision-float") => write!(f, "sd"),
@@ -372,11 +384,18 @@ impl<'a> Preposition<'a> {
     }
 }
 
-#[derive(Clone, Copy)]
+impl<'a> std::fmt::Display for Preposition<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
 pub struct Label<'a>(pub &'a str);
 
 // this should have segment register
 
+#[derive(Debug)]
 pub struct Memory<'a> {
     pub base: Option<Register<'a>>,
     pub displacement: Option<Box<DataSet<'a>>>,
@@ -566,7 +585,7 @@ impl<'a> Memory<'a> {
     }
 }
 
-impl<'a> std::fmt::Debug for Memory<'a> {
+impl<'a> std::fmt::Display for Memory<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.size != 0 {
             match self.size {
@@ -580,7 +599,7 @@ impl<'a> std::fmt::Debug for Memory<'a> {
         write!(f, "[")?;
         let mut count = 0;
         if let Some(base) = self.base {
-            write!(f, "{:?}", base)?;
+            write!(f, "{}", base)?;
             count += 1;
         }
 
@@ -588,7 +607,7 @@ impl<'a> std::fmt::Debug for Memory<'a> {
             if count > 0 {
                 write!(f, "+")?;
             }
-            write!(f, "{:?}", idx)?;
+            write!(f, "{}", idx)?;
             if let Some(scl) = self.scale {
                 write!(f, "*{}", scl)?;
             }
@@ -638,6 +657,7 @@ impl<'a> std::fmt::Debug for DefItem<'a> {
     }
 }
 
+#[derive(Debug)]
 pub struct Define<'a> {
     list: Vec<DefItem<'a>>,
 }
@@ -707,7 +727,7 @@ impl<'a> Define<'a> {
     }
 }
 
-impl<'a> std::fmt::Debug for Define<'a> {
+impl<'a> std::fmt::Display for Define<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut pos = 1;
         write!(f, "{:?}", self.list[0])?;

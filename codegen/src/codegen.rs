@@ -2,6 +2,8 @@ use super::{
     codegen_verb, Sentence, Code, Data, DataSet, Immediate, Memory, Preposition, Register, Result, Verb, Keyword
 };
 
+use macros::match_data;
+
 pub fn codegen(code: Code, asm: &mut String) -> Result<()> {
     let line = match code {
         Code::NullStmt => Ok(format!("")),
@@ -47,16 +49,16 @@ fn gen_ins_def(
 
     match (obj.data, az.data, by.data) {
         (Data::Label(l), Data::Define(i), Data::Keyword(Keyword("8bit"))) => {
-            Ok(format!("{} db {:?}", l.0, i))
+            Ok(format!("{} db {}", l.0, i))
         }
         (Data::Label(l), Data::Define(i), Data::Keyword(Keyword("16bit"))) => {
-            Ok(format!("{} dw {:?}", l.0, i))
+            Ok(format!("{} dw {}", l.0, i))
         }
         (Data::Label(l), Data::Define(i), Data::Keyword(Keyword("32bit"))) => {
-            Ok(format!("{} dd {:?}", l.0, i))
+            Ok(format!("{} dd {}", l.0, i))
         }
         (Data::Label(l), Data::Define(i), Data::Keyword(Keyword("64bit"))) => {
-            Ok(format!("{} dq {:?}", l.0, i))
+            Ok(format!("{} dq {}", l.0, i))
         }
         _ => todo!(),
     }
@@ -70,7 +72,7 @@ fn gen_ins_global(
         .map_or_else(|| None, |date| date.expect_label())
         .ok_or_else(|| eprintln!("expected label, but could not find it"))?;
 
-    Ok(format!("global {:?}", obj))
+    Ok(format!("global {}", obj))
 }
 
 fn gen_ins_alloc(
@@ -115,9 +117,10 @@ fn gen_ins_extern(
         .map_or_else(|| None, |date| date.expect_label())
         .ok_or_else(|| eprintln!("expected label, but could not find it"))?;
 
-    Ok(format!("extern {:?}", obj))
+    Ok(format!("extern {}", obj))
 }
 
+#[derive(Clone)]
 struct ModRM {
     mode: u8,
     reg: u8,
@@ -237,14 +240,15 @@ pub enum Disp {
 
 struct Builder {
     rex: Option<Rex>,
-    mod_rm: ModRM,
+    mod_rm: Option<ModRM>,
     sib: Option<SIB>,
-    disp: Disp
+    disp: Disp,
+    imm: Option<Immediate>
 }
 
 impl Builder {
     fn new(rex: Option<Rex>) -> Self {
-        Self { rex: rex, mod_rm: ModRM::new(), sib: None, disp: Disp::None }
+        Self { rex: rex, mod_rm: None, sib: None, disp: Disp::None, imm: None }
     }
 
     // fn custom(rex: Option<Rex>, mod_rm: ModRM, )
@@ -292,15 +296,21 @@ impl Builder {
     }
 
     fn set_mod_rm_mod(&mut self, mode: u8) {
-        self.mod_rm.set_mode(mode);
+        let mut mod_rm = self.mod_rm.clone().unwrap_or_else(|| ModRM::new());
+        mod_rm.set_mode(mode);
+        self.mod_rm = Some(mod_rm);
     }
 
     fn set_mod_rm_reg(&mut self, reg: u8) {
-        self.mod_rm.set_reg(reg);
+        let mut mod_rm = self.mod_rm.clone().unwrap_or_else(|| ModRM::new());
+        mod_rm.set_reg(reg);
+        self.mod_rm = Some(mod_rm);
     }
 
     fn set_mod_rm_rm(&mut self, rm: u8) {
-        self.mod_rm.set_rm(rm);
+        let mut mod_rm = self.mod_rm.clone().unwrap_or_else(|| ModRM::new());
+        mod_rm.set_rm(rm);
+        self.mod_rm = Some(mod_rm);
     }
 
     fn set_disp_8(&mut self, disp: i8) {
@@ -388,8 +398,8 @@ impl Builder {
         }
     }
 
-    fn generate(mut self, rex: bool) -> (Option<u8>, u8, Option<u8>, Disp) {
-        (self.rex.map(|rex_l|rex_l.generate(rex)), self.mod_rm.generate(), self.sib.map(|sib|sib.generate()), self.disp)
+    fn generate(self, rex: bool) -> (Option<u8>, Option<u8>, Option<u8>, Disp, Option<Immediate>) {
+        (self.rex.map(|rex_l|rex_l.generate(rex)), self.mod_rm.map(|mod_rm| mod_rm.generate()), self.sib.map(|sib|sib.generate()), self.disp, self.imm)
     }
 }
 
@@ -421,4 +431,19 @@ pub fn generate_machine_code(prefixes: Vec<Byte>, rex_prefix: Option<Byte>, opco
     }
     // not yet implemented
     code
+}
+
+// when you use this function, you have to convert \0..\7 to Register 
+pub fn operands<'a>(rex:Option<Rex>, reg: Option<DataSet<'a>>, rm: Option<DataSet<'a>>, imm: Option<DataSet<'a>>, op4: Option<DataSet<'a>>) -> Builder {
+    match (&reg, &rm, &imm, &op4) {
+        (None, None, None, None) => Builder::new(rex),
+        (match_data!(Register(_, 64, _, _)), match_data!(Register(_, 64, _, _)), None, None) => {
+            let mut builder = Builder::new(rex);
+            builder.set_reg_reg(reg.unwrap().get_register().unwrap());
+            builder.set_rm_reg(rm.unwrap().get_register().unwrap());
+            builder
+        },
+
+        _ => todo!()
+    }
 }
