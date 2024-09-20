@@ -2,5 +2,4 @@
 /test/target/
 /dev_docs/
 /.vscode/
-/auto/__pycache__/
-/auto/script/__pycache__/
+/auto/script/__pycache__
