@@ -8,7 +8,10 @@ class Defun:
         self.procedure = procedure
 
     def defun(self) -> str:
-        code = '{} fn {}({}) -> {} {{\n'.format(self.visibility, self.fn_name, self.param(), self.return_type)
+        code = ''
+        if self.visibility != '':
+            code += '{} '.format(self.visibility)
+        code += 'fn {}({}) -> {} {{\n'.format(self.fn_name, self.param(), self.return_type)
         for step in self.procedure:
             code += '\t{}\n'.format(step.replace('\n', '\n\t'))
 

@@ -1,4 +1,3 @@
-import sys
 from .lib import Match, Defun, FunCall, display_list, read, tokenize
 class GenIns:
     def __init__(self, verb_name: str, parameters: list[str], generate_rules: list[str]) -> None:
@@ -17,7 +16,10 @@ class GenIns:
         return seq
 
     def gen_match_arm(self) -> str:
-        return '({})'.format(display_list(['&_{}'.format(item) for item in self.parameters]))
+        if len(self.parameters) == 1:
+            return '{}'.format(display_list(['&_{}'.format(item) for item in self.parameters]))
+        else:
+            return '({})'.format(display_list(['&_{}'.format(item) for item in self.parameters]))
     
     def gen_match(self) -> str:
         match_patterns: list[(str, str)] = []
@@ -50,17 +52,20 @@ class CodeGenMatchPat:
         pat = ''
         match token:
             case 'mem':
-                pat += 'CaseSome!(Data::Memory(Memory{{size:{}, ..}}))'.format(CodeGenMatchPat.read_size(param))
+                # pat += 'CaseSome!(Data::Memory(Memory{{size:{}, ..}}))'.format(CodeGenMatchPat.read_size(param))
+                pat += 'match_data!(Memory{{size:{}, ..}})'.format(CodeGenMatchPat.read_size(param))
             case 'reg':
                 # pat += 'CaseSome!(Data::Register(Register({}, {}, ..)))'.format(CodeGenMatchPat.read_name(param), CodeGenMatchPat.read_size(param))
                 pat += 'match_data!(Register({}, {}, ..))'.format(CodeGenMatchPat.read_name(param), CodeGenMatchPat.read_size(param))
             
             case 'label':
-                pat += 'CaseSome!(Data::Label(_))'
+                pat += 'match_data!(Label(_))'
+                # pat += 'CaseSome!(Data::Label(_))'
             case 'imm':
                 pat += 'match_data!(Immediate(_, _, _))'
             case 'keyword':
-                pat += 'CaseSome!(Data::Keyword(Keyword({})))'.format(CodeGenMatchPat.read_name(param))
+                pat += 'match_data!(Keyword({}))'.format(CodeGenMatchPat.read_name(param))
+                # pat += 'CaseSome!(Data::Keyword(Keyword({})))'.format(CodeGenMatchPat.read_name(param))
             case 'None':
                 pat += 'None'
         
@@ -96,7 +101,10 @@ class CodeGenMatchPat:
         
 
     def pat(self) -> str:
-        return '({})'.format(display_list(['{}'.format(self.match_pattern_pat(CodeGenMatchPat.read_param(item))) for item in self.match_pattern]))
+        if len(self.match_pattern) == 1:
+            return '{}'.format(display_list(['{}'.format(self.match_pattern_pat(CodeGenMatchPat.read_param(item))) for item in self.match_pattern]))
+        else:
+            return '({})'.format(display_list(['{}'.format(self.match_pattern_pat(CodeGenMatchPat.read_param(item))) for item in self.match_pattern]))
 
 
 class CodeGenMatchExpr:
@@ -112,7 +120,9 @@ class CodeGenMatchExpr:
                 match_code += ' {:?}'
             else:
                 match_code += '{}'.format(s)
-        match_code += '\", '
+        match_code += '\"'
+        if len(params) != 0:
+            match_code += ', '
 
         match_code += '{}))'.format(display_list(params))
         return match_code
@@ -122,10 +132,7 @@ class CodeGenMatchExpr:
         return '{\n\t\temit_error_msg!(\"unmatched operand\", sentence.verb_loc);\n\t\tErr(())\n\t}'
 
 def gen_import() -> str:
-    return 'use data::{\n\tKeyword, Register, Immediate, Memory, Code, Data, DataSet, Loc, Preposition, PrepositionPhrases, Result, Verb, Sentence\n};\nuse macros::{match_data, let_prep};\n'
-
-def gen_macro() -> str:
-    return 'macro_rules! CaseSome {\n\t($data:pat) => {Some(DataSet {data:$data, loc:_})};\n}\nmacro_rules! emit_error_msg {\n\t($msg:expr, $loc:expr) => {\n\t\teprintln!("{}", format!("{}{}", $msg, $loc))\n};\n}\n'
+    return 'use data::{\n\tKeyword, Register, Immediate, Memory, Data, DataSet, Preposition, Result, Verb, Sentence, Label, emit_error_msg\n};\nuse macros::{match_data, let_prep};\n'
 
 def gen_codegen_verb(verb: list[str]) -> str:
     params = [('sentence', 'Sentence')]
@@ -143,7 +150,6 @@ if __name__ == '__main__':
     with open('grammar.dat') as file:
         print(gen_import())
         print()
-        print(gen_macro())
         # codegen = Defun('codegen_ins', [('_verb', 'Verb'), ('sentence.verb_loc', 'Loc'), ('_object', 'Option<DataSet>'), ('_preposition_phrases', '&mut PrepositionPhrases')])
         for grammar in read(tokenize(file.read())):
             print()

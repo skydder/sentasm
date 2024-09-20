@@ -80,13 +80,13 @@ impl Immediate {
         }
     }
     fn size(i: u64) -> usize {
-        if i > u8::MIN.into() && i < u8::MAX.into() {
+        if i < u8::MAX.into() {
             8
-        } else if i > u16::MIN.into() && i < u16::MAX.into() {
+        } else if i < u16::MAX.into() {
             16
-        } else if i > u32::MIN.into() && i < u32::MAX.into() {
+        } else if i < u32::MAX.into() {
             32
-        } else if i > u64::MIN.into() && i < u64::MAX.into() {
+        } else if i < u64::MAX.into() {
             64
         } else {
             todo!()
@@ -600,8 +600,10 @@ impl<'a> std::fmt::Debug for Memory<'a> {
                     data: Data::Immediate(i),
                     loc: _,
                 } => {
-                    if i.0 >= 0 && count > 0 {
+                    if count > 0 && !i.2{
                         write!(f, "+")?;
+                    } else if i.2 {
+                        write!(f, "-")?;
                     }
                     write!(f, "{}", i.0)?;
                 }

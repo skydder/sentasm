@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
-use syn::{parse_macro_input, Expr, Ident, Lit, Token};
+use syn::{parse_macro_input, Ident, Lit, Token};
 
 
 struct ParsedData {
