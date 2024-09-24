@@ -52,7 +52,7 @@ class Grammar:
         
         block = []
         for prep in rule[1:]:
-            block.append('let _{} = sentence.preposition_phrases.get_object(Preposition(\"{}\")).map_or_else(|| None, |date| date.expect_object());'.format(prep, prep))
+            block.append('let_prep!(_{}, "{}");'.format(prep, prep))
         block.append(FunCall('codegen', [f'"{rule[0]}"', make_operands(rule[1:])]).call())
         return block
 
@@ -70,15 +70,15 @@ class Instruction:
     def read_operand(rule: str) -> str:
         def match_arm(token: str):
             if token.startswith('mem'):
-                return 'CaseSome!(Data::Memory(Memory{{size:{1}, ..}}))'.format(read_postfix(token[3:]))
+                return 'match_data!(Memory{{size:{1}, ..}})'.format(read_postfix(token[3:]))
             elif token.startswith('reg'):
-                return 'CaseSome!(Data::Register(Register({0}, {1}, ..)))'.format(read_postfix(token[3:]))
+                return 'match_data!(Register({0}, {1}, ..))'.format(read_postfix(token[3:]))
             elif token.startswith('rm'):
-                return 'CaseSome!(Data::Register(Register(_, {1}, ..))) | CaseSome!(Data::Memory(Memory{{size:{1}, ..}}))'.format(read_postfix(token[2:]))
+                return 'match_data!(Register(_, {1}, ..)) | match_data!(Memory{{size:{1}, ..}})'.format(read_postfix(token[2:]))
             elif token.startswith('imm'):
-                return 'CaseSome!(Data::Immediate(Immediate(_)))'
+                return 'match_data!(Immediate(..))'
             elif token.startswith('sbytedword'):
-                return 'CaseSome!(Data::Immediate(Immediate(_)))'
+                return 'match_data!(Immediate(_))'
                 
         def read_postfix(token: str):
             # in the future, support other register 
@@ -100,20 +100,6 @@ class Instruction:
     
     def generate_operands(self) -> str:
         return '({})'.format(display_list([Instruction.read_operand(self.operands[i]) if i < len(self.operands) else 'None' for i in range(4)]))
-    
-    def read_rule(self) -> str:
-        def read_order(first: str) -> str:
-            pass
-
-        pass
-
-def put_byte(byte_s: str) -> str:
-    return f'db 0x{byte_s}\n'
-    
-
-
-
-    
     
 
 if __name__ == '__main__':

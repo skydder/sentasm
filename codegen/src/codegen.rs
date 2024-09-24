@@ -2,6 +2,7 @@ use super::{
     codegen_verb, Sentence, Code, Data, DataSet, Immediate, Memory, Preposition, Register, Result, Verb, Keyword
 };
 
+use data::Loc;
 use macros::match_data;
 
 pub fn codegen(code: Code, asm: &mut String) -> Result<()> {
@@ -201,6 +202,9 @@ impl Rex {
     fn rex(w: bool, r: bool, x: bool, b: bool) -> Self {
         Self { w, r, x, b }
     }
+    fn w()  -> Self {
+        Self { w: true, r: false, x: false, b: false }
+    }
 
     fn rex_w(&mut self, w: bool) {
         self.w = w;
@@ -231,50 +235,52 @@ impl Rex {
     }
 }
 
-pub enum Disp {
-    Disp8(i8),
-    Disp16(i16),
-    Disp32(i32),
-    None
-}
 
-struct Builder {
+struct Instruction {
+    op_code: Vec<u8>,
+    prefixes: Vec<u8>,
     rex: Option<Rex>,
     mod_rm: Option<ModRM>,
     sib: Option<SIB>,
-    disp: Disp,
+    disp: Option<Immediate>,
     imm: Option<Immediate>
 }
 
-impl Builder {
+impl Instruction {
     fn new(rex: Option<Rex>) -> Self {
-        Self { rex: rex, mod_rm: None, sib: None, disp: Disp::None, imm: None }
+        Self { op_code: Vec::new(), prefixes: Vec::new(), rex: rex, mod_rm: None, sib: None, disp: None, imm: None }
     }
 
-    // fn custom(rex: Option<Rex>, mod_rm: ModRM, )
-
     fn set_rex_b(&mut self, b: bool) {
-        let mut rex = self.rex.clone().unwrap_or_else(|| Rex::new());
-        rex.rex_b(b);
-        self.rex = Some(rex)
+        if b {
+            let mut rex = self.rex.clone().unwrap_or_else(|| Rex::new());
+            rex.rex_b(b);
+            self.rex = Some(rex)
+        }
     }
 
     fn set_rex_r(&mut self, r: bool) {
-        let mut rex = self.rex.clone().unwrap_or_else(|| Rex::new());
-        rex.rex_r(r);
-        self.rex = Some(rex)
+        if r {
+            let mut rex = self.rex.clone().unwrap_or_else(|| Rex::new());
+            rex.rex_r(r);
+            self.rex = Some(rex)
+        }
     }
 
     fn set_rex_x(&mut self, x: bool) {
-        let mut rex = self.rex.clone().unwrap_or_else(|| Rex::new());
-        rex.rex_x(x);
-        self.rex = Some(rex)
+        if x {
+            let mut rex = self.rex.clone().unwrap_or_else(|| Rex::new());
+            rex.rex_x(x);
+            self.rex = Some(rex)
+        }
     }
 
     fn set_rex_w(&mut self, w: bool) {
-        let mut rex = self.rex.clone().unwrap_or_else(|| Rex::new());
-        rex.rex_w(w);
-        self.rex = Some(rex)
+        if w {
+            let mut rex = self.rex.clone().unwrap_or_else(|| Rex::new());
+            rex.rex_w(w);
+            self.rex = Some(rex)
+        }
     }
     
     fn set_sib_base(&mut self, base: u8) {
@@ -313,43 +319,48 @@ impl Builder {
         self.mod_rm = Some(mod_rm);
     }
 
-    fn set_disp_8(&mut self, disp: i8) {
-        self.disp = Disp::Disp8(disp);
+    fn set_disp(&mut self, disp: Immediate) {
+        self.disp = Some(disp);
     }
 
-    fn set_disp_32(&mut self, disp: i32) {
-        self.disp = Disp::Disp32(disp);
+    fn _set_imm(&mut self, imm: Immediate) {
+        self.imm = Some(imm);
     }
 
-    fn set_disp_None(&mut self) {
-        self.disp = Disp::None;
+    fn set_prefix(&mut self, prefix: u8) {
+        self.prefixes.push(prefix);
+    }
+
+    fn set_opcode(&mut self, opcode: u8) {
+        self.op_code.push(opcode);
+    }
+
+    fn set_opecode_with_register(&mut self, opcode: u8, reg: Register) {
+        self.set_opcode(opcode + reg.2);
     }
 
     // #####################################
-    fn set_rm_reg(&mut self, reg: Register) {
+    fn _set_reg(&mut self, reg: Register) {
+        self.set_mod_rm_reg(reg.2);
+        self.set_rex_r(reg.3);
+    }
+
+    fn _set_rm_reg(&mut self, reg: Register) {
         self.set_mod_rm_mod(0b11);
         self.set_mod_rm_rm(reg.2);
         self.set_rex_b(reg.3);
     }
 
-    fn set_reg_reg(&mut self, reg: Register) {
-        self.set_mod_rm_reg(reg.2);
-        self.set_rex_r(reg.3);
-    }
-
-    fn set_reg_op(&mut self, op: u8) {
-        self.set_mod_rm_reg(op);
-    }
-
-    fn set_rm_mem(&mut self, mem: Memory) {
+    fn _set_rm_mem(&mut self, mem: Memory) {
         match mem.disp_size {
             0 => self.set_mod_rm_mod(0b00),
             8 => {
                 self.set_mod_rm_mod(0b01);
-                // self.disp = Disp::Disp8(mem.displacement.unwrap().)
+                self.set_disp(mem.displacement.unwrap().get_immediate().unwrap());
             },
             16 | 32 => {
-                self.set_mod_rm_mod(0b11)
+                self.set_mod_rm_mod(0b11);
+                self.set_disp(mem.displacement.unwrap().get_immediate().unwrap());
             },
             _ => todo!()
         }
@@ -383,7 +394,7 @@ impl Builder {
                 if mem.disp_size == 0 {
                     self.set_rex_b(b);
                     self.set_mod_rm_mod(0b01);
-                    self.set_disp_8(0);
+                    self.set_disp(Immediate(0, 8, false));
                 } else {
                     self.set_rex_b(b);
                     self.set_mod_rm_rm(5);
@@ -398,52 +409,135 @@ impl Builder {
         }
     }
 
-    fn generate(self, rex: bool) -> (Option<u8>, Option<u8>, Option<u8>, Disp, Option<Immediate>) {
-        (self.rex.map(|rex_l|rex_l.generate(rex)), self.mod_rm.map(|mod_rm| mod_rm.generate()), self.sib.map(|sib|sib.generate()), self.disp, self.imm)
+    fn set_reg(&mut self, reg: DataSet) {
+        match reg.data {
+            Data::Register(r) => {
+                self._set_reg(r);
+            }
+            _ => todo!("going to be error")
+        }
     }
-}
 
-fn put_byte(byte: Byte) -> String {
-    format!("db {:#02x}\n", byte)
-}
+    fn set_rm(&mut self, rm: DataSet) {
+        match rm.data {
+            Data::Register(r) => {
+                self._set_rm_reg(r);
+            }
+            Data::Memory(m) => {
+                self._set_rm_mem(m);
+            }
+            _ => todo!("going to be error")
+        }
+    }
 
-type Byte = u8;
+    fn set_imm(&mut self, imm: DataSet) {
+        match imm.data {
+            Data::Immediate(i) => {
+                self._set_imm(i);
+            }
+            _ => todo!("going to be error")
+        }
+    }
 
-pub fn generate_machine_code(prefixes: Vec<Byte>, rex_prefix: Option<Byte>, opcode: Vec<Byte>, mod_rm: Option<Byte>, sib: Option<Byte>, disp: Option<Disp>, imm: Option<Immediate>) -> String {
-    let mut code: String = String::new();
-    for byte in prefixes {
-        code += &put_byte(byte);
+    fn emit_machine_code(mut self) -> Vec<u8> {
+        let mut mc: Vec<u8> = Vec::new();
+        mc.append(&mut self.prefixes);
+        if self.rex.is_some() {
+            mc.push(self.rex.unwrap().generate(true));
+        }
+        mc.append(&mut self.op_code);
+        if self.mod_rm.is_some() {
+            mc.push(self.mod_rm.unwrap().generate());
+        }
+        if self.sib.is_some() {
+            mc.push(self.sib.unwrap().generate());
+        }
+        if self.disp.is_some() {
+            mc.append(&mut self.disp.unwrap().generate());
+        }
+        if self.imm.is_some() {
+            mc.append(&mut self.imm.unwrap().generate());
+        }
+        mc
     }
-    if let Some(rex) = rex_prefix {
-        code += &put_byte(rex);
-    }
-    for byte in opcode {
-        code += &put_byte(byte);
-    }
-    if let Some(modrm) = mod_rm {
-        code += &put_byte(modrm);
-    }
-    if let Some(sib_b) = sib {
-        code += &put_byte(sib_b);
-    }
-    if let Some(modrm) = mod_rm {
-        code += &put_byte(modrm);
-    }
-    // not yet implemented
-    code
 }
 
 // when you use this function, you have to convert \0..\7 to Register 
-pub fn operands<'a>(rex:Option<Rex>, reg: Option<DataSet<'a>>, rm: Option<DataSet<'a>>, imm: Option<DataSet<'a>>, op4: Option<DataSet<'a>>) -> Builder {
+pub fn operands<'a>(mut ins: Instruction, rex: Option<Rex>, reg: Option<DataSet<'a>>, rm: Option<DataSet<'a>>, imm: Option<DataSet<'a>>, op4: Option<DataSet<'a>>) -> Instruction {
     match (&reg, &rm, &imm, &op4) {
-        (None, None, None, None) => Builder::new(rex),
+        (None, None, None, None) => ins,
         (match_data!(Register(_, 64, _, _)), match_data!(Register(_, 64, _, _)), None, None) => {
-            let mut builder = Builder::new(rex);
-            builder.set_reg_reg(reg.unwrap().get_register().unwrap());
-            builder.set_rm_reg(rm.unwrap().get_register().unwrap());
-            builder
+            ins.set_reg(reg.unwrap());
+            ins.set_rm(rm.unwrap());
+            ins
         },
-
+        (match_data!(Register(_, 64, _, _)), match_data!(Memory{..}), None, None) => {
+            ins.set_reg(reg.unwrap());
+            ins.set_rm(rm.unwrap());
+            ins
+        },
+        (match_data!(Register(_, 0, _, _)), match_data!(Memory{..}), match_data!(Immediate(..)), None) => {
+            ins.set_rm(rm.unwrap());
+            ins.set_reg(reg.unwrap());
+            ins.set_imm(imm.unwrap());
+            ins
+        },
+        (match_data!(Register(_, 0, _, _)), match_data!(Register(_, 64, _, _)), match_data!(Immediate(..)), None) => {
+            ins.set_rm(rm.unwrap());
+            ins.set_reg(reg.unwrap());
+            ins.set_imm(imm.unwrap());
+            ins
+        }
         _ => todo!()
+    }
+}
+
+fn add(dist: Option<DataSet>, src: Option<DataSet>) -> Vec<u8>{
+    match (&dist, &src) {
+        (match_data!(Register(_, 8, _, _)), match_data!(Register(_, 8, _, _))) =>{
+            let mut ins = Instruction::new(None);
+            ins.set_opcode(0x00);
+            ins.set_reg(src.unwrap());
+            ins.set_rm(dist.unwrap());
+            ins.emit_machine_code()
+        },
+        (match_data!(Register(_, 8, _, _)), match_data!(Immediate(_, _, _))) => {
+            let mut ins = Instruction::new(None);
+            ins.set_opcode(0x80);
+            ins.set_mod_rm_reg(0);
+            ins.set_rm(dist.unwrap());
+            ins.set_imm(src.unwrap());
+            ins.emit_machine_code()
+        }
+        _ => todo!()
+    }
+}
+
+#[test]
+fn test_add1() {
+    let dist = DataSet {
+        data: Data::Register(Register("bl", 8, 3, false)),
+        loc: Loc::new("test", 1, 0)
+    };
+    let src = DataSet {
+        data: Data::Register(Register("al", 8, 0, false)),
+        loc: Loc::new("test", 1, 0)
+    };
+    for h in add(Some(dist), Some(src)) {
+        eprint!("{:02x} ", h);
+    }
+}
+#[test]
+fn test_add2() {
+    let dist = DataSet {
+        data: Data::Register(Register("bl", 8, 3, false)),
+        loc: Loc::new("test", 1, 0)
+    };
+    let src = DataSet {
+        data: Data::Immediate(Immediate(10, 8, false)),
+        loc: Loc::new("test", 1, 0)
+    };
+    for h in add(Some(dist), Some(src)) {
+        eprint!("{:02x} ", h);
     }
 }
