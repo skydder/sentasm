@@ -251,6 +251,10 @@ impl Instruction {
         Self { op_code: Vec::new(), prefixes: Vec::new(), rex: rex, mod_rm: None, sib: None, disp: None, imm: None }
     }
 
+    fn set_rex(&mut self) {
+        self.rex = Some(self.rex.clone().unwrap_or_else(|| Rex::new()));
+    }
+
     fn set_rex_b(&mut self, b: bool) {
         if b {
             let mut rex = self.rex.clone().unwrap_or_else(|| Rex::new());
@@ -275,12 +279,10 @@ impl Instruction {
         }
     }
 
-    fn set_rex_w(&mut self, w: bool) {
-        if w {
-            let mut rex = self.rex.clone().unwrap_or_else(|| Rex::new());
-            rex.rex_w(w);
-            self.rex = Some(rex)
-        }
+    fn set_rex_w(&mut self) {
+        let mut rex = self.rex.clone().unwrap_or_else(|| Rex::new());
+        rex.rex_w(true);
+        self.rex = Some(rex)
     }
     
     fn set_sib_base(&mut self, base: u8) {
@@ -541,3 +543,7 @@ fn test_add2() {
         eprint!("{:02x} ", h);
     }
 }
+
+struct Operands<'a>(pub Option<DataSet<'a>>, pub Option<DataSet<'a>>, pub Option<DataSet<'a>>, pub Option<DataSet<'a>>);
+
+
