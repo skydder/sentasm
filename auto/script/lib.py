@@ -29,7 +29,9 @@ class Match:
     def match(self) -> str:
         code = 'match {} {{\n'.format(self.match_arm)
         for (pat, expr) in self.match_patterns:
-            code += '\t{} => {},\n'.format(pat, expr)
+            if expr.endswith('\n'):
+                expr = expr[:-1]
+            code += '\t{} => {},\n'.format(pat, expr.replace('\n', '\t\n'))
 
         code += '}'
         return code
@@ -59,7 +61,7 @@ class Block:
     def block(self) -> str:
         code = '{\n'
         for step in self.proc:
-            code += '\t{}\n'.format(step)
+            code += '\t{}\n'.format(step.replace('\n', '\t\n'))
         code += '}\n'
         return code
 
