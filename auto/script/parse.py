@@ -2,7 +2,7 @@ import sys
 import sys
 from lib import Match, Defun, Block
 
-prefixes = ['o16', 'o32', 'odf', 'o64', 'o64nw', 'a16', 'a32', 'adf', 'a64', '!osp', '!asp', 'f2i', 'f3i', 'mustrep', 'mustrepne', 'rex.l', 'norexb', 'norexx', 'norexr', 'norexw', 'repe', 'nohi', 'nof3', 'norep', 'wait', 'resb', 'np', 'jcc8', 'jmp8', 'jlen', 'hlexr', 'hlenl', 'hle', 'vsibx', 'vm32x', 'vm64x', 'vsiby', 'vm32y', 'vm64y', 'vsibz', 'vm32z', 'vm64z']
+# prefixes = ['o16', 'o32', 'odf', 'o64', 'o64nw', 'a16', 'a32', 'adf', 'a64', '!osp', '!asp', 'f2i', 'f3i', 'mustrep', 'mustrepne', 'rex.l', 'norexb', 'norexx', 'norexr', 'norexw', 'repe', 'nohi', 'nof3', 'norep', 'wait', 'resb', 'np', 'jcc8', 'jmp8', 'jlen', 'hlexr', 'hlenl', 'hle', 'vsibx', 'vm32x', 'vm64x', 'vsiby', 'vm32y', 'vm64y', 'vsibz', 'vm32z', 'vm64z']
 
 reg_table = {
     'ax': 0,
@@ -22,6 +22,52 @@ reg_table = {
     'dh': 6,
     'bh': 7,
 }
+
+prefixes = {
+    'o16': 'ins.set_prefix(0x66);',
+    'o32': '// 32 bit operand',
+    'odf': '// default operand',
+    'o64': 'ins.set_rex();',
+    'o64nw': 'ins.set_rex_w();',
+    'a16': '// unimplemented',
+    'a32': '// unimplemented',
+    'adf': '// unimplemented',
+    'a64': '// unimplemented',
+    '!osp': '// unimplemented',
+    '!asp': '// unimplemented',
+    'f2i': '// unimplemented',
+    'f3i': '// unimplemented',
+    'mustrep': '// unimplemented',
+    'mustrepne': '// unimplemented',
+    'rex.l': '// unimplemented',
+    'norexb': '// unimplemented',
+    'norexx': '// unimplemented',
+    'norexr': '// unimplemented',
+    'norexw': '// unimplemented',
+    'repe': '// unimplemented',
+    'nohi': '// unimplemented',
+    'nof3': '// unimplemented',
+    'norep': '// unimplemented',
+    'wait': '// unimplemented',
+    'resb': '// unimplemented',
+    'np': '// unimplemented',
+    'jcc8': '// unimplemented',
+    'jmp8': '// unimplemented',
+    'jlen': '// unimplemented',
+    'hlexr': '// unimplemented',
+    'hlenl': '// unimplemented',
+    'hle': '// unimplemented',
+    'vsibx': '// unimplemented',
+    'vm32x': '// unimplemented',
+    'vm64x': '// unimplemented',
+    'vsiby': '// unimplemented',
+    'vm32y': '// unimplemented',
+    'vm64y': '// unimplemented',
+    'vsibz': '// unimplemented',
+    'vm32z': '// unimplemented',
+    'vm64z': '// unimplemented',
+}
+
 
 def read_reg(reg: str):
     reg_value = reg_table[reg[-2:]]
@@ -43,103 +89,123 @@ def read_reg(reg: str):
 
 class MCEmit:
     def __init__(self, rule: list[str]) -> None:
+        if rule[0].endswith(':'):
+            self.define = rule[0][:-1]
+        else:
+            self.define = None
         self.rule = rule[1::]
 
-    def read_item(self, item: str):
-        item = item[:-1]
-        def read_plus(seq, n):
-            plus = seq[n + 1]
-            
-
-
-
-    def define_item(self): 
-
-        pass
-    
-    def is_prefix(self, prefix: str) -> bool:
-        for pf in prefixes:
-            if prefix == pf:
+    def read_define(self, defs: str):
+        defs = [i for i in defs]
+        def is_rmvi(token):
+            match token:
+                case 'r' | 'm' | 'v' | 'i':
+                    return True
+                case _:
+                    return False
+        
+        def is_plus(token):
+            if token == '+':
                 return True
-        return False
-    
-    def is_other(self, hexa: str) -> bool:
-        if hexa.startswith('i'):
-            return True
-        elif hexa.startswith('/'):
-            return True
-        elif hexa.startswith('rel'):
-            return True
-        return False
-    
-    def parse_prefix(self, n, code):
-        prefix = self.rule[n]
-        while self.is_prefix(prefix):
-            if prefix == 'o64':
-                code.append('ins.set_rex_w();')
-            elif prefix == 'o64nw':
-                code.append('ins.set_rex();')
-            elif prefix == 'o16':
-                code.append('ins.set_prefix(0x66);')
-            elif prefix == 'o32':
-                pass
-            n += 1
-            prefix = self.rule[n]
-            
+            else:
+                return False
         
-        return (n, code)
-        
-    def parse_opcode(self, n, code):
-        try:
-            opcode = self.rule[n]
-            while not self.is_other(opcode):
-                if '+' in opcode:
-                    opcode = opcode.split('+')
-                    if opcode[1] == 'r':
-                        code.append('ins.set_opecode_with_register(0x{}, _r);'.format(opcode[0]))
+        operands = []
+        cur = []
+        while len(defs) != 0:
+            item = defs.pop(0)
+            if item == '-':
+                operands.append(cur)
+                cur = []
+            elif is_rmvi(item):
+                cur.append(item)
+                operands.append(cur)
+                cur = []
+            elif is_plus(item):
+                item = defs.pop(0)
+                if is_rmvi(item):
+                    cur.append(item)
                 else:
-                    code.append('ins.set_opcode(0x{});'.format(opcode))
-                n += 1                
-                opcode = self.rule[n]
-        finally:
-            return (n, code)
-    
-    def parse_mod(self, n, code):
-        try:
-            mod = self.rule[n]
-            if mod.startswith('/'):
-                code.append('ins.set_rm(_m);')
-                match mod[1:]:
-                    case 'r':
-                        code.append('ins.set_reg(_r);')
-                    case '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7':
-                        code.append('ins.set_mod_rm_reg({});'.format(mod[1:]))
-                n += 1    
-        finally:
-            return (n, code)
-        
-        
-    def parse_rel(self, n, code):
-        try:
-            rel = self.rule[n]
-            if rel.startswith('rel'):
-                code.append('ins.set_disp(_i);')
-                n += 1
-        finally:
-            return (n, code)
+                    print('unexpected operand type\n-> ', item, file=sys.stderr)
+                    exit(0)
+            else:
+                print('unexpected operand type\n-> ', item, file=sys.stderr)
+                exit(0)
+        return operands
+                
 
-    def parse_imm(self, n, code):
-        try:
-            imm = self.rule[n]
-            if imm.startswith('i'):
-                code.append('ins.set_imm(_i);')
-                n += 1
-        finally:
-            return (n, code)
+    
+    def assign(self):
+        if self.define ==  None:
+            return '// void'
+        return '//' + str(self.read_define(self.define))
+
+    def is_prefix(self, candidate):
+        return candidate in prefixes
+    
+    def is_mod_rm(self, candidate):
+        return candidate.startswith('/')
+    
+    def is_imm(self, candidate):
+        return candidate.startswith('i')
+    
+    def is_disp(self, candidate):
+        return candidate.startswith('rel')
+    
+
+    def read_pefix(self, prefix):
+        assert prefix in prefixes
+        return prefixes[prefix]
+    
+    def read_mod_rm(self, mod_rm):
+        assert mod_rm.startswith('/')
+        code = 'ins.set_rm(_m);\n'
+        match mod_rm[1:]:
+            case 'r':
+                code += 'ins.set_reg(_r);'
+            case '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9':
+                code += 'ins.set_mod_rm_reg({});'.format(mod_rm[1:])
+            case _:
+                print('unexpected value!!', file=sys.stderr)
+        return code
+    
+    def read_imm(self, imm):
+        assert imm.startswith('i')
+        return 'ins.set_imm(_i);'
+    
+    def read_disp(self, disp):
+        assert disp.startswith('rel')
+        return 'ins.set_disp(_i);'
+
+    def read_opcode(self, opcode):
+        if '+' in opcode:
+            opcode = opcode.split('+')
+            match opcode[1]:
+                case 'r':
+                    return 'ins.set_opecode_with_register(0x{}, _r);'.format(opcode[0])
+                case 'c':
+                    return 'ins.set_opcode(0x{});'.format(opcode[0])
+                case _:
+                    print('expected r after +\n',self.rule, file=sys.stderr)
+                    exit(0)
+        else:
+            return 'ins.set_opcode(0x{});'.format(opcode)
+
+    def read_byte(self, byte):
+        if self.is_prefix(byte):
+            return self.read_pefix(byte)
+        elif self.is_mod_rm(byte):
+            return self.read_mod_rm(byte)
+        elif self.is_disp(byte):
+            return self.read_disp(byte)
+        elif self.is_imm(byte):
+            return self.read_imm(byte)
+        else:
+            return self.read_opcode(byte)
     
     def parse(self):
-        (_, code) = self.parse_imm(*self.parse_rel(*self.parse_rel(*self.parse_mod(*self.parse_opcode(*self.parse_prefix(0, []))))))
-        return code
+        code = [self.assign()]
+        return code + [self.read_byte(byte) for byte in self.rule ]
 
 def test():
     MCEmit(['o32', '11', '/r']).parse()

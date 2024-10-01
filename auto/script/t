@@ -1,2696 +1,3132 @@
-
-// not completed code
 pub fn emit_mc(ins: &str, operands: Operands) -> Instruction {
-	match (ins, operands) {
+	match (&ins, &operands) {
 		("adc", (match_data!(Memory{size:_, ..}), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x11);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("adc", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		ins.set_rex();	
 		ins.set_opcode(0x11);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("adc", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x13);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("adc", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x13);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("adc", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x83);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(2);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(2);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("adc", (match_data!(Register(0, 64, ..)), match_data!(Immediate(..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x83);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(2);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(2);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("adc", (match_data!(Register(0, 64, ..)), match_data!(Immediate(_, _, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[[], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x15);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("adc", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x83);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(2);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(2);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("adc", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, _, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x81);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(2);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(2);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("add", (match_data!(Memory{size:_, ..}), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x01);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("add", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		ins.set_rex();	
 		ins.set_opcode(0x01);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("add", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x03);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("add", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x03);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("add", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x83);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("add", (match_data!(Register(0, 64, ..)), match_data!(Immediate(..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x83);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("add", (match_data!(Register(0, 64, ..)), match_data!(Immediate(_, _, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[[], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x05);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("add", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x83);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("add", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, _, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x81);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("and", (match_data!(Memory{size:_, ..}), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x21);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("and", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		ins.set_rex();	
 		ins.set_opcode(0x21);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("and", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x23);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("and", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x23);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("and", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x83);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(4);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(4);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("and", (match_data!(Register(0, 64, ..)), match_data!(Immediate(..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x83);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(4);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(4);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("and", (match_data!(Register(0, 64, ..)), match_data!(Immediate(_, _, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[[], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x25);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("and", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x83);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(4);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(4);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("and", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, _, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x81);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(4);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(4);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("bsf", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
+		// unimplemented	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xbc);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("bsf", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
+		// unimplemented	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xbc);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("bsr", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
+		// unimplemented	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xbd);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("bsr", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
+		// unimplemented	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xbd);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("bswap", (match_data!(Register(_, 64, ..)), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['r']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opecode_with_register(0xc8, _r);	
 		ins	
 	},
 		("bt", (match_data!(Memory{size:_, ..}), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xa3);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("bt", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xa3);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("bt", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xba);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(4);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(4);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("btc", (match_data!(Memory{size:_, ..}), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xbb);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("btc", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xbb);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("btc", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xba);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(7);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(7);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("btr", (match_data!(Memory{size:_, ..}), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xb3);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("btr", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xb3);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("btr", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xba);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(6);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(6);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("bts", (match_data!(Memory{size:_, ..}), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xab);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("bts", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xab);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("bts", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xba);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(5);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(5);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("call", (match_data!(Immediate(_, 64, ..)), None, None, None)) => {	
-		ins.set_rex();	
+		//[['i']]	
+		ins.set_rex_w();	
 		ins.set_opcode(0xe8);	
 		ins.set_disp(_i);	
 		ins	
 	},
 		("call", (match_data!(Immediate(_, _, ..)), None, None, None)) => {	
-		ins.set_rex();	
+		//[['i']]	
+		ins.set_rex_w();	
 		ins.set_opcode(0xe8);	
 		ins.set_disp(_i);	
 		ins	
 	},
 		("call", (match_data!(Memory{size:_, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0xff);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(3);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(3);	
 		ins	
 	},
 		("call", (match_data!(Memory{size:_, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0xff);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(3);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(3);	
 		ins	
 	},
 		("call", (match_data!(Register(_, _, ..)) | match_data!(Memory{size:_, ..}), None, None, None)) => {	
-		ins.set_rex();	
+		//[['m']]	
+		ins.set_rex_w();	
 		ins.set_opcode(0xff);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(2);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(2);	
 		ins	
 	},
 		("call", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex();	
+		//[['m']]	
+		ins.set_rex_w();	
 		ins.set_opcode(0xff);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(2);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(2);	
 		ins	
 	},
 		("cdqe", (None, None, None, None)) => {	
+		// void	
 		ins.set_opcode(0x98);	
 		ins	
 	},
 		("cmp", (match_data!(Memory{size:_, ..}), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		ins.set_rex();	
 		ins.set_opcode(0x39);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("cmp", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		ins.set_rex();	
 		ins.set_opcode(0x39);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("cmp", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x3b);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("cmp", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x3b);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("cmp", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x83);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(7);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(7);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("cmp", (match_data!(Register(0, 64, ..)), match_data!(Immediate(..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x83);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(7);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(7);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("cmp", (match_data!(Register(0, 64, ..)), match_data!(Immediate(_, _, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[[], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x3d);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("cmp", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x83);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(7);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(7);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("cmp", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, _, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x81);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(7);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(7);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("cmpsq", (None, None, None, None)) => {	
-		ins.set_rex_w();	
+		// void	
+		ins.set_rex();	
 		ins.set_opcode(0xa7);	
 		ins	
 	},
 		("cmpxchg", (match_data!(Memory{size:_, ..}), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xb1);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("cmpxchg", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xb1);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("cmpxchg16b", (match_data!(Memory{size:128, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xc7);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(1);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(1);	
 		ins	
 	},
 		("cqo", (None, None, None, None)) => {	
+		// void	
 		ins.set_opcode(0x99);	
 		ins	
 	},
 		("dec", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0xff);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(1);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(1);	
 		ins	
 	},
 		("div", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0xf7);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(6);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(6);	
 		ins	
 	},
 		("idiv", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0xf7);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(7);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(7);	
 		ins	
 	},
 		("imul", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0xf7);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(5);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(5);	
 		ins	
 	},
 		("imul", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xaf);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("imul", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xaf);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("imul", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), match_data!(Immediate(_, 8, ..)), None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x6b);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("imul", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), match_data!(Immediate(..)), None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x6b);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("imul", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), match_data!(Immediate(_, 32, ..)), None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x69);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("imul", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), match_data!(Immediate(_, _, ..)), None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x69);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("imul", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), match_data!(Immediate(_, 8, ..)), None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x6b);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("imul", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), match_data!(Immediate(..)), None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x6b);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("imul", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), match_data!(Immediate(_, 32, ..)), None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x69);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("imul", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), match_data!(Immediate(_, _, ..)), None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x69);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("imul", (match_data!(Register(_, 64, ..)), match_data!(Immediate(_, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m', 'i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x6b);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("imul", (match_data!(Register(_, 64, ..)), match_data!(Immediate(..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m', 'i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x6b);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("imul", (match_data!(Register(_, 64, ..)), match_data!(Immediate(_, 32, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m', 'i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x69);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("imul", (match_data!(Register(_, 64, ..)), match_data!(Immediate(_, _, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m', 'i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x69);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("inc", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0xff);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins	
 	},
 		("invlpga", (match_data!(Register(0, 16, ..)), match_data!(Register(1, 32, ..)), None, None)) => {	
+		//[[], []]	
+		// unimplemented	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x01);	
 		ins.set_opcode(0xdf);	
 		ins	
 	},
 		("invlpga", (match_data!(Register(0, 32, ..)), match_data!(Register(1, 32, ..)), None, None)) => {	
+		//[[], []]	
+		// unimplemented	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x01);	
 		ins.set_opcode(0xdf);	
 		ins	
 	},
 		("invlpga", (match_data!(Register(0, 64, ..)), match_data!(Register(1, 32, ..)), None, None)) => {	
-		ins.set_rex();	
+		//[[], []]	
+		ins.set_rex_w();	
+		// unimplemented	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x01);	
 		ins.set_opcode(0xdf);	
 		ins	
 	},
 		("invlpga", (None, None, None, None)) => {	
+		// void	
 		ins.set_opcode(0x01);	
 		ins.set_opcode(0xdf);	
 		ins	
 	},
 		("iretq", (None, None, None, None)) => {	
+		// void	
 		ins.set_opcode(0xcf);	
 		ins	
 	},
 		("jrcxz", (match_data!(Immediate(_, _, ..)), None, None, None)) => {	
-		ins.set_rex();	
+		//[['i']]	
+		ins.set_rex_w();	
+		// unimplemented	
 		ins.set_opcode(0xe3);	
 		ins.set_disp(_i);	
 		ins	
 	},
 		("jmp", (match_data!(Immediate(_, 64, ..)), None, None, None)) => {	
-		ins.set_rex();	
+		//[['i']]	
+		ins.set_rex_w();	
 		ins.set_opcode(0xe9);	
 		ins.set_disp(_i);	
 		ins	
 	},
 		("jmp", (match_data!(Immediate(_, _, ..)), None, None, None)) => {	
-		ins.set_rex();	
+		//[['i']]	
+		ins.set_rex_w();	
 		ins.set_opcode(0xe9);	
 		ins.set_disp(_i);	
 		ins	
 	},
 		("jmp", (match_data!(Memory{size:_, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0xff);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(5);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(5);	
 		ins	
 	},
 		("jmp", (match_data!(Memory{size:_, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0xff);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(5);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(5);	
 		ins	
 	},
 		("jmp", (match_data!(Register(_, _, ..)) | match_data!(Memory{size:_, ..}), None, None, None)) => {	
-		ins.set_rex();	
+		//[['m']]	
+		ins.set_rex_w();	
 		ins.set_opcode(0xff);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(4);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(4);	
 		ins	
 	},
 		("jmp", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex();	
+		//[['m']]	
+		ins.set_rex_w();	
 		ins.set_opcode(0xff);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(4);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(4);	
 		ins	
 	},
 		("lar", (match_data!(Register(_, 16, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
+		//[['r'], ['m']]	
 		ins.set_prefix(0x66);	
-		ins.set_rex();	
+		ins.set_rex_w();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x02);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("lar", (match_data!(Register(_, 32, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex();	
+		//[['r'], ['m']]	
+		// 32 bit operand	
+		ins.set_rex_w();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x02);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("lar", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x02);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("lar", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 16, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x02);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("lar", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 32, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x02);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("lar", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x02);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("lea", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x8d);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("lea", (match_data!(Register(_, 64, ..)), match_data!(Immediate(_, _, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x8d);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("lfence", (None, None, None, None)) => {	
+		// void	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xae);	
 		ins.set_opcode(0xe8);	
 		ins	
 	},
 		("lfs", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xb4);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("lgs", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xb5);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("lodsq", (None, None, None, None)) => {	
+		// void	
 		ins.set_opcode(0xad);	
 		ins	
 	},
 		("loop", (match_data!(Immediate(_, _, ..)), match_data!(Register(1, 64, ..)), None, None)) => {	
+		//[['i'], []]	
+		// unimplemented	
 		ins.set_opcode(0xe2);	
 		ins.set_disp(_i);	
 		ins	
 	},
 		("loope", (match_data!(Immediate(_, _, ..)), match_data!(Register(1, 64, ..)), None, None)) => {	
+		//[['i'], []]	
+		// unimplemented	
 		ins.set_opcode(0xe1);	
 		ins.set_disp(_i);	
 		ins	
 	},
 		("loopne", (match_data!(Immediate(_, _, ..)), match_data!(Register(1, 64, ..)), None, None)) => {	
+		//[['i'], []]	
+		// unimplemented	
 		ins.set_opcode(0xe0);	
 		ins.set_disp(_i);	
 		ins	
 	},
 		("loopnz", (match_data!(Immediate(_, _, ..)), match_data!(Register(1, 64, ..)), None, None)) => {	
+		//[['i'], []]	
+		// unimplemented	
 		ins.set_opcode(0xe0);	
 		ins.set_disp(_i);	
 		ins	
 	},
 		("loopz", (match_data!(Immediate(_, _, ..)), match_data!(Register(1, 64, ..)), None, None)) => {	
+		//[['i'], []]	
+		// unimplemented	
 		ins.set_opcode(0xe1);	
 		ins.set_disp(_i);	
 		ins	
 	},
 		("lsl", (match_data!(Register(_, 16, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
+		//[['r'], ['m']]	
 		ins.set_prefix(0x66);	
-		ins.set_rex();	
+		ins.set_rex_w();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x03);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("lsl", (match_data!(Register(_, 32, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex();	
+		//[['r'], ['m']]	
+		// 32 bit operand	
+		ins.set_rex_w();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x03);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("lsl", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x03);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("lsl", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 16, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x03);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("lsl", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 32, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x03);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("lsl", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x03);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("lss", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xb2);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("mfence", (None, None, None, None)) => {	
+		// void	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xae);	
 		ins.set_opcode(0xf0);	
 		ins	
 	},
 		("monitor", (match_data!(Register(0, 64, ..)), match_data!(Register(1, 32, ..)), match_data!(Register(2, 32, ..)), None)) => {	
+		//[[], [], []]	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x01);	
 		ins.set_opcode(0xc8);	
 		ins	
 	},
 		("monitorx", (match_data!(Register(0, 64, ..)), match_data!(Register(1, 32, ..)), match_data!(Register(2, 32, ..)), None)) => {	
+		//[[], [], []]	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x01);	
 		ins.set_opcode(0xfa);	
 		ins	
 	},
 		("mov", (match_data!(Register(_, 64, ..)), match_data!(Register(_, _, ..)), None, None)) => {	
-		ins.set_rex();	
+		//[['m'], ['r']]	
+		ins.set_rex_w();	
 		ins.set_opcode(0x8c);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("mov", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Register(_, _, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		ins.set_rex();	
 		ins.set_opcode(0x8c);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("mov", (match_data!(Register(_, _, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex();	
+		//[['r'], ['m']]	
+		ins.set_rex_w();	
 		ins.set_opcode(0x8e);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("mov", (match_data!(Register(_, _, ..)), match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x8e);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("mov", (match_data!(Register(0, 64, ..)), match_data!(Memory{size:_, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[[], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0xa1);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("mov", (match_data!(Memory{size:_, ..}), match_data!(Register(0, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['i'], []]	
+		ins.set_rex();	
 		ins.set_opcode(0xa3);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("mov", (match_data!(Register(_, 64, ..)), match_data!(Register(_, _, ..)), None, None)) => {	
-		ins.set_rex();	
+		//[['m'], ['r']]	
+		ins.set_rex_w();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x20);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("mov", (match_data!(Register(_, _, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex();	
+		//[['r'], ['m']]	
+		ins.set_rex_w();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x22);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("mov", (match_data!(Register(_, 64, ..)), match_data!(Register(_, _, ..)), None, None)) => {	
-		ins.set_rex();	
+		//[['m'], ['r']]	
+		ins.set_rex_w();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x21);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("mov", (match_data!(Register(_, _, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex();	
+		//[['r'], ['m']]	
+		ins.set_rex_w();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x23);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("mov", (match_data!(Memory{size:_, ..}), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x89);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("mov", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		ins.set_rex();	
 		ins.set_opcode(0x89);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("mov", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x8b);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("mov", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x8b);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("mov", (match_data!(Register(_, 64, ..)), None, None, None)) => {	
-		ins.set_rex();	
+		//[['r'], ['i']]	
+		ins.set_rex_w();	
 		ins.set_opecode_with_register(0xb8, _r);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("mov", (match_data!(Register(_, 64, ..)), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0xc7);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("mov", (match_data!(Register(_, 64, ..)), match_data!(Immediate(_, _, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['i']]	
+		ins.set_rex();	
 		ins.set_opecode_with_register(0xb8, _r);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("mov", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, _, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0xc7);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("mov", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, 32, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0xc7);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("movd", (None, match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x6e);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("movd", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x7e);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("movq", (None, match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x6e);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("movq", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x7e);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("movsq", (None, None, None, None)) => {	
+		// void	
 		ins.set_opcode(0xa5);	
 		ins	
 	},
 		("movsx", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 8, ..)) | match_data!(Memory{size:8, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xbe);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("movsx", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 16, ..)) | match_data!(Memory{size:16, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xbf);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("movsxd", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 32, ..)) | match_data!(Memory{size:32, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x63);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("movsx", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 32, ..)) | match_data!(Memory{size:32, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x63);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("movzx", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 8, ..)) | match_data!(Memory{size:8, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xb6);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("movzx", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 16, ..)) | match_data!(Memory{size:16, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xb7);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("mul", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0xf7);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(4);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(4);	
 		ins	
 	},
 		("neg", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0xf7);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(3);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(3);	
 		ins	
 	},
 		("nop", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1f);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins	
 	},
 		("not", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0xf7);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(2);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(2);	
 		ins	
 	},
 		("or", (match_data!(Memory{size:_, ..}), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x09);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("or", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		ins.set_rex();	
 		ins.set_opcode(0x09);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("or", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0b);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("or", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0b);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("or", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x83);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(1);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(1);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("or", (match_data!(Register(0, 64, ..)), match_data!(Immediate(..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x83);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(1);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(1);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("or", (match_data!(Register(0, 64, ..)), match_data!(Immediate(_, _, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[[], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0d);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("or", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x83);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(1);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(1);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("or", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, _, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x81);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(1);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(1);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("pop", (match_data!(Register(_, 64, ..)), None, None, None)) => {	
-		ins.set_rex();	
+		//[['r']]	
+		ins.set_rex_w();	
 		ins.set_opecode_with_register(0x58, _r);	
 		ins	
 	},
 		("pop", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex();	
+		//[['m']]	
+		ins.set_rex_w();	
 		ins.set_opcode(0x8f);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins	
 	},
 		("popfq", (None, None, None, None)) => {	
+		// void	
 		ins.set_opcode(0x9d);	
 		ins	
 	},
 		("push", (match_data!(Register(_, 64, ..)), None, None, None)) => {	
-		ins.set_rex();	
+		//[['r']]	
+		ins.set_rex_w();	
 		ins.set_opecode_with_register(0x50, _r);	
 		ins	
 	},
 		("push", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex();	
+		//[['m']]	
+		ins.set_rex_w();	
 		ins.set_opcode(0xff);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(6);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(6);	
 		ins	
 	},
 		("push", (match_data!(Immediate(..)), None, None, None)) => {	
-		ins.set_rex();	
+		//[['i']]	
+		ins.set_rex_w();	
 		ins.set_opcode(0x6a);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("push", (match_data!(Immediate(_, 64, ..)), None, None, None)) => {	
-		ins.set_rex();	
+		//[['i']]	
+		ins.set_rex_w();	
 		ins.set_opcode(0x68);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("push", (match_data!(Immediate(..)), None, None, None)) => {	
-		ins.set_rex();	
+		//[['i']]	
+		ins.set_rex_w();	
 		ins.set_opcode(0x6a);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("push", (match_data!(Immediate(_, 32, ..)), None, None, None)) => {	
-		ins.set_rex();	
+		//[['i']]	
+		ins.set_rex_w();	
 		ins.set_opcode(0x68);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("pushfq", (None, None, None, None)) => {	
+		// void	
 		ins.set_opcode(0x9c);	
 		ins	
 	},
 		("rcl", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], []]	
+		ins.set_rex();	
 		ins.set_opcode(0xd1);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(2);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(2);	
 		ins	
 	},
 		("rcl", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Register(1, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], []]	
+		ins.set_rex();	
 		ins.set_opcode(0xd3);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(2);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(2);	
 		ins	
 	},
 		("rcl", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0xc1);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(2);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(2);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("rcr", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], []]	
+		ins.set_rex();	
 		ins.set_opcode(0xd1);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(3);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(3);	
 		ins	
 	},
 		("rcr", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Register(1, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], []]	
+		ins.set_rex();	
 		ins.set_opcode(0xd3);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(3);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(3);	
 		ins	
 	},
 		("rcr", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0xc1);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(3);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(3);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("rdtscp", (None, None, None, None)) => {	
+		// void	
 		ins.set_opcode(0x01);	
 		ins.set_opcode(0xf9);	
 		ins	
 	},
 		("retq", (None, None, None, None)) => {	
+		// void	
 		ins.set_opcode(0xc3);	
 		ins	
 	},
 		("retq", (match_data!(Immediate(_, _, ..)), None, None, None)) => {	
-		ins.set_rex();	
+		//[['i']]	
+		ins.set_rex_w();	
 		ins.set_opcode(0xc2);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("retfq", (None, None, None, None)) => {	
+		// void	
 		ins.set_opcode(0xcb);	
 		ins	
 	},
 		("retfq", (match_data!(Immediate(_, _, ..)), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0xca);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("retnq", (None, None, None, None)) => {	
+		// void	
 		ins.set_opcode(0xc3);	
 		ins	
 	},
 		("retnq", (match_data!(Immediate(_, _, ..)), None, None, None)) => {	
-		ins.set_rex();	
+		//[['i']]	
+		ins.set_rex_w();	
 		ins.set_opcode(0xc2);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("rol", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], []]	
+		ins.set_rex();	
 		ins.set_opcode(0xd1);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins	
 	},
 		("rol", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Register(1, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], []]	
+		ins.set_rex();	
 		ins.set_opcode(0xd3);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins	
 	},
 		("rol", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0xc1);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("ror", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], []]	
+		ins.set_rex();	
 		ins.set_opcode(0xd1);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(1);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(1);	
 		ins	
 	},
 		("ror", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Register(1, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], []]	
+		ins.set_rex();	
 		ins.set_opcode(0xd3);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(1);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(1);	
 		ins	
 	},
 		("ror", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0xc1);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(1);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(1);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("sal", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], []]	
+		ins.set_rex();	
 		ins.set_opcode(0xd1);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(4);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(4);	
 		ins	
 	},
 		("sal", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Register(1, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], []]	
+		ins.set_rex();	
 		ins.set_opcode(0xd3);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(4);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(4);	
 		ins	
 	},
 		("sal", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0xc1);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(4);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(4);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("sar", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], []]	
+		ins.set_rex();	
 		ins.set_opcode(0xd1);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(7);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(7);	
 		ins	
 	},
 		("sar", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Register(1, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], []]	
+		ins.set_rex();	
 		ins.set_opcode(0xd3);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(7);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(7);	
 		ins	
 	},
 		("sar", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0xc1);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(7);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(7);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("sbb", (match_data!(Memory{size:_, ..}), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x19);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("sbb", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		ins.set_rex();	
 		ins.set_opcode(0x19);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("sbb", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x1b);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("sbb", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x1b);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("sbb", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x83);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(3);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(3);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("sbb", (match_data!(Register(0, 64, ..)), match_data!(Immediate(..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x83);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(3);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(3);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("sbb", (match_data!(Register(0, 64, ..)), match_data!(Immediate(_, _, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[[], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x1d);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("sbb", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x83);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(3);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(3);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("sbb", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, _, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x81);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(3);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(3);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("scasq", (None, None, None, None)) => {	
-		ins.set_rex_w();	
+		// void	
+		ins.set_rex();	
 		ins.set_opcode(0xaf);	
 		ins	
 	},
 		("sfence", (None, None, None, None)) => {	
+		// void	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xae);	
 		ins.set_opcode(0xf8);	
 		ins	
 	},
 		("shl", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], []]	
+		ins.set_rex();	
 		ins.set_opcode(0xd1);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(4);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(4);	
 		ins	
 	},
 		("shl", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Register(1, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], []]	
+		ins.set_rex();	
 		ins.set_opcode(0xd3);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(4);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(4);	
 		ins	
 	},
 		("shl", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0xc1);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(4);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(4);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("shld", (match_data!(Memory{size:_, ..}), match_data!(Register(_, 64, ..)), match_data!(Immediate(_, _, ..)), None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xa4);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("shld", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), match_data!(Immediate(_, _, ..)), None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xa4);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("shld", (match_data!(Memory{size:_, ..}), match_data!(Register(_, 64, ..)), match_data!(Register(1, 8, ..)), None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r'], []]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xa5);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("shld", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), match_data!(Register(1, 8, ..)), None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r'], []]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xa5);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("shr", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], []]	
+		ins.set_rex();	
 		ins.set_opcode(0xd1);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(5);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(5);	
 		ins	
 	},
 		("shr", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Register(1, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], []]	
+		ins.set_rex();	
 		ins.set_opcode(0xd3);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(5);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(5);	
 		ins	
 	},
 		("shr", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0xc1);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(5);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(5);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("shrd", (match_data!(Memory{size:_, ..}), match_data!(Register(_, 64, ..)), match_data!(Immediate(_, _, ..)), None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xac);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("shrd", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), match_data!(Immediate(_, _, ..)), None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xac);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("shrd", (match_data!(Memory{size:_, ..}), match_data!(Register(_, 64, ..)), match_data!(Register(1, 8, ..)), None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r'], []]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xad);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("shrd", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), match_data!(Register(1, 8, ..)), None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r'], []]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xad);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("sldt", (match_data!(Register(_, 64, ..)), None, None, None)) => {	
+		//[['m']]	
+		ins.set_rex_w();	
+		ins.set_opcode(0x0f);	
+		ins.set_opcode(0x00);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
+		ins	
+	},
+		("sldt", (match_data!(Register(_, 64, ..)), None, None, None)) => {	
+		//[['m']]	
 		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x00);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
-		ins	
-	},
-		("sldt", (match_data!(Register(_, 64, ..)), None, None, None)) => {	
-		ins.set_rex_w();	
-		ins.set_opcode(0x0f);	
-		ins.set_opcode(0x00);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins	
 	},
 		("skinit", (None, None, None, None)) => {	
+		// void	
 		ins.set_opcode(0x01);	
 		ins.set_opcode(0xde);	
 		ins	
 	},
 		("smsw", (match_data!(Register(_, 64, ..)), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x01);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(4);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(4);	
 		ins	
 	},
 		("stosq", (None, None, None, None)) => {	
+		// void	
 		ins.set_opcode(0xab);	
 		ins	
 	},
 		("str", (match_data!(Register(_, 64, ..)), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x00);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(1);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(1);	
 		ins	
 	},
 		("sub", (match_data!(Memory{size:_, ..}), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x29);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("sub", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		ins.set_rex();	
 		ins.set_opcode(0x29);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("sub", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x2b);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("sub", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x2b);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("sub", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x83);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(5);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(5);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("sub", (match_data!(Register(0, 64, ..)), match_data!(Immediate(..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x83);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(5);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(5);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("sub", (match_data!(Register(0, 64, ..)), match_data!(Immediate(_, _, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[[], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x2d);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("sub", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x83);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(5);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(5);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("sub", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, _, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x81);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(5);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(5);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("swapgs", (None, None, None, None)) => {	
+		// void	
 		ins.set_opcode(0x01);	
 		ins.set_opcode(0xf8);	
 		ins	
 	},
 		("test", (match_data!(Memory{size:_, ..}), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		ins.set_rex();	
 		ins.set_opcode(0x85);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("test", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		ins.set_rex();	
 		ins.set_opcode(0x85);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("test", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x85);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("test", (match_data!(Register(0, 64, ..)), match_data!(Immediate(_, _, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[[], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0xa9);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("test", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, _, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0xf7);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("xadd", (match_data!(Memory{size:_, ..}), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xc1);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("xadd", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xc1);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("xchg", (match_data!(Register(0, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[[], ['r']]	
+		ins.set_rex();	
 		ins.set_opecode_with_register(0x90, _r);	
 		ins	
 	},
 		("xchg", (match_data!(Register(_, 64, ..)), match_data!(Register(0, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], []]	
+		ins.set_rex();	
 		ins.set_opecode_with_register(0x90, _r);	
 		ins	
 	},
 		("xchg", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		ins.set_rex();	
 		ins.set_opcode(0x87);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("xchg", (match_data!(Memory{size:_, ..}), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x87);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("xchg", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x87);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("xor", (match_data!(Memory{size:_, ..}), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x31);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("xor", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		ins.set_rex();	
 		ins.set_opcode(0x31);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("xor", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x33);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("xor", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x33);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("xor", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, 8, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x83);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(6);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(6);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("xor", (match_data!(Register(0, 64, ..)), match_data!(Immediate(..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x83);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(6);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(6);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("xor", (match_data!(Register(0, 64, ..)), match_data!(Immediate(_, _, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[[], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x35);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("xor", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x83);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(6);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(6);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("xor", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, _, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['i']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x81);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(6);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(6);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("cmovcc", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_opcode(0x40);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("cmovcc", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_opcode(0x40);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("jcc", (match_data!(Immediate(_, _, ..)), None, None, None)) => {	
-		ins.set_rex();	
+		//[['i']]	
+		ins.set_rex_w();	
 		ins.set_opcode(0x0f);	
+		ins.set_opcode(0x80);	
 		ins.set_disp(_i);	
 		ins	
 	},
 		("cvtsi2ss", (None, match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0xf3);	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x2a);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("cvtss2si", (match_data!(Register(_, 64, ..)), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0xf3);	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x2d);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("cvtss2si", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0xf3);	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x2d);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("cvttss2si", (match_data!(Register(_, 64, ..)), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0xf3);	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x2c);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("movmskps", (match_data!(Register(_, 64, ..)), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		// unimplemented	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x50);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("fxrstor64", (match_data!(Memory{size:_, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
+		// unimplemented	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xae);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(1);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(1);	
 		ins	
 	},
 		("fxsave64", (match_data!(Memory{size:_, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
+		// unimplemented	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xae);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins	
 	},
 		("movnti", (match_data!(Memory{size:_, ..}), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r']]	
+		ins.set_rex();	
+		// unimplemented	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xc3);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("movq", (None, match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None)) => {	
+		//[['r'], ['m']]	
 		ins.set_opcode(0x66);	
-		ins.set_opcode(0xo64);	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x6e);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("movq", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
+		//[['m'], ['r']]	
 		ins.set_opcode(0x66);	
-		ins.set_opcode(0xo64);	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x7e);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("pextrw", (match_data!(Register(_, 64, ..)), None, match_data!(Immediate(_, _, ..)), None)) => {	
+		//[['r'], ['m'], ['i']]	
 		ins.set_opcode(0x66);	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xc5);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("pinsrw", (None, match_data!(Register(_, 64, ..)), match_data!(Immediate(_, _, ..)), None)) => {	
+		//[['r'], ['m'], ['i']]	
 		ins.set_opcode(0x66);	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xc4);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("cvtsd2si", (match_data!(Register(_, 64, ..)), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0xf2);	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x2d);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("cvtsd2si", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0xf2);	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x2d);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("cvtsi2sd", (None, match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0xf2);	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x2a);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("cvttsd2si", (match_data!(Register(_, 64, ..)), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0xf2);	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x2c);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("cvttsd2si", (match_data!(Register(_, 64, ..)), match_data!(Memory{size:_, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0xf2);	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x2c);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("movmskpd", (match_data!(Register(_, 64, ..)), None, None, None)) => {	
+		//[['r'], ['m']]	
 		ins.set_opcode(0x66);	
-		ins.set_opcode(0xo64);	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x50);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("vmread", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Register(_, 64, ..)), None, None)) => {	
-		ins.set_rex();	
+		//[['m'], ['r']]	
+		ins.set_rex_w();	
+		// unimplemented	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x78);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("vmwrite", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None)) => {	
-		ins.set_rex();	
+		//[['r'], ['m']]	
+		ins.set_rex_w();	
+		// unimplemented	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x79);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("lzcnt", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
+		// unimplemented	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0xbd);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("extractps", (match_data!(Register(_, 64, ..)), None, match_data!(Immediate(_, 8, ..)), None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x66);	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x3a);	
 		ins.set_opcode(0x17);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("pextrb", (match_data!(Register(_, 64, ..)), None, match_data!(Immediate(_, 8, ..)), None)) => {	
-		ins.set_rex();	
+		//[['m'], ['r'], ['i']]	
+		ins.set_rex_w();	
 		ins.set_opcode(0x66);	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x3a);	
 		ins.set_opcode(0x14);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("pextrq", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, match_data!(Immediate(_, 8, ..)), None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x66);	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x3a);	
 		ins.set_opcode(0x16);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("pextrw", (match_data!(Register(_, 64, ..)), None, match_data!(Immediate(_, 8, ..)), None)) => {	
-		ins.set_rex_w();	
+		//[['m'], ['r'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x66);	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x3a);	
 		ins.set_opcode(0x15);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("pinsrq", (None, match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, 8, ..)), None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m'], ['i']]	
+		ins.set_rex();	
 		ins.set_opcode(0x66);	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x3a);	
 		ins.set_opcode(0x22);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("crc32", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 8, ..)) | match_data!(Memory{size:8, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
+		// unimplemented	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x38);	
 		ins.set_opcode(0xf0);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("crc32", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None)) => {	
-		ins.set_rex_w();	
+		//[['r'], ['m']]	
+		ins.set_rex();	
+		// unimplemented	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x38);	
 		ins.set_opcode(0xf1);	
-		ins.set_rm(_m);	
-		ins.set_reg(_r);	
+		ins.set_rm(_m);		
+	ins.set_reg(_r);	
 		ins	
 	},
 		("llwpcb", (match_data!(Register(_, 64, ..)), None, None, None)) => {	
+		//[['m']]	
 		ins.set_opcode(0xxop.m9.w1.l0.p0);	
 		ins.set_opcode(0x12);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins	
 	},
 		("slwpcb", (match_data!(Register(_, 64, ..)), None, None, None)) => {	
+		//[['m']]	
 		ins.set_opcode(0xxop.m9.w1.l0.p0);	
 		ins.set_opcode(0x12);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(1);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(1);	
 		ins	
 	},
 		("lwpval", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 32, ..)) | match_data!(Memory{size:32, ..}), match_data!(Immediate(_, 32, ..)), None)) => {	
+		//[['v'], ['m'], ['i']]	
 		ins.set_opcode(0xxop.m10.w1.ndd.l0.p0);	
 		ins.set_opcode(0x12);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(1);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(1);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("lwpins", (match_data!(Register(_, 64, ..)), match_data!(Register(_, 32, ..)) | match_data!(Memory{size:32, ..}), match_data!(Immediate(_, 32, ..)), None)) => {	
+		//[['v'], ['m'], ['i']]	
 		ins.set_opcode(0xxop.m10.w1.ndd.l0.p0);	
 		ins.set_opcode(0x12);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins.set_imm(_i);	
 		ins	
 	},
 		("hint_nop0", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x18);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins	
 	},
 		("hint_nop1", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x18);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(1);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(1);	
 		ins	
 	},
 		("hint_nop2", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x18);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(2);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(2);	
 		ins	
 	},
 		("hint_nop3", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x18);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(3);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(3);	
 		ins	
 	},
 		("hint_nop4", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x18);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(4);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(4);	
 		ins	
 	},
 		("hint_nop5", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x18);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(5);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(5);	
 		ins	
 	},
 		("hint_nop6", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x18);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(6);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(6);	
 		ins	
 	},
 		("hint_nop7", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x18);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(7);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(7);	
 		ins	
 	},
 		("hint_nop8", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x19);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins	
 	},
 		("hint_nop9", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x19);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(1);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(1);	
 		ins	
 	},
 		("hint_nop10", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x19);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(2);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(2);	
 		ins	
 	},
 		("hint_nop11", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x19);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(3);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(3);	
 		ins	
 	},
 		("hint_nop12", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x19);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(4);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(4);	
 		ins	
 	},
 		("hint_nop13", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x19);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(5);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(5);	
 		ins	
 	},
 		("hint_nop14", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x19);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(6);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(6);	
 		ins	
 	},
 		("hint_nop15", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x19);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(7);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(7);	
 		ins	
 	},
 		("hint_nop16", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1a);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins	
 	},
 		("hint_nop17", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1a);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(1);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(1);	
 		ins	
 	},
 		("hint_nop18", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1a);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(2);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(2);	
 		ins	
 	},
 		("hint_nop19", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1a);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(3);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(3);	
 		ins	
 	},
 		("hint_nop20", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1a);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(4);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(4);	
 		ins	
 	},
 		("hint_nop21", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1a);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(5);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(5);	
 		ins	
 	},
 		("hint_nop22", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1a);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(6);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(6);	
 		ins	
 	},
 		("hint_nop23", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1a);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(7);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(7);	
 		ins	
 	},
 		("hint_nop24", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1b);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins	
 	},
 		("hint_nop25", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1b);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(1);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(1);	
 		ins	
 	},
 		("hint_nop26", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1b);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(2);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(2);	
 		ins	
 	},
 		("hint_nop27", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1b);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(3);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(3);	
 		ins	
 	},
 		("hint_nop28", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1b);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(4);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(4);	
 		ins	
 	},
 		("hint_nop29", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1b);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(5);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(5);	
 		ins	
 	},
 		("hint_nop30", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1b);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(6);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(6);	
 		ins	
 	},
 		("hint_nop31", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1b);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(7);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(7);	
 		ins	
 	},
 		("hint_nop32", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1c);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins	
 	},
 		("hint_nop33", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1c);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(1);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(1);	
 		ins	
 	},
 		("hint_nop34", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1c);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(2);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(2);	
 		ins	
 	},
 		("hint_nop35", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1c);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(3);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(3);	
 		ins	
 	},
 		("hint_nop36", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1c);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(4);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(4);	
 		ins	
 	},
 		("hint_nop37", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1c);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(5);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(5);	
 		ins	
 	},
 		("hint_nop38", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1c);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(6);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(6);	
 		ins	
 	},
 		("hint_nop39", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1c);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(7);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(7);	
 		ins	
 	},
 		("hint_nop40", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1d);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins	
 	},
 		("hint_nop41", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1d);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(1);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(1);	
 		ins	
 	},
 		("hint_nop42", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1d);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(2);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(2);	
 		ins	
 	},
 		("hint_nop43", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1d);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(3);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(3);	
 		ins	
 	},
 		("hint_nop44", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1d);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(4);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(4);	
 		ins	
 	},
 		("hint_nop45", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1d);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(5);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(5);	
 		ins	
 	},
 		("hint_nop46", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1d);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(6);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(6);	
 		ins	
 	},
 		("hint_nop47", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1d);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(7);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(7);	
 		ins	
 	},
 		("hint_nop48", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1e);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins	
 	},
 		("hint_nop49", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1e);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(1);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(1);	
 		ins	
 	},
 		("hint_nop50", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1e);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(2);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(2);	
 		ins	
 	},
 		("hint_nop51", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1e);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(3);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(3);	
 		ins	
 	},
 		("hint_nop52", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1e);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(4);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(4);	
 		ins	
 	},
 		("hint_nop53", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1e);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(5);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(5);	
 		ins	
 	},
 		("hint_nop54", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1e);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(6);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(6);	
 		ins	
 	},
 		("hint_nop55", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1e);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(7);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(7);	
 		ins	
 	},
 		("hint_nop56", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1f);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(0);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(0);	
 		ins	
 	},
 		("hint_nop57", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1f);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(1);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(1);	
 		ins	
 	},
 		("hint_nop58", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1f);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(2);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(2);	
 		ins	
 	},
 		("hint_nop59", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1f);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(3);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(3);	
 		ins	
 	},
 		("hint_nop60", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1f);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(4);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(4);	
 		ins	
 	},
 		("hint_nop61", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1f);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(5);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(5);	
 		ins	
 	},
 		("hint_nop62", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1f);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(6);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(6);	
 		ins	
 	},
 		("hint_nop63", (match_data!(Register(_, 64, ..)) | match_data!(Memory{size:64, ..}), None, None, None)) => {	
-		ins.set_rex_w();	
+		//[['m']]	
+		ins.set_rex();	
 		ins.set_opcode(0x0f);	
 		ins.set_opcode(0x1f);	
-		ins.set_rm(_m);	
-		ins.set_mod_rm_reg(7);	
+		ins.set_rm(_m);		
+	ins.set_mod_rm_reg(7);	
 		ins	
 	},
 	}
