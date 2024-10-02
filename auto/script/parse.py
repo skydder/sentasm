@@ -1,6 +1,6 @@
 import sys
 import sys
-from lib import Match, Defun, Block
+from lib import Match, Defun, Block, Words, Line, Code
 
 # prefixes = ['o16', 'o32', 'odf', 'o64', 'o64nw', 'a16', 'a32', 'adf', 'a64', '!osp', '!asp', 'f2i', 'f3i', 'mustrep', 'mustrepne', 'rex.l', 'norexb', 'norexx', 'norexr', 'norexw', 'repe', 'nohi', 'nof3', 'norep', 'wait', 'resb', 'np', 'jcc8', 'jmp8', 'jlen', 'hlexr', 'hlenl', 'hle', 'vsibx', 'vm32x', 'vm64x', 'vsiby', 'vm32y', 'vm64y', 'vsibz', 'vm32z', 'vm64z']
 
@@ -137,8 +137,8 @@ class MCEmit:
     
     def assign(self):
         if self.define ==  None:
-            return '// void'
-        return '//' + str(self.read_define(self.define))
+            return Line('// void', 0)
+        return Line('//' + str(self.read_define(self.define)), 0)
 
     def is_prefix(self, candidate):
         return candidate in prefixes
@@ -155,41 +155,41 @@ class MCEmit:
 
     def read_pefix(self, prefix):
         assert prefix in prefixes
-        return prefixes[prefix]
+        return [Line(prefixes[prefix], 0)]
     
     def read_mod_rm(self, mod_rm):
         assert mod_rm.startswith('/')
-        code = 'ins.set_rm(_m);\n'
+        code = [Line('ins.set_rm(_m);', 0)]
         match mod_rm[1:]:
             case 'r':
-                code += 'ins.set_reg(_r);'
+                code.append(Line('ins.set_reg(_r);',0))
             case '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9':
-                code += 'ins.set_mod_rm_reg({});'.format(mod_rm[1:])
+                code.append(Line('ins.set_mod_rm_reg({});'.format(mod_rm[1:]), 0))
             case _:
                 print('unexpected value!!', file=sys.stderr)
         return code
     
     def read_imm(self, imm):
         assert imm.startswith('i')
-        return 'ins.set_imm(_i);'
+        return [Line('ins.set_imm(_i);', 0)]
     
     def read_disp(self, disp):
         assert disp.startswith('rel')
-        return 'ins.set_disp(_i);'
+        return [Line('ins.set_disp(_i);', 0)]
 
     def read_opcode(self, opcode):
         if '+' in opcode:
             opcode = opcode.split('+')
             match opcode[1]:
                 case 'r':
-                    return 'ins.set_opecode_with_register(0x{}, _r);'.format(opcode[0])
+                    return [Line('ins.set_opecode_with_register(0x{}, _r);'.format(opcode[0]), 0)]
                 case 'c':
-                    return 'ins.set_opcode(0x{});'.format(opcode[0])
+                    return [Line('ins.set_opcode(0x{});'.format(opcode[0]), 0)]
                 case _:
                     print('expected r after +\n',self.rule, file=sys.stderr)
                     exit(0)
         else:
-            return 'ins.set_opcode(0x{});'.format(opcode)
+            return [Line('ins.set_opcode(0x{});'.format(opcode), 0)]
 
     def read_byte(self, byte):
         if self.is_prefix(byte):
@@ -205,7 +205,9 @@ class MCEmit:
     
     def parse(self):
         code = [self.assign()]
-        return code + [self.read_byte(byte) for byte in self.rule ]
+        for byte in self.rule:
+            code.extend(self.read_byte(byte))
+        return code
 
 def test():
     MCEmit(['o32', '11', '/r']).parse()
@@ -302,16 +304,16 @@ class Ins:
     
     def generate(self):
         code = MCEmit(self.rule).parse()
-        code.append('ins')
-        return (str(InsMatch(self.ins, self.operand)), Block(code).block())
+        code.append(Line('ins', 0))
+        return (Words(str(InsMatch(self.ins, self.operand))), Block(code))
 
 class Codegen:
     def __init__(self, rules) -> None:
         self.rules = rules
     
-    def generate(self): 
-        proc = Match('(&ins, &operands)', self.ins()).match()
-        return Defun('pub', 'emit_mc', [('ins', '&str'), ('operands', 'Operands')], 'Instruction', [proc]).defun()
+    def codegen(self): 
+        proc = Match(Words('(&ins, &operands)'), self.ins()).match()
+        return Defun(Words('pub'), 'emit_mc', [('ins', Words('&str')), ('operands', Words('Operands'))], Words('Instruction'), proc).defun()
 
     def ins(self):
         matchs = []
@@ -321,7 +323,7 @@ class Codegen:
 
 if __name__ == '__main__':
     with open('t.dat', 't+r') as fp:
-        print(Codegen(eval(fp.read())).generate())
+        print(Code(Codegen(eval(fp.read())).codegen()).generate())
 
         
 

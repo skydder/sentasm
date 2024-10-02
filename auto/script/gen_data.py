@@ -1,4 +1,4 @@
-from .lib import Const, display_list
+from .lib import Const, display_list, Words
 from .gen_gen import gen_codegen_verb
 
 def read_data(path: str) -> list[str]:
@@ -12,8 +12,8 @@ class GenData:
     
     def generate(self) -> str:
         data = '&[{}]'.format(display_list(['\"{}\"'.format(item) for item in self.data]))
-        return Const("pub", self.name, data, "&[&'static str]").const()
-    
+        return Const(Words('pub'), self.name, data, Words('&[&\'static str]')).const()
+
 if __name__ == '__main__':
     verb = read_data('tokens/VERB.dat')
     print(GenData('VERB', verb).generate())

@@ -1,37 +1,37 @@
-from .lib import Match, Defun, FunCall, display_list, read, tokenize
+from .lib import Match, Defun, FunCall, display_list, read, tokenize, Words, Line, Block, Code
 class GenIns:
     def __init__(self, verb_name: str, parameters: list[str], generate_rules: list[str]) -> None:
         self.verb_name = verb_name
         self.parameters = parameters
         self.generate_rules = generate_rules
 
-    def gen_proc(self) -> list[str]:
+    def gen_proc(self):
         seq = []
 
         for parameter in self.parameters:
-            seq.append('let_prep!(_{}, "{}");'.format(parameter, parameter))
+            seq.append(Line('let_prep!(_{}, "{}");'.format(parameter, parameter), 0))
         
-        seq.append("")
-        seq.append(self.gen_match())
+        seq.append(Line('', 0))
+        seq.extend(self.gen_match())
         return seq
 
-    def gen_match_arm(self) -> str:
+    def gen_match_arm(self):
         if len(self.parameters) == 1:
-            return '{}'.format(display_list(['&_{}'.format(item) for item in self.parameters]))
+            return Words('{}'.format(display_list(['&_{}'.format(item) for item in self.parameters])))
         else:
-            return '({})'.format(display_list(['&_{}'.format(item) for item in self.parameters]))
+            return Words('({})'.format(display_list(['&_{}'.format(item) for item in self.parameters])))
     
-    def gen_match(self) -> str:
-        match_patterns: list[(str, str)] = []
+    def gen_match(self):
+        match_patterns= []
         for pattern in self.generate_rules:
             match_patterns.append((CodeGenMatchPat(pattern[:len(pattern) - 1]).pat(), CodeGenMatchExpr(pattern[-1]).match_expr4nasm()))
-        match_patterns.append(('_', CodeGenMatchExpr.match_expr_of_rest()))
+        match_patterns.append((Words('_'), CodeGenMatchExpr.match_expr_of_rest()))
         
         return Match(self.gen_match_arm(), match_patterns).match()
     
     def gen_ins(self) -> 'Defun':
-        params = [('sentence', 'Sentence')]
-        return Defun('','gen_ins_{}'.format(self.verb_name.replace('-', '_').replace('*', '_')), params, 'Result<String>', self.gen_proc()).defun()
+        params = [('sentence', Words('Sentence'))]
+        return Defun(None, 'gen_ins_{}'.format(self.verb_name.replace('-', '_').replace('*', '_')), params, Words('Result<String>'), self.gen_proc()).defun()
 
 # Reg | Imm | Mem | Label | 
 class CodeGenMatchPat:
@@ -102,9 +102,9 @@ class CodeGenMatchPat:
 
     def pat(self) -> str:
         if len(self.match_pattern) == 1:
-            return '{}'.format(display_list(['{}'.format(self.match_pattern_pat(CodeGenMatchPat.read_param(item))) for item in self.match_pattern]))
+            return Words('{}'.format(display_list(['{}'.format(self.match_pattern_pat(CodeGenMatchPat.read_param(item))) for item in self.match_pattern])))
         else:
-            return '({})'.format(display_list(['{}'.format(self.match_pattern_pat(CodeGenMatchPat.read_param(item))) for item in self.match_pattern]))
+            return Words('({})'.format(display_list(['{}'.format(self.match_pattern_pat(CodeGenMatchPat.read_param(item))) for item in self.match_pattern])))
 
 
 class CodeGenMatchExpr:
@@ -115,17 +115,6 @@ class CodeGenMatchExpr:
         params = []
         match_code = 'Ok(gen_nasm!('
 
-
-        # for s in self.gen_rule:
-        #     if s.startswith('#'):
-        #         params.append(s.replace('#', '_')+'.unwrap()')
-        #     else:
-        #         match_code += '"{}"'.format(s)
-        
-        # if len(params) != 0:
-        #     match_code += ', '
-
-        # match_code += '{}))'.format(display_list(params))
         def stringify(x: str) -> str:
             if x.startswith('#'):
                 return x.replace('#', '_')+'.unwrap()'
@@ -133,34 +122,31 @@ class CodeGenMatchExpr:
                 return '"{}"'.format(x)
 
         match_code += '{}))'.format(display_list(list(map(stringify, self.gen_rule))))
-        return match_code
+        return Words(match_code)
     
     @staticmethod
     def match_expr_of_rest() -> str:
-        return '{\n\t\temit_error_msg!(\"unmatched operand\", sentence.verb_loc);\n\t\tErr(())\n\t}'
+        return Block([Line('emit_error_msg!(\"unmatched operand\", sentence.verb_loc);', 0), Line('Err(())', 0)])
 
 def gen_import() -> str:
     return 'use data::{\n\tKeyword, Register, Immediate, Memory, Data, DataSet, Preposition, Result, Verb, Sentence, Label, emit_error_msg\n};\nuse macros::{match_data, let_prep, gen_nasm};\n'
 
 def gen_codegen_verb(verb: list[str]) -> str:
-    params = [('sentence', 'Sentence')]
-    pat = lambda x: 'Verb(\"{}\")'.format(x)
+    params = [('sentence', Words('Sentence'))]
+    pat = lambda x: Words('Verb(\"{}\")'.format(x))
     expr = lambda x: FunCall('gen_ins_{}'.format(x.replace('-', '_').replace('*', '_')), [i for (i, _) in params]).call()
     match_pat = lambda x: (pat(x), expr(x))
     match_patterns = [match_pat(item) for item in verb]
-    match_patterns.append(('_', 'todo!()'))
-    match_sentence = Match('sentence.verb', match_patterns).match()
-    return Defun('pub','codegen_verb', params, 'Result<String>', [match_sentence]).defun()
+    match_patterns.append((Words('_'), Words('todo!()')))
+    match_sentence = Match(Words('sentence.verb'), match_patterns).match()
+    return Defun(Words('pub'),'codegen_verb', params, Words('Result<String>'),  match_sentence).defun()
 
-
-
-if __name__ == '__main__':
-    with open('grammar.dat') as file:
-        print(gen_import())
-        print()
-        # codegen = Defun('codegen_ins', [('_verb', 'Verb'), ('sentence.verb_loc', 'Loc'), ('_object', 'Option<DataSet>'), ('_preposition_phrases', '&mut PrepositionPhrases')])
-        for grammar in read(tokenize(file.read())):
-            print()
-            code = GenIns(grammar[0], grammar[1], grammar[2:])
-            code.gen_ins()
-        
+def generate_codegen(verb, grammars) -> str:
+    code = '{}\n'.format(gen_import())
+    
+    code += Code(gen_codegen_verb(verb)).generate()
+    
+    for grammar in grammars:
+        code += Code(GenIns(grammar[0], grammar[1], grammar[2:]).gen_ins()).generate()
+    
+    return code
