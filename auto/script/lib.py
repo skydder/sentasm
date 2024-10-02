@@ -1,4 +1,43 @@
 import sys
+
+# I'm going to manage rust codes by 'Line'
+class Line:
+    def __init__(self, line, indent):
+        self.line = line
+        self.indent = indent
+    
+    def __str__(self) -> str:
+        return '\t' * self.indent + self.line + '\n'
+    
+    def __repr__(self) -> str:
+        return f'Stmt(line="{self.stmt}", indent={self.indent})'
+    
+    def indent(self):
+        self.indent += 1
+    
+    def into_words(self):
+        return Words(self.line)
+
+class Words:
+    def __init__(self, words) -> None:
+        self.words = words
+    
+    def __str__(self) -> str:
+        return f'{self.words}'
+
+class Block:
+    def __init__(self, lines: list['Line']) -> None:
+        self.block = self.into_block(lines)
+
+    def into_block(self, lines) -> 'Line':
+        code = []
+        code.append(Line('{', 0))
+        for line in lines:
+            line.indent()
+            code.append(line)
+        code.append(Line('}', 0))
+        return code
+    
 class Defun:
     def __init__(self, visibility: str, fn_name: str, params: list[tuple[str, str]], return_type: str, procedure: list[str]) -> None: # type: ignore
         self.visibility = visibility
@@ -11,7 +50,9 @@ class Defun:
         code = ''
         if self.visibility != '':
             code += '{} '.format(self.visibility)
+        
         code += 'fn {}({}) -> {} {{\n'.format(self.fn_name, self.param(), self.return_type)
+        
         for step in self.procedure:
             code += '\t{}\n'.format(step.replace('\n', '\n\t'))
 
@@ -21,19 +62,37 @@ class Defun:
     def param(self) -> str:
         return display_list(['{}: {}'.format(var, _type) for (var, _type) in self.params])
 
+    def __str__(self) -> str:
+        code = ''
+        if self.visibility != '':
+            code += f'{self.visibility} '
+        
+        code += f'fn {self.fn_name}({self.param()}) -> {self.return_type} {{\n'
+
+        
+
+
 class Match:
-    def __init__(self, match_arm: str, match_patterns: list[tuple[str, str]]) -> None:
-        self.match_arm = match_arm
+    def __init__(self, matchee: str, match_patterns: list[tuple['Words', 'Block' | 'Line']]) -> None:
+        self.matchee = matchee
         self.match_patterns = match_patterns
 
-    def match(self) -> str:
-        code = 'match {} {{\n'.format(self.match_arm)
+    def match(self) -> list['Block']:
+        code = []
+        code.append(Line(f'match {self.matchee} {{', 0))
         for (pat, expr) in self.match_patterns:
-            if expr.endswith('\n'):
-                expr = expr[:-1]
-            code += '\t{} => {},\n'.format(pat, expr.replace('\n', '\t\n'))
-
-        code += '}'
+            match type(expr).__name__:
+                case 'Block':
+                    code.append(Line(f'{pat} => {{', 1))
+                    for line in expr.block[1:-1]:
+                        line.indent()
+                        code.append(line)
+                    code.append(Line('},', 1))
+                case 'Words':
+                    code.append(Line(f'{pat} => {expr},', 1))
+                case _:
+                    print('invalid type', file=sys.stderr)
+        code.append(Line('}', 0))
         return code
 
 class FunCall:
