@@ -10,6 +10,9 @@ use self::let_prep::let_prep_impl;
 mod gen_nasm;
 use self::gen_nasm::gen_nasm_impl;
 
+mod make_operands;
+use self::make_operands::make_operands_impl;
+
 #[proc_macro]
 pub fn match_data(args: TokenStream) -> TokenStream {
     match_data_impl(args)
@@ -24,3 +27,9 @@ pub fn let_prep(args: TokenStream) -> TokenStream {
 pub fn gen_nasm(args: TokenStream) -> TokenStream {
     gen_nasm_impl(args)
 }
+
+#[proc_macro]
+pub fn make_operands(args: TokenStream) -> TokenStream {
+    make_operands_impl(args)
+}
+

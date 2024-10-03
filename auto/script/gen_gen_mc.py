@@ -1,6 +1,6 @@
 import sys
 import sys
-from lib import Match, Defun, Block, Words, Line, Code
+from .lib import Match, Defun, Block, Words, Line, Code
 
 # prefixes = ['o16', 'o32', 'odf', 'o64', 'o64nw', 'a16', 'a32', 'adf', 'a64', '!osp', '!asp', 'f2i', 'f3i', 'mustrep', 'mustrepne', 'rex.l', 'norexb', 'norexx', 'norexr', 'norexw', 'repe', 'nohi', 'nof3', 'norep', 'wait', 'resb', 'np', 'jcc8', 'jmp8', 'jlen', 'hlexr', 'hlenl', 'hle', 'vsibx', 'vm32x', 'vm64x', 'vsiby', 'vm32y', 'vm64y', 'vsibz', 'vm32z', 'vm64z']
 
@@ -91,9 +91,10 @@ class MCEmit:
     def __init__(self, rule: list[str]) -> None:
         if rule[0].endswith(':'):
             self.define = rule[0][:-1]
+            self.rule = rule[1::]
         else:
             self.define = None
-        self.rule = rule[1::]
+            self.rule = rule
 
     def read_define(self, defs: str):
         defs = [i for i in defs]
@@ -112,15 +113,17 @@ class MCEmit:
         
         operands = []
         cur = []
+
         while len(defs) != 0:
             item = defs.pop(0)
+
             if item == '-':
                 operands.append(cur)
                 cur = []
             elif is_rmvi(item):
-                cur.append(item)
                 operands.append(cur)
                 cur = []
+                cur.append(item)
             elif is_plus(item):
                 item = defs.pop(0)
                 if is_rmvi(item):
@@ -131,14 +134,22 @@ class MCEmit:
             else:
                 print('unexpected operand type\n-> ', item, file=sys.stderr)
                 exit(0)
-        return operands
+        operands.append(cur)
+        return operands[1:]
                 
 
     
     def assign(self):
         if self.define ==  None:
-            return Line('// void', 0)
-        return Line('//' + str(self.read_define(self.define)), 0)
+            return [Line('// void', 0)]
+        code = []
+        code.append(Line(f'// {self.define}', 0))
+        seq = self.read_define(self.define)
+        code.append(Line(f'// {seq}', 0))
+        for (i, types) in enumerate(seq):
+            for ty in types:
+                code.append(Line(f'let _{ty} = operands.{i}.unwrap();', 0))
+        return code
 
     def is_prefix(self, candidate):
         return candidate in prefixes
@@ -204,7 +215,7 @@ class MCEmit:
             return self.read_opcode(byte)
     
     def parse(self):
-        code = [self.assign()]
+        code = self.assign()
         for byte in self.rule:
             code.extend(self.read_byte(byte))
         return code
@@ -230,7 +241,7 @@ class InsMatch:
         self.operands = operands
 
     def __str__(self) -> str:
-        return '("{}", {})'.format(self.ins, Operands(self.operands))
+        return '("{}", Operands{})'.format(self.ins, Operands(self.operands))
 
 class Operands:
     def __init__(self, operands) -> None:
@@ -241,9 +252,9 @@ class Operands:
             if token.startswith('mem'):
                 return 'match_data!(Memory{{size:{1}, ..}})'.format(*read_postfix(token[3:]))
             elif token.startswith('reg'):
-                return 'match_data!(Register({0}, {1}, ..))'.format(*read_postfix(token[3:]))
+                return 'match_data!(Register(_, {0}, {1}, ..))'.format(*read_postfix(token[3:]))
             elif token.startswith('rm'):
-                return 'match_data!(Register(_, {1}, ..)) | match_data!(Memory{{size:{1}, ..}})'.format(*read_postfix(token[2:]))
+                return 'match_data!(Register(_, _, {1}, ..)) | match_data!(Memory{{size:{1}, ..}})'.format(*read_postfix(token[2:]))
             elif token.startswith('imm'):
                 return 'match_data!(Immediate(_, {1}, ..))'.format(*read_postfix(token[3:]))
             elif token.startswith('sbytedword'):
@@ -304,26 +315,47 @@ class Ins:
     
     def generate(self):
         code = MCEmit(self.rule).parse()
-        code.append(Line('ins', 0))
+        code.append(Line('Ok(ins)', 0))
         return (Words(str(InsMatch(self.ins, self.operand))), Block(code))
 
 class Codegen:
     def __init__(self, rules) -> None:
         self.rules = rules
     
-    def codegen(self): 
-        proc = Match(Words('(&ins, &operands)'), self.ins()).match()
-        return Defun(Words('pub'), 'emit_mc', [('ins', Words('&str')), ('operands', Words('Operands'))], Words('Instruction'), proc).defun()
+    def codegen(self):
+        proc = [Line('let mut ins = Instruction::new();', 0)]
+        proc.extend(Match(Words('(ins_name, &operands)'), self.ins()).match())
+        return Defun(Words('pub'), 'emit_mc<\'a>', [('ins_name', Words('&str')), ('operands', Words('Operands<\'a>'))], Words('Result<Instruction, Operands<\'a>>'), proc).defun()
 
     def ins(self):
         matchs = []
         for ins in self.rules:
             matchs.append(Ins(ins).generate())
+        matchs.append((Words('_'), Words('Err(operands)')))
         return matchs
+
+def gen_import():
+    code = []
+    code.append(Line('use data::{', 0))
+    code.append(Line('Register, Immediate, Memory, Data, DataSet', 1))
+    code.append(Line('};', 0))
+    code.append(Line('use crate::{Operands, Instruction};', 0))
+    code.append(Line('use macros::match_data;', 0))
+    code.append(Line('', 0))
+    return code
+
+def generate_gen_mc(rules):
+    code = gen_import()
+    code.extend(Codegen(rules).codegen())
+    return Code(code).generate()
+
+def read_rule(path):
+    with open(path, 't+r') as fp:
+        return eval(fp.read())
 
 if __name__ == '__main__':
     with open('t.dat', 't+r') as fp:
-        print(Code(Codegen(eval(fp.read())).codegen()).generate())
+        print(generate_gen_mc(eval(fp.read())))
 
         
 

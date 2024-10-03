@@ -1,8 +1,8 @@
+use crate::codegen_mc::emit_mc;
+
 use super::{
     codegen_verb, Sentence, Code, Data, DataSet, Immediate, Memory, Preposition, Register, Result, Verb, Keyword
 };
-
-use data::Loc;
 use macros::match_data;
 
 pub fn codegen(code: Code, asm: &mut String) -> Result<()> {
@@ -236,7 +236,7 @@ impl Rex {
 }
 
 
-struct Instruction {
+pub struct Instruction {
     op_code: Vec<u8>,
     prefixes: Vec<u8>,
     rex: Option<Rex>,
@@ -247,11 +247,11 @@ struct Instruction {
 }
 
 impl Instruction {
-    fn new(rex: Option<Rex>) -> Self {
-        Self { op_code: Vec::new(), prefixes: Vec::new(), rex: rex, mod_rm: None, sib: None, disp: None, imm: None }
+    pub fn new() -> Self {
+        Self { op_code: Vec::new(), prefixes: Vec::new(), rex: None, mod_rm: None, sib: None, disp: None, imm: None }
     }
 
-    fn set_rex(&mut self) {
+    pub fn set_rex(&mut self) {
         self.rex = Some(self.rex.clone().unwrap_or_else(|| Rex::new()));
     }
 
@@ -279,7 +279,7 @@ impl Instruction {
         }
     }
 
-    fn set_rex_w(&mut self) {
+    pub fn set_rex_w(&mut self) {
         let mut rex = self.rex.clone().unwrap_or_else(|| Rex::new());
         rex.rex_w(true);
         self.rex = Some(rex)
@@ -309,7 +309,7 @@ impl Instruction {
         self.mod_rm = Some(mod_rm);
     }
 
-    fn set_mod_rm_reg(&mut self, reg: u8) {
+    pub fn set_mod_rm_reg(&mut self, reg: u8) {
         let mut mod_rm = self.mod_rm.clone().unwrap_or_else(|| ModRM::new());
         mod_rm.set_reg(reg);
         self.mod_rm = Some(mod_rm);
@@ -321,7 +321,7 @@ impl Instruction {
         self.mod_rm = Some(mod_rm);
     }
 
-    fn set_disp(&mut self, disp: Immediate) {
+    fn _set_disp(&mut self, disp: Immediate) {
         self.disp = Some(disp);
     }
 
@@ -329,15 +329,15 @@ impl Instruction {
         self.imm = Some(imm);
     }
 
-    fn set_prefix(&mut self, prefix: u8) {
+    pub fn set_prefix(&mut self, prefix: u8) {
         self.prefixes.push(prefix);
     }
 
-    fn set_opcode(&mut self, opcode: u8) {
+    pub fn set_opcode(&mut self, opcode: u8) {
         self.op_code.push(opcode);
     }
 
-    fn set_opecode_with_register(&mut self, opcode: u8, reg: Register) {
+    fn _set_opecode_with_register(&mut self, opcode: u8, reg: Register) {
         self.set_opcode(opcode + reg.2);
     }
 
@@ -358,11 +358,11 @@ impl Instruction {
             0 => self.set_mod_rm_mod(0b00),
             8 => {
                 self.set_mod_rm_mod(0b01);
-                self.set_disp(mem.displacement.unwrap().get_immediate().unwrap());
+                self._set_disp(mem.displacement.unwrap().get_immediate().unwrap());
             },
             16 | 32 => {
                 self.set_mod_rm_mod(0b11);
-                self.set_disp(mem.displacement.unwrap().get_immediate().unwrap());
+                self._set_disp(mem.displacement.unwrap().get_immediate().unwrap());
             },
             _ => todo!()
         }
@@ -396,7 +396,7 @@ impl Instruction {
                 if mem.disp_size == 0 {
                     self.set_rex_b(b);
                     self.set_mod_rm_mod(0b01);
-                    self.set_disp(Immediate(0, 8, false));
+                    self._set_disp(Immediate(0, 8, false));
                 } else {
                     self.set_rex_b(b);
                     self.set_mod_rm_rm(5);
@@ -411,7 +411,7 @@ impl Instruction {
         }
     }
 
-    fn set_reg(&mut self, reg: DataSet) {
+    pub fn set_reg(&mut self, reg: DataSet) {
         match reg.data {
             Data::Register(r) => {
                 self._set_reg(r);
@@ -420,7 +420,7 @@ impl Instruction {
         }
     }
 
-    fn set_rm(&mut self, rm: DataSet) {
+    pub fn set_rm(&mut self, rm: DataSet) {
         match rm.data {
             Data::Register(r) => {
                 self._set_rm_reg(r);
@@ -432,10 +432,26 @@ impl Instruction {
         }
     }
 
-    fn set_imm(&mut self, imm: DataSet) {
+    pub fn set_imm(&mut self, imm: DataSet) {
         match imm.data {
             Data::Immediate(i) => {
                 self._set_imm(i);
+            }
+            _ => todo!("going to be error")
+        }
+    }
+    pub fn set_disp(&mut self, imm: DataSet) {
+        match imm.data {
+            Data::Immediate(i) => {
+                self._set_disp(i);
+            }
+            _ => todo!("going to be error")
+        }
+    }
+    pub fn set_opecode_with_register(&mut self, opcode: u8, reg: DataSet) {
+        match reg.data {
+            Data::Register(r) => {
+                self._set_opecode_with_register(opcode, r);
             }
             _ => todo!("going to be error")
         }
@@ -497,14 +513,14 @@ pub fn operands<'a>(mut ins: Instruction, rex: Option<Rex>, reg: Option<DataSet<
 fn add(dist: Option<DataSet>, src: Option<DataSet>) -> Vec<u8>{
     match (&dist, &src) {
         (match_data!(Register(_, 8, _, _)), match_data!(Register(_, 8, _, _))) =>{
-            let mut ins = Instruction::new(None);
+            let mut ins = Instruction::new();
             ins.set_opcode(0x00);
             ins.set_reg(src.unwrap());
             ins.set_rm(dist.unwrap());
             ins.emit_machine_code()
         },
         (match_data!(Register(_, 8, _, _)), match_data!(Immediate(_, _, _))) => {
-            let mut ins = Instruction::new(None);
+            let mut ins = Instruction::new();
             ins.set_opcode(0x80);
             ins.set_mod_rm_reg(0);
             ins.set_rm(dist.unwrap());
@@ -517,6 +533,7 @@ fn add(dist: Option<DataSet>, src: Option<DataSet>) -> Vec<u8>{
 
 #[test]
 fn test_add1() {
+    use data::Loc;
     let dist = DataSet {
         data: Data::Register(Register("bl", 8, 3, false)),
         loc: Loc::new("test", 1, 0)
@@ -530,7 +547,8 @@ fn test_add1() {
     }
 }
 #[test]
-fn test_add2() {
+fn test_add2() { 
+    use data::Loc;
     let dist = DataSet {
         data: Data::Register(Register("bl", 8, 3, false)),
         loc: Loc::new("test", 1, 0)
@@ -544,6 +562,48 @@ fn test_add2() {
     }
 }
 
-struct Operands<'a>(pub Option<DataSet<'a>>, pub Option<DataSet<'a>>, pub Option<DataSet<'a>>, pub Option<DataSet<'a>>);
+pub struct Operands<'a>(pub Option<DataSet<'a>>, pub Option<DataSet<'a>>, pub Option<DataSet<'a>>, pub Option<DataSet<'a>>);
 
+impl<'a> Operands<'a> {
+    fn align(self) -> String {
+        display_list(self.to_vec())
+    }
 
+    fn to_vec(self) -> Vec<DataSet<'a>>{
+        let mut op = Vec::new();
+        if self.0.is_some() {
+            op.push(self.0.unwrap());
+        }
+        if self.1.is_some() {
+            op.push(self.1.unwrap());
+        }
+        if self.2.is_some() {
+            op.push(self.2.unwrap());
+        }
+        if self.3.is_some() {
+            op.push(self.3.unwrap());
+        }
+        op
+    }
+}
+fn display_list<T>(mut seq: Vec<T>) -> String 
+    where T:std::fmt::Display 
+{
+    match seq.len() {
+        0 => format!(""),
+        1 => format!("{}", seq[0]),
+        _ => format!("{}, {}", seq.remove(0), display_list(seq)),
+    }    
+
+}
+
+fn db(bytes: Vec<u8>) -> String {
+    format!("\tdb {}", display_list(bytes))
+}
+
+pub fn nasm(ins: &str, operands: Operands) -> String {
+    match emit_mc(ins, operands) {
+        Ok(ins_seq) => db(ins_seq.emit_machine_code()),
+        Err(op) => format!("{} {}", ins, op.align())
+    }
+}

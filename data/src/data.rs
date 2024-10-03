@@ -1,5 +1,3 @@
-use std::ops::{Shl, Shr};
-
 use crate::emit_error_msg;
 
 use super::{Loc, Result};
