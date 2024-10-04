@@ -3,7 +3,6 @@ use crate::codegen_mc::emit_mc;
 use super::{
     codegen_verb, Sentence, Code, Data, DataSet, Immediate, Memory, Preposition, Register, Result, Verb, Keyword
 };
-use macros::match_data;
 
 pub fn codegen(code: Code, asm: &mut String) -> Result<()> {
     let line = match code {
@@ -199,13 +198,6 @@ impl Rex {
         Self { w: false, r: false, x: false, b: false }
     }
 
-    fn rex(w: bool, r: bool, x: bool, b: bool) -> Self {
-        Self { w, r, x, b }
-    }
-    fn w()  -> Self {
-        Self { w: true, r: false, x: false, b: false }
-    }
-
     fn rex_w(&mut self, w: bool) {
         self.w = w;
     }
@@ -226,7 +218,7 @@ impl Rex {
     }
 
     pub fn generate(self, flag: bool) -> u8{
-        let mut rex = 0b1000 * (self.w as u8) | 0b0100 * (self.r as u8) | 0b0010 * (self.x as u8) | 0b0001 * (self.b as u8);
+        let rex = 0b1000 * (self.w as u8) | 0b0100 * (self.r as u8) | 0b0010 * (self.x as u8) | 0b0001 * (self.b as u8);
         if rex != 0 || flag{
             0x40 | rex
         } else {
@@ -325,8 +317,8 @@ impl Instruction {
         self.disp = Some(disp);
     }
 
-    fn _set_imm(&mut self, imm: Immediate) {
-        self.imm = Some(imm);
+    fn _set_imm(&mut self, imm: Immediate, size: usize) {
+        self.imm = Some(Immediate(imm.0, size, imm.2));
     }
 
     pub fn set_prefix(&mut self, prefix: u8) {
@@ -378,7 +370,7 @@ impl Instruction {
             self.set_rex_x(index.3);
             self.set_sib_scale(scale);
             
-            if let Some(Register(_, 64, base, b)) = mem.base {
+            if let Some(Register(_, 64, base, b, _)) = mem.base {
                 self.set_sib_base(base);
                 self.set_rex_b(b);
             } else {
@@ -389,10 +381,10 @@ impl Instruction {
         }
 
         match mem.base {
-            Some(Register(_, 64, 4, b)) => {
+            Some(Register(_, 64, 4, _, _)) => {
                 todo!()
             },
-            Some(Register(_, 64, 5, b)) => {
+            Some(Register(_, 64, 5, b, _)) => {
                 if mem.disp_size == 0 {
                     self.set_rex_b(b);
                     self.set_mod_rm_mod(0b01);
@@ -402,7 +394,7 @@ impl Instruction {
                     self.set_mod_rm_rm(5);
                 }
             },
-            Some(Register(_, 64, rm, b)) => {
+            Some(Register(_, 64, rm, b, _)) => {
                 self.set_rex_b(b);
                 self.set_mod_rm_rm(rm);
             },
@@ -432,12 +424,12 @@ impl Instruction {
         }
     }
 
-    pub fn set_imm(&mut self, imm: DataSet) {
+    pub fn set_imm(&mut self, imm: DataSet, size: usize) {
         match imm.data {
             Data::Immediate(i) => {
-                self._set_imm(i);
+                self._set_imm(i, size);
             }
-            _ => todo!("going to be error")
+            _ => todo!("going to be error {:?}", imm)
         }
     }
     pub fn set_disp(&mut self, imm: DataSet) {
@@ -480,88 +472,6 @@ impl Instruction {
     }
 }
 
-// when you use this function, you have to convert \0..\7 to Register 
-pub fn operands<'a>(mut ins: Instruction, rex: Option<Rex>, reg: Option<DataSet<'a>>, rm: Option<DataSet<'a>>, imm: Option<DataSet<'a>>, op4: Option<DataSet<'a>>) -> Instruction {
-    match (&reg, &rm, &imm, &op4) {
-        (None, None, None, None) => ins,
-        (match_data!(Register(_, 64, _, _)), match_data!(Register(_, 64, _, _)), None, None) => {
-            ins.set_reg(reg.unwrap());
-            ins.set_rm(rm.unwrap());
-            ins
-        },
-        (match_data!(Register(_, 64, _, _)), match_data!(Memory{..}), None, None) => {
-            ins.set_reg(reg.unwrap());
-            ins.set_rm(rm.unwrap());
-            ins
-        },
-        (match_data!(Register(_, 0, _, _)), match_data!(Memory{..}), match_data!(Immediate(..)), None) => {
-            ins.set_rm(rm.unwrap());
-            ins.set_reg(reg.unwrap());
-            ins.set_imm(imm.unwrap());
-            ins
-        },
-        (match_data!(Register(_, 0, _, _)), match_data!(Register(_, 64, _, _)), match_data!(Immediate(..)), None) => {
-            ins.set_rm(rm.unwrap());
-            ins.set_reg(reg.unwrap());
-            ins.set_imm(imm.unwrap());
-            ins
-        }
-        _ => todo!()
-    }
-}
-
-fn add(dist: Option<DataSet>, src: Option<DataSet>) -> Vec<u8>{
-    match (&dist, &src) {
-        (match_data!(Register(_, 8, _, _)), match_data!(Register(_, 8, _, _))) =>{
-            let mut ins = Instruction::new();
-            ins.set_opcode(0x00);
-            ins.set_reg(src.unwrap());
-            ins.set_rm(dist.unwrap());
-            ins.emit_machine_code()
-        },
-        (match_data!(Register(_, 8, _, _)), match_data!(Immediate(_, _, _))) => {
-            let mut ins = Instruction::new();
-            ins.set_opcode(0x80);
-            ins.set_mod_rm_reg(0);
-            ins.set_rm(dist.unwrap());
-            ins.set_imm(src.unwrap());
-            ins.emit_machine_code()
-        }
-        _ => todo!()
-    }
-}
-
-#[test]
-fn test_add1() {
-    use data::Loc;
-    let dist = DataSet {
-        data: Data::Register(Register("bl", 8, 3, false)),
-        loc: Loc::new("test", 1, 0)
-    };
-    let src = DataSet {
-        data: Data::Register(Register("al", 8, 0, false)),
-        loc: Loc::new("test", 1, 0)
-    };
-    for h in add(Some(dist), Some(src)) {
-        eprint!("{:02x} ", h);
-    }
-}
-#[test]
-fn test_add2() { 
-    use data::Loc;
-    let dist = DataSet {
-        data: Data::Register(Register("bl", 8, 3, false)),
-        loc: Loc::new("test", 1, 0)
-    };
-    let src = DataSet {
-        data: Data::Immediate(Immediate(10, 8, false)),
-        loc: Loc::new("test", 1, 0)
-    };
-    for h in add(Some(dist), Some(src)) {
-        eprint!("{:02x} ", h);
-    }
-}
-
 pub struct Operands<'a>(pub Option<DataSet<'a>>, pub Option<DataSet<'a>>, pub Option<DataSet<'a>>, pub Option<DataSet<'a>>);
 
 impl<'a> Operands<'a> {
@@ -586,8 +496,25 @@ impl<'a> Operands<'a> {
         op
     }
 }
+
+impl<'a> std::fmt::Display for Operands<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.0.is_none() {
+            write!(f, "")
+        } else if self.1.is_none() {
+            write!(f, "{:?}", self.0)
+        } else if self.2.is_none() {
+            write!(f, "{:?}, {:?}", self.0, self.1)
+        } else if self.3.is_none() {
+            write!(f, "{:?}, {:?}, {:?}", self.0, self.1, self.2)
+        } else {
+            write!(f, "{:?}, {:?}, {:?}, {:?}", self.0, self.1, self.2, self.3)
+        }
+    }
+}
+
 fn display_list<T>(mut seq: Vec<T>) -> String 
-    where T:std::fmt::Display 
+    where T:std::fmt::Display
 {
     match seq.len() {
         0 => format!(""),
@@ -597,13 +524,25 @@ fn display_list<T>(mut seq: Vec<T>) -> String
 
 }
 
+fn display_hex<T>(mut seq: Vec<T>) -> String 
+    where T:std::fmt::Display + std::fmt::LowerHex
+{
+    match seq.len() {
+        0 => format!(""),
+        1 => format!("0x{:02x}", seq[0]),
+        _ => format!("0x{:02x}, {}", seq.remove(0), display_hex(seq)),
+    }    
+
+}
+
 fn db(bytes: Vec<u8>) -> String {
-    format!("\tdb {}", display_list(bytes))
+    format!("\tdb {}", display_hex(bytes))
 }
 
 pub fn nasm(ins: &str, operands: Operands) -> String {
+    let mut code = format!("; {} {}", ins, operands);
     match emit_mc(ins, operands) {
         Ok(ins_seq) => db(ins_seq.emit_machine_code()),
-        Err(op) => format!("{} {}", ins, op.align())
+        Err(op) => format!("{} {}", ins, op)
     }
 }

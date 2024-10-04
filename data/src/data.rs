@@ -3,10 +3,25 @@ use crate::emit_error_msg;
 use super::{Loc, Result};
 use super::{REG8, REG16, REG32, REG64, KEYWORD, VERB, PSEUDO, PREPOSITION};
 
+#[derive(Clone, Copy, Debug)]
+pub enum RegType {
+    GP8,
+    GP16,
+    GP32,
+    GP64,
+    X87_80,
+    MMX,
+    XMM,
+    YMM,
+    SReg,
+    CReg,
+    DReg,
+}
+
 // second parameter represents its size, and the third represents its value, which later use in mod-rm part.
 // the forth represents wheather reg is r8~r15.
 #[derive(Clone, Copy, Debug)]
-pub struct Register<'a>(pub &'a str, pub usize, pub u8, pub bool);
+pub struct Register<'a>(pub &'a str, pub usize, pub u8, pub bool, pub RegType);
 
 // todo: add other register
 impl<'a> Register<'a> {
@@ -14,25 +29,25 @@ impl<'a> Register<'a> {
         for (i, reg) in REG8.into_iter().enumerate() {
             if token == *reg {
                 let val = i as u8;
-                return Some(Self(token, 8, val & 7, i >= 7));
+                return Some(Self(token, 8, val & 7, i > 7, RegType::GP8));
             }
         }
         for (i, reg) in REG16.into_iter().enumerate() {
             if token == *reg {
                 let val = i as u8;
-                return Some(Self(token, 16, val & 7, i >= 7));
+                return Some(Self(token, 16, val & 7, i > 7, RegType::GP16));
             }
         }
         for (i, reg) in REG32.into_iter().enumerate() {
             if token == *reg {
                 let val = i as u8;
-                return Some(Self(token, 32, val & 7, i >= 7));
+                return Some(Self(token, 32, val & 7, i > 7, RegType::GP32));
             }
         }
         for (i, reg) in REG64.into_iter().enumerate() {
             if token == *reg {
                 let val = i as u8;
-                return Some(Self(token, 64, val & 7, i >= 7));
+                return Some(Self(token, 64, val & 7, i > 7, RegType::GP64));
             }
         }
         None
@@ -68,10 +83,12 @@ macro_rules! split_bytes {
         (($bytes >> $nth) as $type, ($bytes - (($bytes >> $nth) << $nth)) as $type)
     };
 }
+
 #[derive(Clone, Copy, Debug)]
 pub struct Immediate(pub u64, pub usize, pub bool);
 
 impl Immediate {
+    #[allow(warnings)]
     fn size_signed(i: i64) -> usize {
         if i > i8::MIN.into() && i < i8::MAX.into() {
             8
@@ -115,7 +132,7 @@ impl Immediate {
                     self.0 as u16
                 };
                 let (high, low) =  split_bytes!(byte, 8, u8);
-                return vec![high, low];
+                return vec![low, high];
             },
             32 => {
                 let byte = if self.2 {
@@ -127,7 +144,7 @@ impl Immediate {
                 let (hh, hl) = split_bytes!(high, 8, u8);
                 let (lh, ll) = split_bytes!(low, 8, u8);
                 
-                return vec![hh, hl, lh, ll];
+                return vec![ll, lh, hl, hh];
             },
             64 => {
                 let byte = if self.2 {
@@ -144,13 +161,20 @@ impl Immediate {
                 let (lhh, lhl) = split_bytes!(lh, 8, u8);
                 let (llh, lll) = split_bytes!(ll, 8, u8);
                 
-                return vec![hhh, hhl, hlh, hll, lhh, lhl, llh, lll];
+                return vec![lll, llh, lhl, lhh, hll, hlh, hhl, hhh];
             }
             _ => {
                 todo!()
             }
         }
         
+    }
+}
+
+#[test]
+fn test() {
+    for i in Immediate(0x3c, 64, false).generate(){
+        println!("{:02x}", i)
     }
 }
 

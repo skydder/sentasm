@@ -143,7 +143,7 @@ def gen_import():
     code.append(Line('Keyword, Register, Immediate, Memory, Data, DataSet, Preposition, Result, Verb, Sentence, Label, emit_error_msg', 1))
     code.append(Line('};', 0))
     code.append(Line('use macros::{match_data, let_prep, make_operands};', 0))
-    code.append(Line('use crate::{Operands, Instruction, nasm};', 0))
+    code.append(Line('use crate::{Operands, nasm};', 0))
     code.append(Line('', 0))
     return code
 
@@ -163,6 +163,7 @@ def generate_codegen(verb, grammars) -> str:
     code.extend(gen_codegen_verb(verb))
     
     for grammar in grammars:
+        code.append(Line('#[allow(warnings)]', 0))
         code.extend(GenIns(grammar[0], grammar[1], grammar[2:]).gen_ins())
 
     return Code(code).generate()

@@ -6,7 +6,7 @@ mod tokenizer;
 
 pub use data_auto::*;
 pub use data::{
-    Register, Data, DataSet, Memory, Immediate, Label, Keyword, Preposition, Verb
+    Register, Data, DataSet, Memory, Immediate, Label, Keyword, Preposition, Verb, RegType
 };
 
 pub use tokenizer::{Loc, Tonkenizer};

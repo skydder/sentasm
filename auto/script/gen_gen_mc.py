@@ -27,8 +27,8 @@ prefixes = {
     'o16': 'ins.set_prefix(0x66);',
     'o32': '// 32 bit operand',
     'odf': '// default operand',
-    'o64': 'ins.set_rex();',
-    'o64nw': 'ins.set_rex_w();',
+    'o64': 'ins.set_rex_w();',
+    'o64nw': 'ins.set_rex();',
     'a16': '// unimplemented',
     'a32': '// unimplemented',
     'adf': '// unimplemented',
@@ -84,7 +84,7 @@ def read_reg(reg: str):
                 reg_size = 16
         case _:
             print('error: invalid syntax', file=sys.stderr)
-    return (reg_value, reg_size)
+    return (reg_value, reg_size, '_')
 
 
 class MCEmit:
@@ -182,7 +182,17 @@ class MCEmit:
     
     def read_imm(self, imm):
         assert imm.startswith('i')
-        return [Line('ins.set_imm(_i);', 0)]
+        def read_size(s):
+            match s:
+                case 'b':
+                    return 8
+                case 'w':
+                    return 16
+                case 'd':
+                    return 32
+                case 'q':
+                    return 64
+        return [Line(f'ins.set_imm(_i, {read_size(imm[1])});', 0)]
     
     def read_disp(self, disp):
         assert disp.startswith('rel')
@@ -252,9 +262,9 @@ class Operands:
             if token.startswith('mem'):
                 return 'match_data!(Memory{{size:{1}, ..}})'.format(*read_postfix(token[3:]))
             elif token.startswith('reg'):
-                return 'match_data!(Register(_, {0}, {1}, ..))'.format(*read_postfix(token[3:]))
+                return 'match_data!(Register(_, {1}, {0}, _, {2}))'.format(*read_postfix(token[3:]))
             elif token.startswith('rm'):
-                return 'match_data!(Register(_, _, {1}, ..)) | match_data!(Memory{{size:{1}, ..}})'.format(*read_postfix(token[2:]))
+                return 'match_data!(Register(_, {1}, _, _, {2})) | match_data!(Memory{{size:{1}, ..}})'.format(*read_postfix(token[2:]))
             elif token.startswith('imm'):
                 return 'match_data!(Immediate(_, {1}, ..))'.format(*read_postfix(token[3:]))
             elif token.startswith('sbytedword'):
@@ -263,24 +273,24 @@ class Operands:
         def read_postfix(token: str):
             # in the future, support other register 
             if token == '':
-                return ('_', '_')
+                return ('_', '_', '_')
             if token.startswith('_'):
                 if token[1:] == 'sreg':
-                    return ('_', '_')
+                    return ('_', '_', 'RegType::SReg')
                 if token[1:] == 'offs':
-                    return ('_', '_')
+                    return ('_', '_', '_')
                 if token[1:] == 'creg':
-                    return ('_', '_')
+                    return ('_', '_', 'RegType::CReg')
                 if token[1:] == 'dreg':
-                    return ('_', '_')
+                    return ('_', '_', 'RegType::DReg')
                 return read_reg(token[1:])
             # in the future, support other postfixes.
             else:
                 try:
-                    return ('_', int(token))
+                    return ('_', int(token), '_')
                 except:
                     print('unexpected syntax, but for now, we axcept', file=sys.stderr)
-                    return ('_', '_')
+                    return ('_', '_', '_')
         
         return match_arm(rule)
     
@@ -337,7 +347,7 @@ class Codegen:
 def gen_import():
     code = []
     code.append(Line('use data::{', 0))
-    code.append(Line('Register, Immediate, Memory, Data, DataSet', 1))
+    code.append(Line('Register, Immediate, Memory, Data, DataSet, RegType', 1))
     code.append(Line('};', 0))
     code.append(Line('use crate::{Operands, Instruction};', 0))
     code.append(Line('use macros::match_data;', 0))
@@ -346,6 +356,7 @@ def gen_import():
 
 def generate_gen_mc(rules):
     code = gen_import()
+    code.append(Line('#[allow(warnings)]', 0))
     code.extend(Codegen(rules).codegen())
     return Code(code).generate()
 

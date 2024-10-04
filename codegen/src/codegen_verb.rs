@@ -2,7 +2,7 @@ use data::{
 	Keyword, Register, Immediate, Memory, Data, DataSet, Preposition, Result, Verb, Sentence, Label, emit_error_msg
 };
 use macros::{match_data, let_prep, make_operands};
-use crate::{Operands, Instruction, nasm};
+use crate::{Operands, nasm};
 
 pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 	match sentence.verb {
@@ -34,6 +34,7 @@ pub fn codegen_verb(sentence: Sentence) -> Result<String> {
 		_ => todo!(),
 	}
 }
+#[allow(warnings)]
 fn gen_ins_add(sentence: Sentence) -> Result<String> {
 	let_prep!(_obj, "obj");
 	let_prep!(_to, "to");
@@ -51,6 +52,7 @@ fn gen_ins_add(sentence: Sentence) -> Result<String> {
 		},
 	}
 }
+#[allow(warnings)]
 fn gen_ins_substract(sentence: Sentence) -> Result<String> {
 	let_prep!(_obj, "obj");
 	let_prep!(_from, "from");
@@ -65,6 +67,7 @@ fn gen_ins_substract(sentence: Sentence) -> Result<String> {
 		},
 	}
 }
+#[allow(warnings)]
 fn gen_ins_multiply(sentence: Sentence) -> Result<String> {
 	let_prep!(_obj, "obj");
 	let_prep!(_by, "by");
@@ -80,6 +83,7 @@ fn gen_ins_multiply(sentence: Sentence) -> Result<String> {
 		},
 	}
 }
+#[allow(warnings)]
 fn gen_ins_divide(sentence: Sentence) -> Result<String> {
 	let_prep!(_obj, "obj");
 	let_prep!(_by, "by");
@@ -94,6 +98,7 @@ fn gen_ins_divide(sentence: Sentence) -> Result<String> {
 		},
 	}
 }
+#[allow(warnings)]
 fn gen_ins_move(sentence: Sentence) -> Result<String> {
 	let_prep!(_obj, "obj");
 	let_prep!(_to, "to");
@@ -124,6 +129,7 @@ fn gen_ins_move(sentence: Sentence) -> Result<String> {
 		},
 	}
 }
+#[allow(warnings)]
 fn gen_ins_jump(sentence: Sentence) -> Result<String> {
 	let_prep!(_obj, "obj");
 	let_prep!(_to, "to");
@@ -143,6 +149,7 @@ fn gen_ins_jump(sentence: Sentence) -> Result<String> {
 		},
 	}
 }
+#[allow(warnings)]
 fn gen_ins_and(sentence: Sentence) -> Result<String> {
 	let_prep!(_obj, "obj");
 	let_prep!(_with, "with");
@@ -156,6 +163,7 @@ fn gen_ins_and(sentence: Sentence) -> Result<String> {
 		},
 	}
 }
+#[allow(warnings)]
 fn gen_ins_or(sentence: Sentence) -> Result<String> {
 	let_prep!(_obj, "obj");
 	let_prep!(_with, "with");
@@ -169,6 +177,7 @@ fn gen_ins_or(sentence: Sentence) -> Result<String> {
 		},
 	}
 }
+#[allow(warnings)]
 fn gen_ins_xor(sentence: Sentence) -> Result<String> {
 	let_prep!(_obj, "obj");
 	let_prep!(_with, "with");
@@ -182,6 +191,7 @@ fn gen_ins_xor(sentence: Sentence) -> Result<String> {
 		},
 	}
 }
+#[allow(warnings)]
 fn gen_ins_not(sentence: Sentence) -> Result<String> {
 	let_prep!(_obj, "obj");
 	
@@ -193,6 +203,7 @@ fn gen_ins_not(sentence: Sentence) -> Result<String> {
 		},
 	}
 }
+#[allow(warnings)]
 fn gen_ins_negate(sentence: Sentence) -> Result<String> {
 	let_prep!(_obj, "obj");
 	
@@ -204,6 +215,7 @@ fn gen_ins_negate(sentence: Sentence) -> Result<String> {
 		},
 	}
 }
+#[allow(warnings)]
 fn gen_ins_shift_right(sentence: Sentence) -> Result<String> {
 	let_prep!(_obj, "obj");
 	let_prep!(_by, "by");
@@ -217,6 +229,7 @@ fn gen_ins_shift_right(sentence: Sentence) -> Result<String> {
 		},
 	}
 }
+#[allow(warnings)]
 fn gen_ins_shift_left(sentence: Sentence) -> Result<String> {
 	let_prep!(_obj, "obj");
 	let_prep!(_by, "by");
@@ -230,6 +243,7 @@ fn gen_ins_shift_left(sentence: Sentence) -> Result<String> {
 		},
 	}
 }
+#[allow(warnings)]
 fn gen_ins_call(sentence: Sentence) -> Result<String> {
 	let_prep!(_obj, "obj");
 	
@@ -241,6 +255,7 @@ fn gen_ins_call(sentence: Sentence) -> Result<String> {
 		},
 	}
 }
+#[allow(warnings)]
 fn gen_ins_compare(sentence: Sentence) -> Result<String> {
 	let_prep!(_obj, "obj");
 	let_prep!(_with, "with");
@@ -255,6 +270,7 @@ fn gen_ins_compare(sentence: Sentence) -> Result<String> {
 		},
 	}
 }
+#[allow(warnings)]
 fn gen_ins_return(sentence: Sentence) -> Result<String> {
 	let_prep!(_obj, "obj");
 	
@@ -266,6 +282,7 @@ fn gen_ins_return(sentence: Sentence) -> Result<String> {
 		},
 	}
 }
+#[allow(warnings)]
 fn gen_ins_leave(sentence: Sentence) -> Result<String> {
 	let_prep!(_obj, "obj");
 	
@@ -277,6 +294,7 @@ fn gen_ins_leave(sentence: Sentence) -> Result<String> {
 		},
 	}
 }
+#[allow(warnings)]
 fn gen_ins_no_operation(sentence: Sentence) -> Result<String> {
 	let_prep!(_obj, "obj");
 	
@@ -288,6 +306,7 @@ fn gen_ins_no_operation(sentence: Sentence) -> Result<String> {
 		},
 	}
 }
+#[allow(warnings)]
 fn gen_ins_systemcall(sentence: Sentence) -> Result<String> {
 	let_prep!(_obj, "obj");
 	
@@ -299,6 +318,7 @@ fn gen_ins_systemcall(sentence: Sentence) -> Result<String> {
 		},
 	}
 }
+#[allow(warnings)]
 fn gen_ins_halt(sentence: Sentence) -> Result<String> {
 	let_prep!(_obj, "obj");
 	
@@ -310,6 +330,7 @@ fn gen_ins_halt(sentence: Sentence) -> Result<String> {
 		},
 	}
 }
+#[allow(warnings)]
 fn gen_ins_load_effective_address(sentence: Sentence) -> Result<String> {
 	let_prep!(_obj, "obj");
 	let_prep!(_to, "to");
@@ -322,6 +343,7 @@ fn gen_ins_load_effective_address(sentence: Sentence) -> Result<String> {
 		},
 	}
 }
+#[allow(warnings)]
 fn gen_ins_pop(sentence: Sentence) -> Result<String> {
 	let_prep!(_obj, "obj");
 	
@@ -336,6 +358,7 @@ fn gen_ins_pop(sentence: Sentence) -> Result<String> {
 		},
 	}
 }
+#[allow(warnings)]
 fn gen_ins_push(sentence: Sentence) -> Result<String> {
 	let_prep!(_obj, "obj");
 	
@@ -350,6 +373,7 @@ fn gen_ins_push(sentence: Sentence) -> Result<String> {
 		},
 	}
 }
+#[allow(warnings)]
 fn gen_ins_set_byte(sentence: Sentence) -> Result<String> {
 	let_prep!(_obj, "obj");
 	let_prep!(_to, "to");
@@ -369,6 +393,7 @@ fn gen_ins_set_byte(sentence: Sentence) -> Result<String> {
 		},
 	}
 }
+#[allow(warnings)]
 fn gen_ins_extend__ax_reg(sentence: Sentence) -> Result<String> {
 	let_prep!(_obj, "obj");
 	let_prep!(_by, "by");
