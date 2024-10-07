@@ -313,8 +313,8 @@ impl Instruction {
         self.mod_rm = Some(mod_rm);
     }
 
-    fn _set_disp(&mut self, disp: Immediate) {
-        self.disp = Some(disp);
+    fn _set_disp(&mut self, imm: Immediate, size: usize) {
+        self.disp = Some(Immediate(imm.0, size, imm.2));
     }
 
     fn _set_imm(&mut self, imm: Immediate, size: usize) {
@@ -330,6 +330,7 @@ impl Instruction {
     }
 
     fn _set_opecode_with_register(&mut self, opcode: u8, reg: Register) {
+        self.set_rex_b(reg.3);
         self.set_opcode(opcode + reg.2);
     }
 
@@ -350,11 +351,11 @@ impl Instruction {
             0 => self.set_mod_rm_mod(0b00),
             8 => {
                 self.set_mod_rm_mod(0b01);
-                self._set_disp(mem.displacement.unwrap().get_immediate().unwrap());
+                self._set_disp(mem.displacement.unwrap().get_immediate().unwrap(), 8);
             },
             16 | 32 => {
-                self.set_mod_rm_mod(0b11);
-                self._set_disp(mem.displacement.unwrap().get_immediate().unwrap());
+                self.set_mod_rm_mod(0b10);
+                self._set_disp(mem.displacement.unwrap().get_immediate().unwrap(), 32);
             },
             _ => todo!()
         }
@@ -388,7 +389,7 @@ impl Instruction {
                 if mem.disp_size == 0 {
                     self.set_rex_b(b);
                     self.set_mod_rm_mod(0b01);
-                    self._set_disp(Immediate(0, 8, false));
+                    self._set_disp(Immediate(0, 8, false), 8);
                 } else {
                     self.set_rex_b(b);
                     self.set_mod_rm_rm(5);
@@ -435,7 +436,7 @@ impl Instruction {
     pub fn set_disp(&mut self, imm: DataSet) {
         match imm.data {
             Data::Immediate(i) => {
-                self._set_disp(i);
+                self._set_disp(i, i.1);
             }
             _ => todo!("going to be error")
         }
@@ -475,25 +476,33 @@ impl Instruction {
 pub struct Operands<'a>(pub Option<DataSet<'a>>, pub Option<DataSet<'a>>, pub Option<DataSet<'a>>, pub Option<DataSet<'a>>);
 
 impl<'a> Operands<'a> {
-    fn align(self) -> String {
-        display_list(self.to_vec())
+    fn get_0(&self) -> Option<&DataSet> {
+        if let Some(i) = &self.0 {
+            Some(i)
+        } else {
+            None
+        }
     }
-
-    fn to_vec(self) -> Vec<DataSet<'a>>{
-        let mut op = Vec::new();
-        if self.0.is_some() {
-            op.push(self.0.unwrap());
+    fn get_1(&self) -> Option<&DataSet> {
+        if let Some(i) = &self.1 {
+            Some(i)
+        } else {
+            None
         }
-        if self.1.is_some() {
-            op.push(self.1.unwrap());
+    }
+    fn get_2(&self) -> Option<&DataSet> {
+        if let Some(i) = &self.2 {
+            Some(i)
+        } else {
+            None
         }
-        if self.2.is_some() {
-            op.push(self.2.unwrap());
+    }
+    fn get_3(&self) -> Option<&DataSet> {
+        if let Some(i) = &self.3 {
+            Some(i)
+        } else {
+            None
         }
-        if self.3.is_some() {
-            op.push(self.3.unwrap());
-        }
-        op
     }
 }
 
@@ -502,26 +511,15 @@ impl<'a> std::fmt::Display for Operands<'a> {
         if self.0.is_none() {
             write!(f, "")
         } else if self.1.is_none() {
-            write!(f, "{:?}", self.0)
+            write!(f, "{}", self.get_0().unwrap())
         } else if self.2.is_none() {
-            write!(f, "{:?}, {:?}", self.0, self.1)
+            write!(f, "{}, {}", self.get_0().unwrap(), self.get_1().unwrap())
         } else if self.3.is_none() {
-            write!(f, "{:?}, {:?}, {:?}", self.0, self.1, self.2)
+            write!(f, "{}, {}, {}", self.get_0().unwrap(), self.get_1().unwrap(), self.get_2().unwrap())
         } else {
-            write!(f, "{:?}, {:?}, {:?}, {:?}", self.0, self.1, self.2, self.3)
+            write!(f, "{}, {}, {}, {}", self.get_0().unwrap(), self.get_1().unwrap(), self.get_2().unwrap(), self.get_3().unwrap())
         }
     }
-}
-
-fn display_list<T>(mut seq: Vec<T>) -> String 
-    where T:std::fmt::Display
-{
-    match seq.len() {
-        0 => format!(""),
-        1 => format!("{}", seq[0]),
-        _ => format!("{}, {}", seq.remove(0), display_list(seq)),
-    }    
-
 }
 
 fn display_hex<T>(mut seq: Vec<T>) -> String 
@@ -540,9 +538,9 @@ fn db(bytes: Vec<u8>) -> String {
 }
 
 pub fn nasm(ins: &str, operands: Operands) -> String {
-    let mut code = format!("; {} {}", ins, operands);
+    let code = format!("; {} {}\n", ins, operands);
     match emit_mc(ins, operands) {
-        Ok(ins_seq) => db(ins_seq.emit_machine_code()),
+        Ok(ins_seq) => code + &db(ins_seq.emit_machine_code()),
         Err(op) => format!("{} {}", ins, op)
     }
 }
