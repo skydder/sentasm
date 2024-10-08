@@ -538,7 +538,7 @@ fn db(bytes: Vec<u8>) -> String {
 }
 
 pub fn nasm(ins: &str, operands: Operands) -> String {
-    let code = format!("; {} {}\n", ins, operands);
+    let code = format!("\n; {} {}\n", ins, operands);
     match emit_mc(ins, operands) {
         Ok(ins_seq) => code + &db(ins_seq.emit_machine_code()),
         Err(op) => format!("{} {}", ins, op)
