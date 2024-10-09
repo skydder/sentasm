@@ -11,9 +11,10 @@ member = [
     "data",
     "codegen"
 ]
-members = [ "codegen","data"]
+members = [ "codegen","data", "tokenizer"]
 
 [dependencies]
 macros = { path = "./macros"}
 data = { path = "./data"}
 codegen = { path = "./codegen" }
+# tokenizer = { path = "./tokenizer"}
