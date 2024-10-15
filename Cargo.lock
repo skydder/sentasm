@@ -72,6 +72,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "parser"
+version = "0.1.0"
+dependencies = [
+ "data",
+ "tokenizer",
+]
+
+[[package]]
 name = "proc-macro2"
 version = "1.0.87"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -96,6 +104,8 @@ dependencies = [
  "codegen",
  "data",
  "macros",
+ "parser",
+ "tokenizer",
 ]
 
 [[package]]
