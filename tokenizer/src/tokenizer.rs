@@ -90,6 +90,13 @@ impl<'a> Token<'a> {
         }
     }
 
+    pub fn get_punctuator(&self) -> Option<&str> {
+        match self {
+            Token::Punctuator(punc,_) => Some(punc),
+            _ => None
+        }
+    }
+
     pub fn is_number(&self) -> bool {
         match self {
             Token::Number(..) => true,
@@ -130,37 +137,6 @@ impl<'a> Tokenizer<'a> {
             stream: stream,
             next_location: RefCell::new(loc),
         }
-    }
-
-    pub fn next(&self) -> Token {
-        // match self.peek() {
-        //     Token::Identifier(ident, loc) => {
-        //         self.slide_location_by(ident.len());
-        //         Token::Identifier(ident, loc)
-        //     }
-        //     Token::Punctuator(punc, loc) => {
-        //         self.slide_location_by(punc.len());
-        //         Token::Punctuator(punc, loc)
-        //     }
-        //     Token::Number(num, loc) => {
-        //         self.slide_location_by(self.find_next_punctuator_or_whitespace_from(&self.get_location()) - loc.nth);
-        //         Token::Number(num, loc)
-        //     }
-        //     Token::EOL => {
-        //         let loc = self.get_location().slide_by(1).next_line();
-        //         self.set_next_location(loc);
-        //         Token::EOL
-        //     },
-        //     Token::EOF => Token::EOF
-        // }
-        let (token, loc, len) = self.peek_at(self.get_location());
-        self.set_next_location(loc);
-        self.slide_location_by(len);
-        if let Token::EOL = token {
-            let loc = self.get_location().next_line();
-            self.set_next_location(loc);
-        }
-        token
     }
 
     fn peek_at(&self, location: Location<'a>) -> (Token, Location<'a>, usize) {
@@ -208,6 +184,17 @@ impl<'a> Tokenizer<'a> {
         }
     }
 
+    pub fn next(&self) -> Token {
+        let (token, loc, len) = self.peek_at(self.get_location());
+        self.set_next_location(loc);
+        self.slide_location_by(len);
+        if let Token::EOL = token {
+            let loc = self.get_location().next_line();
+            self.set_next_location(loc);
+        }
+        token
+    }
+
     fn get_nth_letter_of_stream(&self, nth: usize) -> Option<char> {
         self.stream.stream.chars().nth(nth)
     }
@@ -251,7 +238,7 @@ impl<'a> Tokenizer<'a> {
         self.next_location.borrow().get_nth()
     }
 
-    fn get_location(&self) -> Location<'a> {
+    pub fn get_location(&self) -> Location<'a> {
         Location {
             stream_info: &self.stream.stream_info,
             nth: self.get_nth(),
@@ -306,7 +293,11 @@ fn test() {
         match tokenizer.next() {
             Token::EOF => break,
             token => {
-                eprintln!("{:?}", token)
+                eprintln!("===");
+                eprintln!("0: {:?}", token);
+                eprintln!("1: {:?}", tokenizer.peek());
+                eprintln!("2: {:?}", tokenizer.peek2());
+                eprintln!("===");
             }
         };
     }
