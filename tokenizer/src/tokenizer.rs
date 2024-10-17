@@ -12,8 +12,8 @@ fn is_punctuator(s: &str) -> bool {
 
 #[derive(Debug)]
 pub struct StreamInfo<'a> {
-    file: &'a str,
-    length: usize,
+    pub file: &'a str,
+    pub length: usize,
 }
 
 impl<'a> StreamInfo<'a> {
@@ -22,6 +22,12 @@ impl<'a> StreamInfo<'a> {
     }
     pub fn get_length(&self) -> usize {
         self.length
+    }
+}
+
+impl<'a> Default for StreamInfo<'a> {
+    fn default() -> Self {
+        Self { file: "", length: 0 }
     }
 }
 
@@ -51,6 +57,9 @@ pub struct Location<'a> {
 }
 
 impl<'a> Location<'a> {
+    pub fn new(stream_info: &'a StreamInfo<'a>) -> Self {
+        Self { stream_info: stream_info, nth: 0, line: 1, column: 1 }
+    }
     pub fn get_nth(&self) -> usize {
         self.nth
     }

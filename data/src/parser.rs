@@ -1,5 +1,7 @@
 use std::{cell::RefCell, collections::HashMap};
 
+use tokenizer::Location;
+
 use crate::emit_error_msg;
 
 use super::{Data, DataSet, Label, Loc, Preposition, Result, Tonkenizer, Verb};
@@ -15,6 +17,7 @@ impl<'a> PrepositionPhrases<'a> {
         while let Some(DataSet {
             data: Data::Prepositon(p),
             loc,
+            location: _
         }) = tokenizer.next()
         {
             data.insert(
@@ -55,6 +58,7 @@ impl<'a> Code<'a> {
             Some(DataSet {
                 data: Data::Verb(v),
                 loc,
+                location: _
             }) => {
                 let mut preps: HashMap<Preposition, DataSet<'a>> = HashMap::new();
                 let object = if let Some(data) = tonkenizer.peek() {
@@ -77,10 +81,12 @@ impl<'a> Code<'a> {
             Some(DataSet {
                 data: Data::LabelDef,
                 loc,
+                location: _
             }) => {
                 if let Some(DataSet {
                     data: Data::Label(l),
                     loc: _,
+                    location: _
                 }) = tonkenizer.peek()
                 {
                     tonkenizer.next();
@@ -96,10 +102,12 @@ impl<'a> Code<'a> {
             Some(DataSet {
                 data: Data::Section,
                 loc,
+                location: _
             }) => {
                 if let Some(DataSet {
                     data: Data::Label(l),
                     loc: _,
+                    location: _
                 }) = tonkenizer.peek()
                 {
                     tonkenizer.next();

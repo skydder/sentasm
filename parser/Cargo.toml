@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 data = { path = "../data" }
 tokenizer = { path = "../tokenizer" }
+macros = { path = "../macros" }

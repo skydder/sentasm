@@ -1,7 +1,11 @@
+use tokenizer::{Location, StreamInfo};
+
 use crate::emit_error_msg;
 
 use super::{Loc, Result};
 use super::{REG8, REG16, REG32, REG64, KEYWORD, VERB, PSEUDO, PREPOSITION};
+
+const SI: StreamInfo<'_> = StreamInfo { file: "", length: 0 };
 
 #[derive(Clone, Copy, Debug)]
 pub enum RegType {
@@ -76,6 +80,7 @@ impl<'a> std::fmt::Display for Register<'a> {
 pub struct DataSet<'a> {
     pub data: Data<'a>,
     pub loc: Loc<'a>,
+    pub location: Location<'a>
 }
 
 macro_rules! split_bytes {
@@ -209,7 +214,12 @@ impl<'a> DataSet<'a> {
         Self {
             data: Data::parse(token),
             loc,
+            location: Location::new(&SI)
         }
+    }
+
+    pub fn new_(data: Data<'a>, location: Location<'a>) -> Self {
+        Self { data, loc: Loc { file_name: "", line: 0, column: 0}, location: location }
     }
     pub fn expect_object(self) -> Option<Self> {
         match self.data {
@@ -228,6 +238,7 @@ impl<'a> DataSet<'a> {
                 Some(Self {
                     data: Data::Memory(m),
                     loc: self.loc,
+                    location: Location::new(&SI)
                 })
             }
             Data::_Define(def) => {
@@ -239,6 +250,7 @@ impl<'a> DataSet<'a> {
                 Some(Self {
                     data: Data::Define(d),
                     loc: self.loc,
+                    location: Location::new(&SI)
                 })
             }
             _ => None,
@@ -270,6 +282,7 @@ impl<'a> DataSet<'a> {
                 Some(Self {
                     data: Data::Define(d),
                     loc: self.loc,
+                    location: Location::new(&SI)
                 })
             }
             Data::Define(_) => Some(self),
@@ -514,6 +527,26 @@ impl<'a> Memory<'a> {
         }
     }
 
+    pub fn set_base(&mut self, reg: Register<'a>) {
+        self.base = Some(reg);
+    }
+
+    pub fn set_index(&mut self, reg: Register<'a>) {
+        self.index = Some(reg);
+    }
+
+    pub fn set_scale(&mut self, scale: u8) {
+        self.scale = Some(scale);
+    }
+
+    pub fn set_size(&mut self, size: usize) {
+        self.size = size;
+    }
+
+    pub fn set_disp(&mut self, disp: DataSet<'a>) {
+        self.displacement = Some(Box::new(disp));
+    }
+
     // base = reg
     // index = reg
     // scale = 1|2|4|8
@@ -585,6 +618,7 @@ impl<'a> Memory<'a> {
                 self.displacement = Some(Box::new(DataSet {
                     data: Data::Immediate(Immediate(i.0, Immediate::size(i.0), sgn)),
                     loc: data.loc,
+                    location: Location::new(&SI)
                 }));
                 self.disp_size = Immediate::size(i.0);
             }
@@ -715,6 +749,7 @@ impl<'a> std::fmt::Display for Memory<'a> {
                 DataSet {
                     data: Data::Immediate(i),
                     loc: _,
+                    location: _
                 } => {
                     if count > 0 && !i.2{
                         write!(f, "+")?;
@@ -726,6 +761,7 @@ impl<'a> std::fmt::Display for Memory<'a> {
                 DataSet {
                     data: Data::Label(l),
                     loc: _,
+                    location: _
                 } => {
                     if count > 0 {
                         write!(f, "+")?;

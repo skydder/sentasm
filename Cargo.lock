@@ -48,6 +48,9 @@ dependencies = [
 [[package]]
 name = "data"
 version = "0.1.0"
+dependencies = [
+ "tokenizer",
+]
 
 [[package]]
 name = "fnv"
@@ -76,6 +79,7 @@ name = "parser"
 version = "0.1.0"
 dependencies = [
  "data",
+ "macros",
  "tokenizer",
 ]
 

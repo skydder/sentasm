@@ -4,9 +4,9 @@ use super::DataSet;
 
 #[derive(Clone, Copy, Debug)]
 pub struct Loc<'a> {
-    file_name: &'a str,
-    line: usize,
-    column: usize,
+    pub file_name: &'a str,
+    pub line: usize,
+    pub column: usize,
 }
 
 impl<'a> Loc<'a> {
