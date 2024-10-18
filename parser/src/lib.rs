@@ -4,7 +4,9 @@ mod parse_immediate;
 mod parse_verb;
 mod parse_preposition;
 mod parse_keyword;
-
+mod parse_define;
+mod parse_prep_phrases;
+mod parse_code;
 
 mod parser;
 
@@ -13,4 +15,9 @@ pub(crate) use parse_immediate::{parse_immediate, parse_number};
 pub(crate) use parse_verb::parse_verb;
 pub(crate) use parse_preposition::parse_preposition;
 pub(crate) use parse_keyword::parse_keyword;
-pub use parser::{parser, parse_data_set};
+pub(crate) use parse_memory::parse_memory;
+pub(crate) use parse_define::parse_define;
+pub(crate) use parse_prep_phrases::parse_prep_phrases;
+pub(crate) use parse_code::parse_code;
+pub(crate) use parser::parse_data_set;
+pub use parser::parser;

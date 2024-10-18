@@ -79,7 +79,8 @@ impl<'a> Location<'a> {
 pub enum Token<'a> {
     Identifier(&'a str, Location<'a>),
     Number(i64, Location<'a>),
-    Punctuator(&'a str, Location<'a>),
+    Punctuator(&'a str, Location<'a>), 
+    String(&'a str, Location<'a>),
     EOL,
     EOF,
 }
@@ -119,14 +120,6 @@ impl<'a> Token<'a> {
             _ => false
         }
     }
-
-    fn get_str(&self) -> Option<&str> {
-        match self {
-            Token::Identifier(token, _) => Some(token),
-            Token::Punctuator(token, _) => Some(token),
-            _ => None
-        }
-    }
 }
 
 pub struct Tokenizer<'a> {
@@ -154,13 +147,12 @@ impl<'a> Tokenizer<'a> {
         cur_loc = loc;
         if let Some(token) = tok {
             (token, cur_loc, 1)
-        } else if let Some(token) = self.peek_punctuator_of(cur_loc) {
-            let len = token.get_str().unwrap().len();
+        } else if let Some((token,len)) = self.peek_punctuator_of(cur_loc) {
             (token, cur_loc, len)
-        } else if let Some(token) = self.peek_number_of(cur_loc) {
-            let start = cur_loc.get_nth();
-            let end = self.find_next_punctuator_or_whitespace_from(&cur_loc);
-            (token, cur_loc, end - start)
+        } else if let Some((token, len)) = self.peek_number_of(cur_loc) {
+            (token, cur_loc, len)
+        } else if let Some((token, len)) = self.peek_string_of(cur_loc) {
+            (token, cur_loc, len)
         } else {
             let start = cur_loc.get_nth();
             let end = self.find_next_punctuator_or_whitespace_from(&cur_loc);
@@ -202,6 +194,39 @@ impl<'a> Tokenizer<'a> {
             self.set_next_location(loc);
         }
         token
+    }
+
+    pub fn expect_punctuator(&self, punc: &'a str) {
+        if self.peek().get_punctuator().is_some_and(|p| p == punc) {
+            self.next();
+        } else {
+            // error
+            todo!()
+        }
+    }
+
+    pub fn expect_end_of_line(&self) {
+        if let Token::EOL = self.peek() {
+            self.next();
+        } else {
+            // error
+            todo!()
+        }
+    }
+
+    pub fn is_end_of_line(&self) -> bool {
+        if let Token::EOL = self.peek() {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn is_number(&self) -> bool {
+        match self.peek_number_of(self.get_location()) {
+            Some(..) => true,
+            None => false
+        }
     }
 
     fn get_nth_letter_of_stream(&self, nth: usize) -> Option<char> {
@@ -256,10 +281,10 @@ impl<'a> Tokenizer<'a> {
         }
     }
 
-    fn peek_punctuator_of(&self, location: Location<'a>) -> Option<Token> {
+    fn peek_punctuator_of(&self, location: Location<'a>) -> Option<(Token, usize)> {
         for punctuator in PUNCTUATOR {
             if self.stream.stream[location.get_nth()..].starts_with(punctuator) {
-                return Some(Token::Punctuator(&punctuator, location));
+                return Some((Token::Punctuator(&punctuator, location), punctuator.len()));
             }
         }
         None
@@ -277,7 +302,7 @@ impl<'a> Tokenizer<'a> {
         nth
     }
 
-    fn peek_number_of(&self, location: Location<'a>) -> Option<Token> {
+    fn peek_number_of(&self, location: Location<'a>) -> Option<(Token, usize)> {
         if self
             .get_nth_letter_of_stream(location.get_nth())
             .is_some_and(|c| c.is_ascii_hexdigit())
@@ -286,16 +311,45 @@ impl<'a> Tokenizer<'a> {
                 .slice_stream(location.get_nth(), self.find_next_punctuator_or_whitespace_from(&location))
                 .parse::<i64>()
             {
-                return Some(Token::Number(number, location));
+                let start = location.get_nth();
+                let end = self.find_next_punctuator_or_whitespace_from(&location);
+                return Some((Token::Number(number, location), end - start));
             }
         }
         None
+    }
+
+    fn peek_string_of(&self, location: Location<'a>) -> Option<(Token, usize)> {
+        let start = location.get_nth();
+        if self
+            .get_nth_letter_of_stream(start)
+            .is_some_and(|c| c == '"')
+        {
+            let mut nth = start + 1;
+            while !self
+                .get_nth_letter_of_stream(nth)
+                .is_some_and(|c| c == '"' || c == '\n')
+            {
+                nth += 1;
+            }
+            if self
+                .get_nth_letter_of_stream(nth)
+                .is_some_and(|c| c == '\n')
+            {
+                // error
+                todo!()
+            }
+            Some((Token::String(self.slice_stream(start + 1, nth), location), (nth - start + 1)))
+        } else {
+            None
+        }
+        
     }
 }
 
 #[test]
 fn test() {
-    let stream = Stream::new("substract 1 from @[ax+rax*1]\n(base+idx*scl)", "test");
+    let stream = Stream::new("substract 1 from @[ax+rax*1]\n(base+idx*scl)\n \"move test\"", "test");
     let tokenizer = Tokenizer::new(&stream);
     eprintln!("peek2 : {:?}", tokenizer.peek2());
     loop {

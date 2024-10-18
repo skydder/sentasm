@@ -4,6 +4,9 @@ use proc_macro::TokenStream;
 mod match_data;
 use self::match_data::match_data_impl;
 
+mod match_data2;
+use self::match_data2::match_data2_impl;
+
 mod let_prep;
 use self::let_prep::let_prep_impl;
 
@@ -16,6 +19,11 @@ use self::make_operands::make_operands_impl;
 #[proc_macro]
 pub fn match_data(args: TokenStream) -> TokenStream {
     match_data_impl(args)
+}
+
+#[proc_macro]
+pub fn match_data2(args: TokenStream) -> TokenStream {
+    match_data2_impl(args)
 }
 
 #[proc_macro]

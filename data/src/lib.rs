@@ -6,11 +6,11 @@ mod tokenizer;
 
 pub use data_auto::*;
 pub use data::{
-    Register, Data, DataSet, Memory, Immediate, Label, Keyword, Preposition, Verb, RegType
+    Register, Data, DataSet, Memory, Immediate, Label, Keyword, Preposition, Verb, RegType, Define_,  SI 
 };
 
 pub use tokenizer::{Loc, Tonkenizer};
-pub use parser::{Code, PrepositionPhrases, Sentence};
+pub use parser::{Code, PrepositionPhrases, Sentence, PrepositionPhrases_, PrepositionObject};
 
 pub type Result<T> = std::result::Result<T, ()>;
 

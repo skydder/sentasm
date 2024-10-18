@@ -5,7 +5,7 @@ use crate::emit_error_msg;
 use super::{Loc, Result};
 use super::{REG8, REG16, REG32, REG64, KEYWORD, VERB, PSEUDO, PREPOSITION};
 
-const SI: StreamInfo<'_> = StreamInfo { file: "", length: 0 };
+pub const SI: StreamInfo<'_> = StreamInfo { file: "", length: 0 };
 
 #[derive(Clone, Copy, Debug)]
 pub enum RegType {
@@ -197,7 +197,7 @@ impl std::fmt::Display for Immediate {
 pub enum Data<'a> {
     Verb(Verb<'a>),
     Register(Register<'a>),
-    Prepositon(Preposition<'a>),
+    Preposition(Preposition<'a>),
     Immediate(Immediate),
     _Memory(&'a str),
     Memory(Memory<'a>),
@@ -207,6 +207,7 @@ pub enum Data<'a> {
     Keyword(Keyword<'a>),
     _Define(&'a str),
     Define(Define<'a>),
+    Define_(Define_<'a>)
 }
 
 impl<'a> DataSet<'a> {
@@ -364,7 +365,7 @@ impl<'a> Data<'a> {
         } else if let Some(k) = Keyword::parse(token) {
             Data::Keyword(k)
         } else if let Some(p) = Preposition::parse(token) {
-            Data::Prepositon(p)
+            Data::Preposition(p)
         } else {
             Data::Label(Label(token))
         }
@@ -376,7 +377,7 @@ impl<'a> std::fmt::Display for Data<'a> {
         match self {
             Self::Verb(arg0) => write!(f, "{}", arg0),
             Self::Register(arg0) => write!(f, "{}", arg0),
-            Self::Prepositon(arg0) => write!(f, "{}", arg0),
+            Self::Preposition(arg0) => write!(f, "{}", arg0),
             Self::Immediate(arg0) => write!(f, "{}", arg0.0),
             Self::_Memory(arg0) => write!(f, "{:?}", arg0),
             Self::Memory(arg0) => write!(f, "{}", arg0),
@@ -386,6 +387,7 @@ impl<'a> std::fmt::Display for Data<'a> {
             Self::Keyword(arg0) => write!(f, "{}", arg0),
             Self::_Define(_) => todo!(),
             Self::Define(arg0) => write!(f, "{}", arg0),
+            Self::Define_(_) => todo!()
         }
     }
 }
@@ -776,7 +778,7 @@ impl<'a> std::fmt::Display for Memory<'a> {
 }
 
 // later to implement float
-enum DefItem<'a> {
+pub enum DefItem<'a> {
     Int(i64),
     Str(&'a str),
 }
@@ -790,6 +792,11 @@ impl<'a> std::fmt::Debug for DefItem<'a> {
     }
 }
 
+#[derive(Debug)]
+pub enum Define_<'a> {
+    String(&'a str),
+    Number(Vec<i64>)
+}
 #[derive(Debug)]
 pub struct Define<'a> {
     list: Vec<DefItem<'a>>,

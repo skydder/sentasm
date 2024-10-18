@@ -1,24 +1,37 @@
-use tokenizer::Tokenizer;
-use data::{DataSet, Loc, Data};
+use tokenizer::{Token, Tokenizer};
+use data::{Code, Data, DataSet, Label};
 
-use crate::{parse_register, parse_immediate, parse_verb, parse_keyword, parse_preposition};
+use crate::{parse_code, parse_define, parse_immediate, parse_keyword, parse_memory, parse_preposition, parse_register, parse_verb};
 
-pub fn parser() {
-
+pub fn parser<'a>(tokenizer: &'a Tokenizer<'a>) -> Code<'a> {
+    parse_code(tokenizer)
 }
 
-pub fn parse_data_set<'a>(tokenizer: &Tokenizer<'a>) -> Option<DataSet<'a>> {
+pub(crate) fn parse_data_set<'a>(tokenizer: &'a Tokenizer<'a>) -> DataSet<'a> {
     if let Some((imm, loc)) = parse_immediate(tokenizer) {
-        Some(DataSet::new_(Data::Immediate(imm), loc))
+        DataSet::new_(Data::Immediate(imm), loc)
     } else if let Some((reg, loc)) = parse_register(tokenizer) {
-        Some(DataSet::new_(Data::Register(reg), loc))
+        DataSet::new_(Data::Register(reg), loc)
     } else if let Some((verb, loc)) = parse_verb(tokenizer) {
-        Some(DataSet::new_(Data::Verb(verb), loc))
+        DataSet::new_(Data::Verb(verb), loc)
     } else if let Some((keyword, loc)) = parse_keyword(tokenizer) {
-        Some(DataSet::new_(Data::Keyword(keyword), loc))
+        DataSet::new_(Data::Keyword(keyword), loc)
     } else if let Some((prep, loc)) = parse_preposition(tokenizer) {
-        Some(DataSet::new_(Data::Prepositon(prep), loc))
-    } else {
-        todo!()
+        DataSet::new_(Data::Preposition(prep), loc)
+    } else if let Some((mem, loc)) = parse_memory(tokenizer) {
+        DataSet::new_(Data::Memory(mem), loc)
+    } else if let Some((mem, loc)) = parse_define(tokenizer) {
+        DataSet::new_(Data::Define_(mem), loc)
+    } else { 
+        match tokenizer.peek() {
+            Token::Identifier(ident, location) => {
+                tokenizer.next();
+                DataSet::new_(Data::Label(Label(ident)), location)
+            },
+            _ => {
+                // error
+                todo!()
+            }
+        }
     }
 }

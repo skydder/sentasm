@@ -1,0 +1,80 @@
+use std::collections::HashMap;
+
+use macros::match_data2;
+use tokenizer::Tokenizer;
+use data::{Code, Data, DataSet, Label, Preposition, PrepositionObject, Sentence};
+
+use crate::{parse_data_set, parse_prep_phrases, parse_verb};
+
+
+pub(crate) fn parse_code<'a>(tokenizer: &'a Tokenizer<'a>) -> Code<'a> {
+    if let Some(sentence) = parse_sentence(tokenizer) {
+        tokenizer.expect_end_of_line();
+        Code::Sentence(sentence)
+    } else if let Some(section) = parse_section(tokenizer) { 
+        tokenizer.expect_end_of_line();
+        Code::Section(section)
+    } else if let Some(def) = parse_labeldef(tokenizer) {
+        tokenizer.expect_end_of_line();
+        Code::LabelDef(def)
+    } else if tokenizer.is_end_of_line() {
+        tokenizer.expect_end_of_line();
+        Code::NullStmt
+    } else {
+        // error
+        todo!()
+    }
+}
+
+fn parse_sentence<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Sentence<'a>> {
+    let _verb = parse_verb(tokenizer);
+    if _verb.is_none() {
+        return None;
+    }
+    let (verb, location ) = _verb.unwrap();
+    let mut data: HashMap<Preposition<'a>, PrepositionObject<'a>> = HashMap::new();
+    let loc = tokenizer.get_location();
+    let object = parse_data_set(tokenizer);
+    match object {
+        match_data2!(Preposition, prep, location) => {
+            data.insert(prep, PrepositionObject::new(parse_data_set(tokenizer), location));
+        },
+        _ => {
+            data.insert(Preposition("obj"), PrepositionObject::new(object, loc));
+        }
+    }
+    let prep_phrases = parse_prep_phrases(tokenizer, data); 
+    Some(Sentence::new(verb, location, prep_phrases))
+}
+
+fn parse_section<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Label<'a>> {
+    if !tokenizer.peek().get_punctuator().is_some_and(|punc| punc == "@") {
+        return None;
+    }
+    tokenizer.next();
+    match parse_data_set(tokenizer) {
+        match_data2!(Label, label) => {
+            Some(label)
+        },
+        _ => {
+            // error
+            todo!()
+        }
+    }
+}
+
+fn parse_labeldef<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Label<'a>> {
+    if !tokenizer.peek().get_punctuator().is_some_and(|punc| punc == "#") {
+        return None;
+    }
+    tokenizer.next();
+    match parse_data_set(tokenizer) {
+        match_data2!(Label, label) => {
+            Some(label)
+        },
+        _ => {
+            // error
+            todo!()
+        }
+    }
+}
