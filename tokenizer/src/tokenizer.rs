@@ -369,8 +369,9 @@ impl<'a> Tokenizer<'a> {
 }
 
 #[test]
+
 fn test() {
-    let stream = Stream::new("substract 1 from @[ax+rax*1]\n(base+idx*scl)\n \"move test\"", "test");
+    let stream = Stream::new("substract 1 from @[ax+rax*1]\n(base+idx*scl)\n \"move test\" substract", "test");
     let tokenizer = Tokenizer::new(&stream);
     eprintln!("peek2 : {:?}", tokenizer.peek2());
     loop {
