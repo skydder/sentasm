@@ -1,13 +1,13 @@
 use tokenizer::{Location, Token, Tokenizer};
-use data::Define_;
+use data::{DefItem, Define};
 
 use crate::parse_number;
 
 // Define = [DefNums | DefString]
-// DefNums = (number,)* number
-// DefString = string 
+// DefItems = (number,)* number
+// DefItem = number | string
 
-pub(crate) fn parse_define<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<(Define_<'a>, Location<'a>)> {
+pub(crate) fn parse_define<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<(Define<'a>, Location<'a>)> {
     let token = tokenizer.peek();
     let loc = tokenizer.get_location();
     
@@ -15,73 +15,61 @@ pub(crate) fn parse_define<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<(Define_<
         return None;
     }
     tokenizer.next();
-    let def = if let Some(defstring) = parse_defstring(tokenizer) {
-        defstring
-    } else if let Some(defnums) = parse_defnums(tokenizer) {
-        defnums
+    let def = if let Some(define) = parse_defitems(tokenizer) {
+        eprintln!("{:?}", define);
+        define
     } else {
         // error
         todo!()
     };
     tokenizer.expect_punctuator("]");
+    eprintln!("{:?}", def);
     Some((def, loc))
 }
 
-fn parse_defstring<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Define_<'a>> {
-    match tokenizer.peek() {
-        Token::String(s, ..) => {
-            tokenizer.next();
-            Some(Define_::String(s))
-        },
-        _ => None
-    }
-}
-
-fn parse_defnums<'a>(tokenizer: &Tokenizer<'a>) -> Option<Define_<'a>> {
-    if !tokenizer.is_number() {
-        return None;
-    }
-    let mut seq: Vec<i64> = Vec::new();
-    while tokenizer.peek2().get_punctuator().is_some_and(|punc| punc == ",") || tokenizer.peek().get_punctuator().is_some_and(|punc| punc == "_") {
-        match parse_defnum(tokenizer) {
-            Some(imm) => {
-                tokenizer.expect_punctuator(",");
-                seq.push(imm);
-            },
-            None => {
-                // error
-                todo!()
-            }
+fn parse_defitems<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Define> {
+    let mut seq: Vec<DefItem> = Vec::new();
+    while tokenizer.peek2().get_punctuator().is_some_and(|punc| punc == ",") || tokenizer.peek3().get_punctuator().is_some_and(|punc| punc == ",") {
+        if let Some(item) = parse_defitem(tokenizer) {
+            tokenizer.expect_punctuator(",");
+            seq.push(item);
+        } else {
+            // error
+            todo!();
         }
     }
-    if let Some(last) = parse_defnum(tokenizer) {
-        seq.push(last);
+    if let Some(last_item) = parse_defitem(tokenizer) {
+        seq.push(last_item);
     } else {
         // error
         todo!()
     }
-    Some(Define_::Number(seq))
+    Some(Define::_new(seq))
 }
 
-// This code looks familier!!
-fn parse_defnum<'a>(tokenizer: &Tokenizer<'a>) -> Option<i64> {
-    let token = tokenizer.next();
+// ***This code looks familier!!
+fn parse_defitem<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<DefItem> {
+    let token = tokenizer.peek();
     match token {
         Token::Number(..) => {
             let imm = parse_number(&token).unwrap();
             tokenizer.next();
-            Some(imm as i64)
+            Some(DefItem::Int(imm as i64))
         },
         Token::Punctuator("-", ..) => {
             tokenizer.next();
             if let Some(imm) = parse_number(&tokenizer.peek()) {
                 tokenizer.next();
-                Some(-(imm as i64))
+                Some(DefItem::Int(-(imm as i64)))
             } else {
                 // error
                 todo!()
             }
         },
+        Token::String(s, ..) => {
+            tokenizer.next();
+            Some(DefItem::Str(s))
+        }
         _ => None
     }
 }

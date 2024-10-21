@@ -808,6 +808,9 @@ impl<'a> Define<'a> {
     pub fn new() -> Self {
         Self { list: Vec::new() }
     }
+    pub fn _new(list: Vec<DefItem<'a>>) -> Self {
+        Self { list: list }
+    }
 
     pub fn parse(mut self, token: &'a str) -> Result<Self> {
         let list = Self::tokenize(&token[1..token.len() - 1]);

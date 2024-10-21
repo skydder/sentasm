@@ -75,10 +75,10 @@ fn parse_mem_d<'a>(mem: &mut Memory<'a>, tokenizer: &'a Tokenizer<'a>) {
          return;
     }
     match parse_data_set(tokenizer) {
-        match_data2!(Immediate, Immediate(i, size, sign2), loc) => {
+        Some(match_data2!(Immediate, Immediate(i, size, sign2), loc)) => {
             mem.set_disp(DataSet::new_(Data::Immediate(Immediate(i, size, sign1 || sign2)), loc));
         },
-        match_data2!(Label, label, loc) => {
+        Some(match_data2!(Label, label, loc)) => {
             mem.set_disp(DataSet::new_(Data::Label(label), loc));
         },
         _ => {

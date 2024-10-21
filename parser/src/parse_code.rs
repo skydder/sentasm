@@ -34,10 +34,20 @@ fn parse_sentence<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Sentence<'a>> {
     let (verb, location ) = _verb.unwrap();
     let mut data: HashMap<Preposition<'a>, PrepositionObject<'a>> = HashMap::new();
     let loc = tokenizer.get_location();
-    let object = parse_data_set(tokenizer);
+    let object = if let Some(obj) = parse_data_set(tokenizer) {
+        obj
+    } else {
+        // error
+        todo!()
+    };
     match object {
         match_data2!(Preposition, prep, location) => {
-            data.insert(prep, PrepositionObject::new(parse_data_set(tokenizer), location));
+            if let Some(obj) = parse_data_set(tokenizer) {
+                data.insert(prep, PrepositionObject::new(obj, location));
+            } else {
+                // error
+                todo!()
+            }
         },
         _ => {
             data.insert(Preposition("obj"), PrepositionObject::new(object, loc));
@@ -53,7 +63,7 @@ fn parse_section<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Label<'a>> {
     }
     tokenizer.next();
     match parse_data_set(tokenizer) {
-        match_data2!(Label, label) => {
+        Some(match_data2!(Label, label)) => {
             Some(label)
         },
         _ => {
@@ -69,7 +79,7 @@ fn parse_labeldef<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Label<'a>> {
     }
     tokenizer.next();
     match parse_data_set(tokenizer) {
-        match_data2!(Label, label) => {
+        Some(match_data2!(Label, label)) => {
             Some(label)
         },
         _ => {

@@ -184,6 +184,23 @@ impl<'a> Tokenizer<'a> {
             }           
         }
     }
+    pub fn peek3(&self) -> Token {
+        let (token, loc, len) = self.peek_at(self.get_location());
+        self.set_next_location(loc);
+        match token {
+            Token::EOF => Token::EOF,
+            Token::EOL => {
+                let (_, loc2, len2) = self.peek_at(loc.slide_by(len).next_line());
+                let (token3, _, _) = self.peek_at(loc2.slide_by(len2).next_line());
+                token3
+            },
+            _ => {
+                let (_, loc2, len2) = self.peek_at(loc.slide_by(len).next_line());
+                let (token3, _, _) = self.peek_at(loc2.slide_by(len2).next_line());
+                token3
+            }           
+        }
+    }
 
     pub fn next(&self) -> Token {
         let (token, loc, len) = self.peek_at(self.get_location());
@@ -201,6 +218,7 @@ impl<'a> Tokenizer<'a> {
             self.next();
         } else {
             // error
+            eprintln!("{:?}", self.peek());
             todo!()
         }
     }
@@ -208,7 +226,10 @@ impl<'a> Tokenizer<'a> {
     pub fn expect_end_of_line(&self) {
         if let Token::EOL = self.peek() {
             self.next();
+        } else if let Token::EOF = self.peek() {
+            self.next();
         } else {
+            eprintln!("{:?}", self.peek());
             // error
             todo!()
         }
@@ -360,6 +381,7 @@ fn test() {
                 eprintln!("0: {:?}", token);
                 eprintln!("1: {:?}", tokenizer.peek());
                 eprintln!("2: {:?}", tokenizer.peek2());
+                eprintln!("3: {:?}", tokenizer.peek3());
                 eprintln!("===");
             }
         };

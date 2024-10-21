@@ -6,6 +6,7 @@ use crate::{emit_error_msg, SI};
 
 use super::{Data, DataSet, Label, Loc, Preposition, Result, Tonkenizer, Verb};
 
+#[derive(Debug)]
 pub struct PrepositionObject<'a> {
     object: DataSet<'a>,
     location: Location<'a>
@@ -25,6 +26,7 @@ impl<'a> PrepositionObject<'a> {
     }
 }
 
+#[derive(Debug)]
 pub struct PrepositionPhrases_<'a> {
     data: RefCell<HashMap<Preposition<'a>, PrepositionObject<'a>>>,
 }
@@ -70,6 +72,7 @@ impl<'a> PrepositionPhrases<'a> {
     }
 }
 
+#[derive(Debug)]
 pub struct Sentence <'a> {
     pub verb: Verb<'a>,
     pub verb_loc: Loc<'a>,
@@ -87,6 +90,7 @@ impl<'a> Sentence<'a> {
     }
 }
 
+#[derive(Debug)]
 pub enum Code<'a> {
     Sentence(Sentence<'a>),
     LabelDef(Label<'a>),
