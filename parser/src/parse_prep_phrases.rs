@@ -1,6 +1,6 @@
 use std::{cell::RefCell, collections::HashMap};
 
-use tokenizer::Tokenizer;
+use tokenizer::{emit_error, Tokenizer};
 use data::{PrepositionObject, PrepositionPhrases_, DataSet, Data, Preposition};
 use macros::match_data2;
 
@@ -12,6 +12,7 @@ pub(crate) fn parse_prep_phrases<'a>(tokenizer: &'a Tokenizer<'a>, mut data: Has
             data.insert(prep, PrepositionObject::new(obj, location));
         } else {
             // error
+            emit_error!(location, "expected object after this preposition, but could not find it");
             todo!()
         }
         

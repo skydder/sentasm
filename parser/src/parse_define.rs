@@ -1,4 +1,4 @@
-use tokenizer::{Location, Token, Tokenizer};
+use tokenizer::{emit_error, Location, Token, Tokenizer};
 use data::{DefItem, Define};
 
 use crate::parse_number;
@@ -20,6 +20,7 @@ pub(crate) fn parse_define<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<(Define<'
         define
     } else {
         // error
+        emit_error!(tokenizer.get_location(), "expected items of define, but found other.");
         todo!()
     };
     tokenizer.expect_punctuator("]");
@@ -35,6 +36,7 @@ fn parse_defitems<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Define> {
             seq.push(item);
         } else {
             // error
+            emit_error!(tokenizer.get_location(), "expected item of define, but found other.");
             todo!();
         }
     }
@@ -42,6 +44,7 @@ fn parse_defitems<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Define> {
         seq.push(last_item);
     } else {
         // error
+        eprintln!("should be error?");
         todo!()
     }
     Some(Define::_new(seq))
@@ -63,6 +66,7 @@ fn parse_defitem<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<DefItem> {
                 Some(DefItem::Int(-(imm as i64)))
             } else {
                 // error
+                emit_error!(tokenizer.get_location(), "only number can come here, but other is here.");
                 todo!()
             }
         },

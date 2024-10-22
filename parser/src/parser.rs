@@ -36,7 +36,7 @@ pub(crate) fn parse_data_set<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<DataSet
 #[test]
 fn test_parser() {
     use tokenizer::Stream;
-    let stream = Stream::new("define hello_world as [\"Hello world!\", 10] by 8bit", "test");
+    let stream = Stream::new("move *(rax by 32bit) to rax", "test");
     let tokenizer = Tokenizer::new(&stream);
     eprintln!("{:?}", parse_code(&tokenizer));
 }

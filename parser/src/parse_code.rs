@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use macros::match_data2;
-use tokenizer::Tokenizer;
+use tokenizer::{emit_error, Tokenizer};
 use data::{Code, Data, DataSet, Label, Preposition, PrepositionObject, Sentence};
 
 use crate::{parse_data_set, parse_prep_phrases, parse_verb};
@@ -22,6 +22,7 @@ pub(crate) fn parse_code<'a>(tokenizer: &'a Tokenizer<'a>) -> Code<'a> {
         Code::NullStmt
     } else {
         // error
+        emit_error!(tokenizer.get_location(), "unexpected syntax");
         todo!()
     }
 }
@@ -34,23 +35,20 @@ fn parse_sentence<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Sentence<'a>> {
     let (verb, location ) = _verb.unwrap();
     let mut data: HashMap<Preposition<'a>, PrepositionObject<'a>> = HashMap::new();
     let loc = tokenizer.get_location();
-    let object = if let Some(obj) = parse_data_set(tokenizer) {
-        obj
-    } else {
-        // error
-        todo!()
-    };
+    let object = parse_data_set(tokenizer);
     match object {
-        match_data2!(Preposition, prep, location) => {
+        Some(match_data2!(Preposition, prep, location)) => {
             if let Some(obj) = parse_data_set(tokenizer) {
                 data.insert(prep, PrepositionObject::new(obj, location));
             } else {
                 // error
+                emit_error!(location, "expected object after this preposition, but could not find it");
                 todo!()
             }
         },
+        None => (),
         _ => {
-            data.insert(Preposition("obj"), PrepositionObject::new(object, loc));
+            data.insert(Preposition("obj"), PrepositionObject::new(object.unwrap(), loc));
         }
     }
     let prep_phrases = parse_prep_phrases(tokenizer, data); 
@@ -66,8 +64,14 @@ fn parse_section<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Label<'a>> {
         Some(match_data2!(Label, label)) => {
             Some(label)
         },
-        _ => {
+        other => {
             // error
+            let loc = if let Some(data) = other {
+                data.location
+            } else {
+                tokenizer.get_location()
+            };
+            emit_error!(loc, "only label can come here, but other is here.");
             todo!()
         }
     }
@@ -82,8 +86,14 @@ fn parse_labeldef<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Label<'a>> {
         Some(match_data2!(Label, label)) => {
             Some(label)
         },
-        _ => {
+        other => {
             // error
+            let loc = if let Some(data) = other {
+                data.location
+            } else {
+                tokenizer.get_location()
+            };
+            emit_error!(loc, "only label can come here, but other is here.");
             todo!()
         }
     }

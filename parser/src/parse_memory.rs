@@ -1,5 +1,5 @@
 use macros::match_data2;
-use tokenizer::{Location, Token, Tokenizer};
+use tokenizer::{emit_error, Location, Token, Tokenizer};
 use data::{Data, DataSet, Immediate, Memory, Register};
 
 use crate::{parse_data_set, parse_number, parse_register};
@@ -43,9 +43,10 @@ fn parse_mem_is<'a>(mem: &mut Memory<'a>, tokenizer: &Tokenizer<'a>) {
     let parse_result = parse_register(tokenizer);
     if parse_result.is_none() {
         // error
+        emit_error!(tokenizer.get_location(), "expected register as index, but could not find it.");
         todo!()
     }
-    let (reg, _) = parse_result.unwrap();
+    let (reg, s_loc) = parse_result.unwrap();
     mem.set_index(reg);
     if let Token::Identifier("*", _) = tokenizer.peek() {
         tokenizer.next();
@@ -56,6 +57,7 @@ fn parse_mem_is<'a>(mem: &mut Memory<'a>, tokenizer: &Tokenizer<'a>) {
             Some(8) => 8,
             _ => {
                 // error
+                emit_error!(s_loc, "the value of scale should be 1, 2, 4, or 8.");
                 todo!()
             }
         };
@@ -81,8 +83,14 @@ fn parse_mem_d<'a>(mem: &mut Memory<'a>, tokenizer: &'a Tokenizer<'a>) {
         Some(match_data2!(Label, label, loc)) => {
             mem.set_disp(DataSet::new_(Data::Label(label), loc));
         },
-        _ => {
+        other => {
             // error
+            let loc = if let Some(data) = other {
+                data.location
+            } else {
+                tokenizer.get_location()
+            };
+            emit_error!(loc, "expected immediate or label for displacement, but found other");
             todo!()
         }
     }
@@ -98,6 +106,7 @@ fn parse_mem_size<'a>(mem: &mut Memory<'a>, tokenizer: &Tokenizer<'a>) {
             Some("64bit") => 64,
             _ => {
                 // error
+                emit_error!(tokenizer.get_location(), "only size determiner can come here, but other is here");
                 todo!()
             }
         };

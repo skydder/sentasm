@@ -1,5 +1,7 @@
 use crate::PUNCTUATOR;
+
 use std::cell::RefCell;
+use crate::emit_error;
 
 fn is_punctuator(s: &str) -> bool {
     for punctuator in PUNCTUATOR {
@@ -54,6 +56,12 @@ pub struct Location<'a> {
     nth: usize,
     line: usize,
     column: usize,
+}
+
+impl<'a> std::fmt::Display for Location<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}:{}", self.stream_info.file, self.line, self.column)
+    }
 }
 
 impl<'a> Location<'a> {
@@ -118,6 +126,19 @@ impl<'a> Token<'a> {
         match self {
             Token::Punctuator(..) => true,
             _ => false
+        }
+    }
+}
+
+impl<'a> std::fmt::Display for Token<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Token::EOF => write!(f, "EOF"),
+            Token::EOL => write!(f, "\\n"),
+            Token::Identifier(ident, ..) => write!(f, "{}", ident),
+            Token::Punctuator(punc, ..) => write!(f, "{}", punc),
+            Token::String(s, ..) => write!(f, "\"{}\"", s),
+            Token::Number(num, ..) => write!(f, "{}", num),
         }
     }
 }
@@ -190,14 +211,32 @@ impl<'a> Tokenizer<'a> {
         match token {
             Token::EOF => Token::EOF,
             Token::EOL => {
-                let (_, loc2, len2) = self.peek_at(loc.slide_by(len).next_line());
-                let (token3, _, _) = self.peek_at(loc2.slide_by(len2).next_line());
-                token3
+                let (token2, loc2, len2) = self.peek_at(loc.slide_by(len).next_line());
+                match token2 {
+                    Token::EOF => Token::EOF,
+                    Token::EOL => {
+                        let (token3, _, _) = self.peek_at(loc2.slide_by(len2).next_line());
+                        token3
+                    },
+                    _ => {
+                        let (token3, _, _) = self.peek_at(loc2.slide_by(len2));
+                        token3
+                    }           
+                }
             },
             _ => {
-                let (_, loc2, len2) = self.peek_at(loc.slide_by(len).next_line());
-                let (token3, _, _) = self.peek_at(loc2.slide_by(len2).next_line());
-                token3
+                let (token2, loc2, len2) = self.peek_at(loc.slide_by(len));
+                match token2 {
+                    Token::EOF => Token::EOF,
+                    Token::EOL => {
+                        let (token3, _, _) = self.peek_at(loc2.slide_by(len2).next_line());
+                        token3
+                    },
+                    _ => {
+                        let (token3, _, _) = self.peek_at(loc2.slide_by(len2));
+                        token3
+                    }           
+                }
             }           
         }
     }
@@ -218,7 +257,7 @@ impl<'a> Tokenizer<'a> {
             self.next();
         } else {
             // error
-            eprintln!("{:?}", self.peek());
+            emit_error!(self.get_location(), "expected '{}', but found '{}'.", punc, self.peek());
             todo!()
         }
     }
@@ -229,8 +268,8 @@ impl<'a> Tokenizer<'a> {
         } else if let Token::EOF = self.peek() {
             self.next();
         } else {
-            eprintln!("{:?}", self.peek());
             // error
+            emit_error!(self.get_location(), "expected '\\n', but found '{}'.", self.peek());
             todo!()
         }
     }
@@ -286,7 +325,29 @@ impl<'a> Tokenizer<'a> {
         if self.get_nth_letter_of_stream(loc.get_nth()).is_none() {
             return (Some(Token::EOF), loc);
         }
-        (None, loc)
+        self.skip_comment(loc)
+    }
+
+    fn skip_comment(&self, location: Location<'a>) -> (Option<Token>, Location<'a>) {
+        let mut loc = location;
+        if !self.get_nth_letter_of_stream(loc.get_nth()).is_some_and(|c| c == '(') {
+            return (None, loc);
+        } else {
+            loc = loc.slide_by(1);
+        }
+        while self
+            .get_nth_letter_of_stream(loc.get_nth())
+            .is_some_and(|c| !(c == ')' || c == '\n'))
+        {
+            loc = loc.slide_by(1);
+        }
+        if self.get_nth_letter_of_stream(loc.get_nth()).is_none() {
+            return (Some(Token::EOF), loc);
+        } else if self.get_nth_letter_of_stream(loc.get_nth()).is_some_and(|c| c == '\n') {
+            return (Some(Token::EOL), loc);
+        }
+        loc = loc.slide_by(1);
+        self.consume_whitespaces_of(loc)
     }
 
     fn get_nth(&self) -> usize {
@@ -358,6 +419,7 @@ impl<'a> Tokenizer<'a> {
                 .is_some_and(|c| c == '\n')
             {
                 // error
+                emit_error!(location, "string-literal cannot be over the line.");
                 todo!()
             }
             Some((Token::String(self.slice_stream(start + 1, nth), location), (nth - start + 1)))
