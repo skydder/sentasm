@@ -9,7 +9,7 @@ class GenIns:
         seq = []
 
         for parameter in self.parameters:
-            seq.append(Line('let_prep!(_{}, "{}");'.format(parameter, parameter), 0))
+            seq.append(Line('let (_{}, _) = get_prep_object!(sentence, "{}", sentence.location);'.format(parameter, parameter), 0))
         
         seq.append(Line('', 0))
         seq.extend(self.gen_match())
@@ -93,7 +93,7 @@ class CodeGenMatchPat:
         try:
             if param[0] == ':' and len(param[1]) != 0:
                 param.pop(0)
-                return '\"{}\"'.format(param.pop(0))
+                return '\"{}\"'.format(param.pop(0).replace('-', '_'))
             else:
                 return '_'
         except:
@@ -135,14 +135,15 @@ class CodeGenMatchExpr:
     
     @staticmethod
     def match_expr_of_rest() -> str:
-        return Block([Line('emit_error_msg!(\"unmatched operand\", sentence.verb_loc);', 0), Line('Err(())', 0)])
+        return Block([Line('emit_error!(sentence.location, \"unmatched operand\");', 0), Line('Err(())', 0)])
 
 def gen_import():
     code = []
     code.append(Line('use data::{', 0))
-    code.append(Line('Keyword, Register, Immediate, Memory, Data, DataSet, Preposition, Result, Verb, Sentence, Label, emit_error_msg', 1))
+    code.append(Line('Keyword, Register, Immediate, Memory, Data, DataSet, Preposition, Result, Verb, Sentence, Label', 1))
     code.append(Line('};', 0))
-    code.append(Line('use macros::{match_data, let_prep, make_operands};', 0))
+    code.append(Line('use macros::{match_data, get_prep_object, make_operands};', 0))
+    code.append(Line('use tokenizer::emit_error;', 0))
     code.append(Line('use crate::{Operands, nasm};', 0))
     code.append(Line('', 0))
     return code

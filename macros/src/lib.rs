@@ -10,6 +10,9 @@ use self::match_data2::match_data2_impl;
 mod let_prep;
 use self::let_prep::let_prep_impl;
 
+mod get_prep_object;
+use self::get_prep_object::get_prep_object_impl;
+
 mod gen_nasm;
 use self::gen_nasm::gen_nasm_impl;
 
@@ -41,3 +44,7 @@ pub fn make_operands(args: TokenStream) -> TokenStream {
     make_operands_impl(args)
 }
 
+#[proc_macro]
+pub fn get_prep_object(args: TokenStream) -> TokenStream {
+    get_prep_object_impl(args)
+}

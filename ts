@@ -1,0 +1,1 @@
+move *(rax by 8bit) to rax with sign_extention

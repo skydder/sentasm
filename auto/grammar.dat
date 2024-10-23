@@ -145,7 +145,7 @@
      (None reg_8|mem_8 keyword:<= (setle #to))
 )
 
-(extend-*ax-reg (obj by)
+(extend-acc-reg (obj by)
      (None keyword:16bit (cwd))
      (None keyword:32bit (cdq))
      (None keyword:64bit (cqo))

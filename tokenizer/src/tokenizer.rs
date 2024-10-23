@@ -1,6 +1,6 @@
 use crate::PUNCTUATOR;
 
-use std::cell::RefCell;
+use std::{cell::RefCell, process::exit};
 use crate::emit_error;
 
 fn is_punctuator(s: &str) -> bool {
@@ -258,7 +258,7 @@ impl<'a> Tokenizer<'a> {
         } else {
             // error
             emit_error!(self.get_location(), "expected '{}', but found '{}'.", punc, self.peek());
-            todo!()
+            exit(1);
         }
     }
 
@@ -270,12 +270,19 @@ impl<'a> Tokenizer<'a> {
         } else {
             // error
             emit_error!(self.get_location(), "expected '\\n', but found '{}'.", self.peek());
-            todo!()
+            exit(1);
         }
     }
 
     pub fn is_end_of_line(&self) -> bool {
         if let Token::EOL = self.peek() {
+            true
+        } else {
+            false
+        }
+    } 
+    pub fn is_eof(&self) -> bool {
+        if let Token::EOF = self.peek() {
             true
         } else {
             false
@@ -420,7 +427,7 @@ impl<'a> Tokenizer<'a> {
             {
                 // error
                 emit_error!(location, "string-literal cannot be over the line.");
-                todo!()
+                exit(1);
             }
             Some((Token::String(self.slice_stream(start + 1, nth), location), (nth - start + 1)))
         } else {

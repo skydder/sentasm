@@ -1,3 +1,5 @@
+use macros::get_prep_object;
+use tokenizer::emit_error;
 use crate::codegen_mc::emit_mc;
 
 use super::{
@@ -30,24 +32,34 @@ fn codegen_sentence(
     }
 }
 
+macro_rules! check_if {
+    ($checkee: expr, $checker: expr, $loc: expr, $($msgs: expr), *) => {
+        if let Some(data) = $checkee.map_or_else(|| None, $checker) {
+            data
+        } else {
+            use std::process::exit;
+            // error
+            emit_error!($loc, $($msgs), *);
+            exit(1);
+        }
+    };
+}
+macro_rules! get_prep_object2 {
+    ($sentence:expr, $prep: expr, $loc: expr, $checker: expr, $($msgs: expr), *) => {
+        {
+            let (obj, obj_loc) = get_prep_object!($sentence, $prep, $loc);
+            check_if!(obj, $checker, obj_loc, $($msgs), *)
+        }
+    };
+}
+
 fn gen_ins_def(
     sentence: Sentence
 ) -> Result<String> {
-    let obj = sentence.preposition_phrases
-        .get_object(Preposition("obj"))
-        .map_or_else(|| None, |date| date.expect_label())
-        .ok_or_else(|| eprintln!("expected label, but could not find it"))?;
-
-    let az = sentence.preposition_phrases
-        .get_object(Preposition("as"))
-        .map_or_else(|| None, |date| date.expect_define())
-        .ok_or_else(|| eprintln!("expected 'as' phrase, but could not find it"))?;
-    let by = sentence.preposition_phrases
-        .get_object(Preposition("by"))
-        .map_or_else(|| None, |date| date.expect_keyword())
-        .ok_or_else(|| eprintln!("expected 'by' phrase, but could not find it"))?;
-
-    match (obj.data, az.data, by.data) {
+    let obj = get_prep_object2!(sentence, "obj", sentence.location,  |date| date.expect_label(), "expected label, but could not find it");
+    let _as = get_prep_object2!(sentence, "as", sentence.location,  |date| date.expect_define(), "expected 'as' phrase, but could not find it");
+    let _by = get_prep_object2!(sentence, "by", sentence.location,  |date| date.expect_keyword(), "expected keyword, but could not find it");
+    match (obj.data, _as.data, _by.data) {
         (Data::Label(l), Data::Define(i), Data::Keyword(Keyword("8bit"))) => {
             Ok(format!("{} db {}", l.0, i))
         }
@@ -67,10 +79,7 @@ fn gen_ins_def(
 fn gen_ins_global(
     sentence: Sentence
 ) -> Result<String> {
-    let obj = sentence.preposition_phrases
-        .get_object(Preposition("obj"))
-        .map_or_else(|| None, |date| date.expect_label())
-        .ok_or_else(|| eprintln!("expected label, but could not find it"))?;
+    let obj = get_prep_object2!(sentence, "obj", sentence.location,  |date| date.expect_label(), "expected label, but could not find it");
 
     Ok(format!("global {}", obj))
 }
@@ -78,21 +87,11 @@ fn gen_ins_global(
 fn gen_ins_alloc(
     sentence: Sentence
 ) -> Result<String> {
-    let obj = sentence.preposition_phrases
-        .get_object(Preposition("obj"))
-        .map_or_else(|| None, |date| date.expect_label())
-        .ok_or_else(|| eprintln!("expected label, but could not find it"))?;
+    let obj = get_prep_object2!(sentence, "obj", sentence.location,  |date| date.expect_label(), "expected label, but could not find it");
+    let _for = get_prep_object2!(sentence, "for", sentence.location,  |date| date.expect_immediate(), "expected immediate, but could not find it");
+    let _by = get_prep_object2!(sentence, "by", sentence.location,  |date| date.expect_keyword(), "expected keyword, but could not find it");
 
-    let vor: DataSet = sentence.preposition_phrases
-        .get_object(Preposition("for"))
-        .map_or_else(|| None, |date| date.expect_immediate())
-        .ok_or_else(|| eprintln!("expected 'for' phrase, but could not find it"))?;
-    let by = sentence.preposition_phrases
-        .get_object(Preposition("by"))
-        .map_or_else(|| None, |date| date.expect_keyword())
-        .ok_or_else(|| eprintln!("expected 'by' phrase, but could not find it"))?;
-
-    match (obj.data, vor.data, by.data) {
+    match (obj.data, _for.data, _by.data) {
         (Data::Label(l), Data::Immediate(i), Data::Keyword(Keyword("8bit"))) => {
             Ok(format!("{} resb {}", l.0, i.0))
         }
@@ -112,11 +111,7 @@ fn gen_ins_alloc(
 fn gen_ins_extern(
     sentence: Sentence
 ) -> Result<String> {
-    let obj = sentence.preposition_phrases
-        .get_object(Preposition("obj"))
-        .map_or_else(|| None, |date| date.expect_label())
-        .ok_or_else(|| eprintln!("expected label, but could not find it"))?;
-
+    let obj = get_prep_object2!(sentence, "obj", sentence.location,  |date| date.expect_label(), "expected label, but could not find it");
     Ok(format!("extern {}", obj))
 }
 

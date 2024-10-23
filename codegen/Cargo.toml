@@ -13,3 +13,4 @@ path = "src/lib.rs"
 [dependencies]
 data = { path = "../data"}
 macros = { path = "../macros"}
+tokenizer = { path = "../tokenizer" }

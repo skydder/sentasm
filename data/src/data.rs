@@ -1,11 +1,4 @@
-use tokenizer::{Location, StreamInfo};
-
-use crate::emit_error_msg;
-
-use super::{Loc, Result};
-use super::{REG8, REG16, REG32, REG64, KEYWORD, VERB, PSEUDO, PREPOSITION};
-
-pub const SI: StreamInfo<'_> = StreamInfo { file: "", length: 0 };
+use tokenizer::Location;
 
 #[derive(Clone, Copy, Debug)]
 pub enum RegType {
@@ -29,35 +22,18 @@ pub struct Register<'a>(pub &'a str, pub usize, pub u8, pub bool, pub RegType);
 
 // todo: add other register
 impl<'a> Register<'a> {
-    fn parse(token: &'a str) -> Option<Self> {
-        for (i, reg) in REG8.into_iter().enumerate() {
-            if token == *reg {
-                let val = i as u8;
-                return Some(Self(token, 8, val & 7, i > 7, RegType::GP8));
-            }
-        }
-        for (i, reg) in REG16.into_iter().enumerate() {
-            if token == *reg {
-                let val = i as u8;
-                return Some(Self(token, 16, val & 7, i > 7, RegType::GP16));
-            }
-        }
-        for (i, reg) in REG32.into_iter().enumerate() {
-            if token == *reg {
-                let val = i as u8;
-                return Some(Self(token, 32, val & 7, i > 7, RegType::GP32));
-            }
-        }
-        for (i, reg) in REG64.into_iter().enumerate() {
-            if token == *reg {
-                let val = i as u8;
-                return Some(Self(token, 64, val & 7, i > 7, RegType::GP64));
-            }
-        }
-        None
-    }
     pub fn is_reg(token: &'a str) -> bool {
-        Self::parse(token).is_some()
+        use crate::data_auto::{REG8, REG16, REG32, REG64};
+        macro_rules! contains {
+            ($REG:expr, $token:expr) => {
+                $REG.iter().find_map(|reg| if *reg == $token {
+                    Some(())
+                } else {
+                    None
+                }).is_some()
+            };
+        }
+        contains!(REG8, token) || contains!(REG16, token) || contains!(REG32, token) || contains!(REG64, token)
     }
     pub fn is_64(&self) -> bool {
         self.3
@@ -79,7 +55,6 @@ impl<'a> std::fmt::Display for Register<'a> {
 #[derive(Debug)]
 pub struct DataSet<'a> {
     pub data: Data<'a>,
-    pub loc: Loc<'a>,
     pub location: Location<'a>
 }
 
@@ -107,7 +82,7 @@ impl Immediate {
             todo!()
         }
     }
-    fn size(i: u64) -> usize {
+    pub fn size(i: u64) -> usize {
         if i < u8::MAX.into() {
             8
         } else if i < u16::MAX.into() {
@@ -199,28 +174,18 @@ pub enum Data<'a> {
     Register(Register<'a>),
     Preposition(Preposition<'a>),
     Immediate(Immediate),
-    _Memory(&'a str),
     Memory(Memory<'a>),
     Label(Label<'a>),
     LabelDef,
     Section,
     Keyword(Keyword<'a>),
-    _Define(&'a str),
-    Define(Define<'a>),
-    Define_(Define_<'a>)
+    Define(Define<'a>)
 }
 
 impl<'a> DataSet<'a> {
-    pub fn new(token: &'a str, loc: Loc<'a>) -> Self {
-        Self {
-            data: Data::parse(token),
-            loc,
-            location: Location::new(&SI)
-        }
-    }
 
-    pub fn new_(data: Data<'a>, location: Location<'a>) -> Self {
-        Self { data, loc: Loc { file_name: "", line: 0, column: 0}, location: location }
+    pub fn new(data: Data<'a>, location: Location<'a>) -> Self {
+        Self { data, location }
     }
     pub fn expect_object(self) -> Option<Self> {
         match self.data {
@@ -230,30 +195,6 @@ impl<'a> DataSet<'a> {
             | Data::Register(_)
             | Data::Memory(_)
             | Data::Define(_) => Some(self),
-            Data::_Memory(mem) => {
-                let m = if let Some(memory) = Memory::new().parse(mem).ok() {
-                    memory
-                } else {
-                    return None;
-                };
-                Some(Self {
-                    data: Data::Memory(m),
-                    loc: self.loc,
-                    location: Location::new(&SI)
-                })
-            }
-            Data::_Define(def) => {
-                let d = if let Some(defn) = Define::new().parse(def).ok() {
-                    defn
-                } else {
-                    return None;
-                };
-                Some(Self {
-                    data: Data::Define(d),
-                    loc: self.loc,
-                    location: Location::new(&SI)
-                })
-            }
             _ => None,
         }
     }
@@ -274,18 +215,6 @@ impl<'a> DataSet<'a> {
 
     pub fn expect_define(self) -> Option<Self> {
         match self.data {
-            Data::_Define(def) => {
-                let d = if let Some(defn) = Define::new().parse(def).ok() {
-                    defn
-                } else {
-                    return None;
-                };
-                Some(Self {
-                    data: Data::Define(d),
-                    loc: self.loc,
-                    location: Location::new(&SI)
-                })
-            }
             Data::Define(_) => Some(self),
             _ => None,
         }
@@ -342,35 +271,6 @@ impl<'a> std::fmt::Display for DataSet<'a> {
     }
 }
 
-impl<'a> Data<'a> {
-    pub fn parse(token: &'a str) -> Data {
-        if token.starts_with("*(") {
-            Data::_Memory(token)
-        } else if token.starts_with("[") & token.ends_with("]") {
-            Data::_Define(token)
-        } else if token == "@" {
-            Data::Section
-        } else if token == "#" {
-            Data::LabelDef
-        } else if let Some(v) = Verb::parse(token) {
-            Data::Verb(v)
-        } else if let Some(r) = Register::parse(token) {
-            Data::Register(r)
-        } else if let Ok(i) = token.parse::<i64>() {
-            if i < 0 {
-                Data::Immediate(Immediate(i as u64, Immediate::size(i as u64), true))
-            } else {
-                Data::Immediate(Immediate(i as u64, Immediate::size(i as u64), false))
-            }
-        } else if let Some(k) = Keyword::parse(token) {
-            Data::Keyword(k)
-        } else if let Some(p) = Preposition::parse(token) {
-            Data::Preposition(p)
-        } else {
-            Data::Label(Label(token))
-        }
-    }
-}
 
 impl<'a> std::fmt::Display for Data<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -379,15 +279,12 @@ impl<'a> std::fmt::Display for Data<'a> {
             Self::Register(arg0) => write!(f, "{}", arg0),
             Self::Preposition(arg0) => write!(f, "{}", arg0),
             Self::Immediate(arg0) => write!(f, "{}", arg0.0),
-            Self::_Memory(arg0) => write!(f, "{:?}", arg0),
             Self::Memory(arg0) => write!(f, "{}", arg0),
             Self::Label(arg0) => write!(f, "{}", arg0.0),
             Self::LabelDef => write!(f, "LabelDef"),
             Self::Section => write!(f, "section"),
             Self::Keyword(arg0) => write!(f, "{}", arg0),
-            Self::_Define(_) => todo!(),
             Self::Define(arg0) => write!(f, "{}", arg0),
-            Self::Define_(_) => todo!()
         }
     }
 }
@@ -395,21 +292,6 @@ impl<'a> std::fmt::Display for Data<'a> {
 #[derive(Clone, Copy, Debug)]
 pub struct Verb<'a>(pub &'a str);
 
-impl<'a> Verb<'a> {
-    fn parse(token: &'a str) -> Option<Self> {
-        for verb in VERB {
-            if token == *verb {
-                return Some(Self(token));
-            }
-        }
-        for verb in PSEUDO {
-            if token == *verb {
-                return Some(Self(token));
-            }
-        }
-        None
-    }
-}
 impl<'a> std::fmt::Display for Verb<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -470,31 +352,8 @@ impl<'a> std::fmt::Display for Keyword<'a> {
         }
     }
 }
-
-impl<'a> Keyword<'a> {
-    fn parse(token: &'a str) -> Option<Self> {
-        for key in KEYWORD {
-            if token == *key {
-                return Some(Self(token));
-            }
-        }
-        None
-    }
-}
-
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Copy)]
 pub struct Preposition<'a>(pub &'a str);
-
-impl<'a> Preposition<'a> {
-    fn parse(token: &'a str) -> Option<Self> {
-        for prep in PREPOSITION {
-            if token == *prep {
-                return Some(Self(token));
-            }
-        }
-        return None;
-    }
-}
 
 impl<'a> std::fmt::Display for Preposition<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -549,161 +408,6 @@ impl<'a> Memory<'a> {
         self.displacement = Some(Box::new(disp));
     }
 
-    // base = reg
-    // index = reg
-    // scale = 1|2|4|8
-    // disp = num
-    // mem = '['((base ('+' index ('*' scale)?)? ('+' disp)? ]) | (index '*' scale '+')? disp]))
-    pub fn parse(mut self, token: &'a str) -> Result<Self> {
-        let token_seq = Self::tokenize(token);
-        let mut pos = 1;
-        self.parse_base(&token_seq, &mut pos)?;
-        Ok(self)
-    }
-
-    fn parse_base(&mut self, token_seq: &Vec<&'a str>, pos: &mut usize) -> Result<()> {
-        if Register::is_reg(token_seq[*pos]) {
-            if token_seq[*pos + 1] == ")"
-                || token_seq[*pos + 1] == "+"
-                || token_seq[*pos + 1] == "-"
-                || token_seq[*pos + 1] == "by"
-            {
-                self.base = Register::parse(token_seq[*pos]);
-                *pos += 1;
-            }
-        }
-        self.parse_idx_scl(token_seq, pos)
-    }
-
-    fn parse_idx_scl(&mut self, token_seq: &Vec<&'a str>, pos: &mut usize) -> Result<()> {
-        if token_seq[*pos] == "+" {
-            *pos += 1;
-        }
-        if Register::is_reg(token_seq[*pos]) {
-            if token_seq[*pos + 1] == ")"
-                || token_seq[*pos + 1] == "+"
-                || token_seq[*pos + 1] == "-"
-            {
-                self.index = Register::parse(token_seq[*pos]);
-                *pos += 1;
-            } else if token_seq[*pos + 1] == "*" {
-                self.index = Register::parse(token_seq[*pos]);
-                *pos += 2;
-                // todo: emit error data
-                self.scale = Some(token_seq[*pos].parse::<u8>().or_else(|_| Err(()))?);
-                *pos += 1;
-            }
-        }
-        self.parse_disp(token_seq, pos)
-    }
-
-    fn parse_disp(&mut self, token_seq: &Vec<&'a str>, pos: &mut usize) -> Result<()> {
-        let sgn: bool;
-        if token_seq[*pos] == "+" {
-            *pos += 1;
-            sgn = false;
-        } else if token_seq[*pos] == "-" {
-            *pos += 1;
-            sgn = true;
-        } else if token_seq[*pos] == ")" {
-            return Ok(());
-        } else if token_seq[*pos] == "by" {
-            return self.parse_size(token_seq, pos);
-        } else {
-            sgn = false
-        }
-        // todo: emit error data
-
-        let data = DataSet::new(token_seq[*pos], Loc::new("", 0, 0));
-        match data.data {
-            Data::Immediate(i) => {
-                self.displacement = Some(Box::new(DataSet {
-                    data: Data::Immediate(Immediate(i.0, Immediate::size(i.0), sgn)),
-                    loc: data.loc,
-                    location: Location::new(&SI)
-                }));
-                self.disp_size = Immediate::size(i.0);
-            }
-            Data::Label(_) => {
-                self.displacement = Some(Box::new(data));
-                self.disp_size = 32; // for now
-            },
-            _ => {
-                emit_error_msg!("unexpected grammar", data.loc);
-                return Err(());
-            }
-        }
-
-        *pos += 1;
-        self.parse_size(token_seq, pos)
-    }
-
-    fn parse_size(&mut self, token_seq: &Vec<&str>, pos: &mut usize) -> Result<()> {
-        if token_seq[*pos] == "by" {
-            *pos += 1;
-            match token_seq[*pos] {
-                "8bit" => self.size = 8,
-                "16bit" => self.size = 16,
-                "32bit" => self.size = 32,
-                "64bit" => self.size = 64,
-                _ => return Err(()),
-            };
-            *pos += 1;
-        } else {
-            self.size = 0;
-        }
-        if token_seq[*pos] == ")" {
-            Ok(())
-        } else {
-            Err(())
-        }
-    }
-
-    fn tokenize(token: &'a str) -> Vec<&'a str> {
-        let mut pos = 0;
-        let mut list: Vec<&'a str> = Vec::new();
-        while token.chars().nth(pos).is_some() {
-            Self::skip_whitespase(token, &mut pos);
-            let len = Self::length_of_symbol(token, pos);
-            list.push(&token[pos..pos + len]);
-            pos += len;
-        }
-        
-        list
-    }
-
-    fn length_of_symbol(token: &'a str, pos: usize) -> usize {
-        let mut len = 0;
-
-        if &token[pos..pos + 1] == "+" {
-            return 1;
-        } else if token[pos..].starts_with("*(") {
-            return 2;
-        } else if &token[pos..pos + 1] == "-" {
-            return 1;
-        } else if &token[pos..pos + 1] == "*" {
-            return 1;
-        } else if &token[pos..pos + 1] == ")" {
-            return 1;
-        } 
-
-        while !token.chars().nth(pos + len).unwrap_or('\n').is_whitespace()
-            && token.chars().nth(pos + len).unwrap_or('\n') != '+'
-            && token.chars().nth(pos + len).unwrap_or('\n') != '-'
-            && token.chars().nth(pos + len).unwrap_or('\n') != ')'
-            && token.chars().nth(pos + len).unwrap_or('\n') != '*'
-        {
-            len += 1;
-        }
-        len
-    }
-
-    fn skip_whitespase(token: &'a str, pos: &mut usize) {
-        while token.chars().nth(*pos).unwrap_or('*').is_whitespace() {
-            *pos += 1;
-        }
-    }
-
     pub fn check_size_of_reg(&self, size: usize) -> bool {
         if self.base.is_some() && self.base.unwrap().size() != size {
             return false;
@@ -750,7 +454,6 @@ impl<'a> std::fmt::Display for Memory<'a> {
             match **disp {
                 DataSet {
                     data: Data::Immediate(i),
-                    loc: _,
                     location: _
                 } => {
                     if count > 0 && !i.2{
@@ -762,7 +465,6 @@ impl<'a> std::fmt::Display for Memory<'a> {
                 }
                 DataSet {
                     data: Data::Label(l),
-                    loc: _,
                     location: _
                 } => {
                     if count > 0 {
@@ -793,81 +495,15 @@ impl<'a> std::fmt::Debug for DefItem<'a> {
 }
 
 #[derive(Debug)]
-pub enum Define_<'a> {
-    String(&'a str),
-    Number(Vec<i64>)
-}
-#[derive(Debug)]
 pub struct Define<'a> {
     list: Vec<DefItem<'a>>,
 }
 
 impl<'a> Define<'a> {
-    // Define = [DefItem (, DefItem)*]
-    // DefItem = number | "string"
-    pub fn new() -> Self {
-        Self { list: Vec::new() }
-    }
-    pub fn _new(list: Vec<DefItem<'a>>) -> Self {
+    pub fn new(list: Vec<DefItem<'a>>) -> Self {
         Self { list: list }
     }
 
-    pub fn parse(mut self, token: &'a str) -> Result<Self> {
-        let list = Self::tokenize(&token[1..token.len() - 1]);
-        for i in 0..list.len() {
-            self.list.push(Self::parse_item(list[i])?);
-        }
-        Ok(self)
-    }
-
-    fn tokenize(token: &'a str) -> Vec<&'a str> {
-        let mut pos = 0;
-        let mut list: Vec<&'a str> = Vec::new();
-        while token.chars().nth(pos).is_some() {
-            Self::skip_whitespase(token, &mut pos);
-            let len = Self::length_of_symbol(token, pos);
-            list.push(&token[pos..pos + len]);
-            pos += len;
-        }
-        list
-    }
-    // todo: treat '"' in "string"
-    fn length_of_symbol(token: &'a str, pos: usize) -> usize {
-        let mut len = 0;
-
-        if token[pos..].starts_with("\"") {
-            len += 1;
-            while token.chars().nth(pos + len).unwrap_or('"') != '"' {
-                len += 1;
-            }
-            return len + 1;
-        }
-
-        while !token.chars().nth(pos + len).unwrap_or('\n').is_whitespace()
-            && token.chars().nth(pos + len).unwrap_or(',') != ','
-        {
-            len += 1;
-        }
-        len
-    }
-
-    fn skip_whitespase(token: &'a str, pos: &mut usize) {
-        while token.chars().nth(*pos).unwrap_or('*').is_whitespace()
-            || token.chars().nth(*pos).unwrap_or(',') == ','
-        {
-            *pos += 1;
-        }
-    }
-
-    fn parse_item(token: &'a str) -> Result<DefItem> {
-        if let Ok(i) = token.parse() {
-            Ok(DefItem::Int(i))
-        } else if token.starts_with('"') & token.ends_with('"') {
-            Ok(DefItem::Str(&token[1..token.len() - 1]))
-        } else {
-            Err(())
-        }
-    }
 }
 
 impl<'a> std::fmt::Display for Define<'a> {

@@ -1,7 +1,7 @@
-single-precision-float
-double-precision-float
-sign-extention
-zero-extention
+single_precision_float
+double_precision_float
+sign_extention
+zero_extention
 signed
 ==
 !=

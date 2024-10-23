@@ -1,16 +1,14 @@
 mod data_auto;
 mod data;
 mod parser;
-mod tokenizer;
 
 
 pub use data_auto::*;
 pub use data::{
-    Register, Data, DataSet, Memory, Immediate, Label, Keyword, Preposition, Verb, RegType, Define_,  SI, DefItem, Define 
+    Register, Data, DataSet, Memory, Immediate, Label, Keyword, Preposition, Verb, RegType, DefItem, Define 
 };
 
-pub use tokenizer::{Loc, Tonkenizer};
-pub use parser::{Code, PrepositionPhrases, Sentence, PrepositionPhrases_, PrepositionObject};
+pub use parser::{Code, PrepositionPhrases, Sentence, PrepositionObject};
 
 pub type Result<T> = std::result::Result<T, ()>;
 

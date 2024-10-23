@@ -1,0 +1,189 @@
+Punctuator(
+    "@",
+    Location {
+        stream_info: StreamInfo {
+            file: "test/test2.asm",
+            length: 91,
+        },
+        nth: 0,
+        line: 1,
+        column: 1,
+    },
+)
+Identifier(
+    ".text",
+    Location {
+        stream_info: StreamInfo {
+            file: "test/test2.asm",
+            length: 91,
+        },
+        nth: 1,
+        line: 1,
+        column: 2,
+    },
+)
+EOL
+Identifier(
+    "globalize",
+    Location {
+        stream_info: StreamInfo {
+            file: "test/test2.asm",
+            length: 91,
+        },
+        nth: 7,
+        line: 2,
+        column: 1,
+    },
+)
+Identifier(
+    "_start",
+    Location {
+        stream_info: StreamInfo {
+            file: "test/test2.asm",
+            length: 91,
+        },
+        nth: 17,
+        line: 2,
+        column: 11,
+    },
+)
+EOL
+EOL
+Punctuator(
+    "#",
+    Location {
+        stream_info: StreamInfo {
+            file: "test/test2.asm",
+            length: 91,
+        },
+        nth: 25,
+        line: 4,
+        column: 1,
+    },
+)
+Identifier(
+    "_start",
+    Location {
+        stream_info: StreamInfo {
+            file: "test/test2.asm",
+            length: 91,
+        },
+        nth: 26,
+        line: 4,
+        column: 2,
+    },
+)
+EOL
+EOL
+Identifier(
+    "move",
+    Location {
+        stream_info: StreamInfo {
+            file: "test/test2.asm",
+            length: 91,
+        },
+        nth: 50,
+        line: 6,
+        column: 1,
+    },
+)
+Number(
+    60,
+    Location {
+        stream_info: StreamInfo {
+            file: "test/test2.asm",
+            length: 91,
+        },
+        nth: 55,
+        line: 6,
+        column: 6,
+    },
+)
+Identifier(
+    "to",
+    Location {
+        stream_info: StreamInfo {
+            file: "test/test2.asm",
+            length: 91,
+        },
+        nth: 58,
+        line: 6,
+        column: 9,
+    },
+)
+Identifier(
+    "rax",
+    Location {
+        stream_info: StreamInfo {
+            file: "test/test2.asm",
+            length: 91,
+        },
+        nth: 61,
+        line: 6,
+        column: 12,
+    },
+)
+EOL
+Identifier(
+    "move",
+    Location {
+        stream_info: StreamInfo {
+            file: "test/test2.asm",
+            length: 91,
+        },
+        nth: 65,
+        line: 7,
+        column: 1,
+    },
+)
+Number(
+    42,
+    Location {
+        stream_info: StreamInfo {
+            file: "test/test2.asm",
+            length: 91,
+        },
+        nth: 70,
+        line: 7,
+        column: 6,
+    },
+)
+Identifier(
+    "to",
+    Location {
+        stream_info: StreamInfo {
+            file: "test/test2.asm",
+            length: 91,
+        },
+        nth: 73,
+        line: 7,
+        column: 9,
+    },
+)
+Identifier(
+    "rdi",
+    Location {
+        stream_info: StreamInfo {
+            file: "test/test2.asm",
+            length: 91,
+        },
+        nth: 76,
+        line: 7,
+        column: 12,
+    },
+)
+EOL
+Identifier(
+    "systemcall",
+    Location {
+        stream_info: StreamInfo {
+            file: "test/test2.asm",
+            length: 91,
+        },
+        nth: 80,
+        line: 8,
+        column: 1,
+    },
+)
+EOL
+

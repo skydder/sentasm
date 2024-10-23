@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, process::exit};
 
 use macros::match_data2;
 use tokenizer::{emit_error, Tokenizer};
@@ -23,7 +23,7 @@ pub(crate) fn parse_code<'a>(tokenizer: &'a Tokenizer<'a>) -> Code<'a> {
     } else {
         // error
         emit_error!(tokenizer.get_location(), "unexpected syntax");
-        todo!()
+        exit(1);
     }
 }
 
@@ -43,7 +43,7 @@ fn parse_sentence<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Sentence<'a>> {
             } else {
                 // error
                 emit_error!(location, "expected object after this preposition, but could not find it");
-                todo!()
+                exit(1);
             }
         },
         None => (),
@@ -72,7 +72,7 @@ fn parse_section<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Label<'a>> {
                 tokenizer.get_location()
             };
             emit_error!(loc, "only label can come here, but other is here.");
-            todo!()
+            exit(1);
         }
     }
 }
@@ -94,7 +94,7 @@ fn parse_labeldef<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Label<'a>> {
                 tokenizer.get_location()
             };
             emit_error!(loc, "only label can come here, but other is here.");
-            todo!()
+            exit(1);
         }
     }
 }

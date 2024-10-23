@@ -26,6 +26,6 @@ if __name__ == '__main__':
         print(generate_data(), file=file)
     with open('../codegen/src/codegen_verb.rs', 'wt') as file:
         print(generate_codegen_verb(), file=file)
-    with open('../codegen/src/codegen_mc.rs', 'wt') as file:
-        print(generate_codegen_mc(), file=file)
+    # with open('../codegen/src/codegen_mc.rs', 'wt') as file:
+    #     print(generate_codegen_mc(), file=file)
 

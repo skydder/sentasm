@@ -1,3 +1,5 @@
+use std::process::exit;
+
 use macros::match_data2;
 use tokenizer::{emit_error, Location, Token, Tokenizer};
 use data::{Data, DataSet, Immediate, Memory, Register};
@@ -29,11 +31,11 @@ pub(crate) fn parse_memory<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<(Memory<'
 }
 
 fn parse_mem_isd<'a>(mem: &mut Memory<'a>, tokenizer: &'a Tokenizer<'a>) {
-    if let Token::Identifier("+", _) = tokenizer.peek() {
-        tokenizer.next();
-    }
-    if tokenizer.peek().get_identifier().is_some_and(|reg| Register::is_reg(reg)) {
+    if tokenizer.peek2().get_identifier().is_some_and(|reg| Register::is_reg(reg)) && tokenizer.peek().get_punctuator().is_some_and(|punc| punc != ")"){
         parse_mem_is(mem, tokenizer);
+        tokenizer.expect_punctuator("+");
+        tokenizer.next();
+        
     }
     parse_mem_d(mem, tokenizer);
     parse_mem_size(mem, tokenizer);
@@ -44,7 +46,7 @@ fn parse_mem_is<'a>(mem: &mut Memory<'a>, tokenizer: &Tokenizer<'a>) {
     if parse_result.is_none() {
         // error
         emit_error!(tokenizer.get_location(), "expected register as index, but could not find it.");
-        todo!()
+        exit(1);
     }
     let (reg, s_loc) = parse_result.unwrap();
     mem.set_index(reg);
@@ -58,7 +60,7 @@ fn parse_mem_is<'a>(mem: &mut Memory<'a>, tokenizer: &Tokenizer<'a>) {
             _ => {
                 // error
                 emit_error!(s_loc, "the value of scale should be 1, 2, 4, or 8.");
-                todo!()
+                exit(1);
             }
         };
         tokenizer.next();
@@ -68,20 +70,20 @@ fn parse_mem_is<'a>(mem: &mut Memory<'a>, tokenizer: &Tokenizer<'a>) {
 
 fn parse_mem_d<'a>(mem: &mut Memory<'a>, tokenizer: &'a Tokenizer<'a>) {
     let mut sign1 = false;
-    if let Token::Identifier("+", _) = tokenizer.peek() {
+    if let Token::Punctuator("+", _) = tokenizer.peek() {
         tokenizer.next();
-    } else if let Token::Identifier("-", _) = tokenizer.peek() {
+    } else if let Token::Punctuator("-", _) = tokenizer.peek() {
         tokenizer.next();
         sign1 = true;
-    } else if let Token::Identifier("by", _) = tokenizer.peek() {
-         return;
+    } else {
+        return;
     }
     match parse_data_set(tokenizer) {
         Some(match_data2!(Immediate, Immediate(i, size, sign2), loc)) => {
-            mem.set_disp(DataSet::new_(Data::Immediate(Immediate(i, size, sign1 || sign2)), loc));
+            mem.set_disp(DataSet::new(Data::Immediate(Immediate(i, size, sign1 || sign2)), loc));
         },
         Some(match_data2!(Label, label, loc)) => {
-            mem.set_disp(DataSet::new_(Data::Label(label), loc));
+            mem.set_disp(DataSet::new(Data::Label(label), loc));
         },
         other => {
             // error
@@ -91,7 +93,7 @@ fn parse_mem_d<'a>(mem: &mut Memory<'a>, tokenizer: &'a Tokenizer<'a>) {
                 tokenizer.get_location()
             };
             emit_error!(loc, "expected immediate or label for displacement, but found other");
-            todo!()
+            exit(1);
         }
     }
 }
@@ -107,7 +109,7 @@ fn parse_mem_size<'a>(mem: &mut Memory<'a>, tokenizer: &Tokenizer<'a>) {
             _ => {
                 // error
                 emit_error!(tokenizer.get_location(), "only size determiner can come here, but other is here");
-                todo!()
+                exit(1);
             }
         };
         tokenizer.next();
