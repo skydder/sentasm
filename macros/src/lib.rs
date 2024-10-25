@@ -7,9 +7,6 @@ use self::match_data::match_data_impl;
 mod match_data2;
 use self::match_data2::match_data2_impl;
 
-mod let_prep;
-use self::let_prep::let_prep_impl;
-
 mod get_prep_object;
 use self::get_prep_object::get_prep_object_impl;
 
@@ -29,10 +26,6 @@ pub fn match_data2(args: TokenStream) -> TokenStream {
     match_data2_impl(args)
 }
 
-#[proc_macro]
-pub fn let_prep(args: TokenStream) -> TokenStream {
-    let_prep_impl(args)
-}
 
 #[proc_macro]
 pub fn gen_nasm(args: TokenStream) -> TokenStream {

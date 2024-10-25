@@ -21,7 +21,7 @@ link() {
 }
 
 check() {
-    objdump -S -s test/target/5cc/$1/elf > test/target/5cc/$1/test
+    # objdump -S -s test/target/5cc/$1/elf > test/target/5cc/$1/test
     chmod u+x test/target/5cc/$1/elf
     ./test/target/5cc/$1/elf
     if [ $? -eq 0 ]; then
