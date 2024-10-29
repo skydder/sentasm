@@ -542,7 +542,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// i
 			// [['i']]
 			let _i = operands.0.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0xe8);
 			ins.set_disp(_i);
 			Ok(ins)
@@ -551,7 +551,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// i
 			// [['i']]
 			let _i = operands.0.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0xe8);
 			ins.set_disp(_i);
 			Ok(ins)
@@ -580,7 +580,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// m
 			// [['m']]
 			let _m = operands.0.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0xff);
 			ins.set_rm(_m);
 			ins.set_mod_rm_reg(2);
@@ -590,7 +590,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// m
 			// [['m']]
 			let _m = operands.0.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0xff);
 			ins.set_rm(_m);
 			ins.set_mod_rm_reg(2);
@@ -994,7 +994,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// i
 			// [['i']]
 			let _i = operands.0.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			// unimplemented
 			ins.set_opcode(0xe3);
 			ins.set_disp(_i);
@@ -1004,7 +1004,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// i
 			// [['i']]
 			let _i = operands.0.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0xe9);
 			ins.set_disp(_i);
 			Ok(ins)
@@ -1013,7 +1013,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// i
 			// [['i']]
 			let _i = operands.0.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0xe9);
 			ins.set_disp(_i);
 			Ok(ins)
@@ -1042,7 +1042,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// m
 			// [['m']]
 			let _m = operands.0.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0xff);
 			ins.set_rm(_m);
 			ins.set_mod_rm_reg(4);
@@ -1052,7 +1052,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// m
 			// [['m']]
 			let _m = operands.0.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0xff);
 			ins.set_rm(_m);
 			ins.set_mod_rm_reg(4);
@@ -1064,7 +1064,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			let _r = operands.0.unwrap();
 			let _m = operands.1.unwrap();
 			ins.set_prefix(0x66);
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0x0f);
 			ins.set_opcode(0x02);
 			ins.set_rm(_m);
@@ -1077,7 +1077,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			let _r = operands.0.unwrap();
 			let _m = operands.1.unwrap();
 			// 32 bit operand
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0x0f);
 			ins.set_opcode(0x02);
 			ins.set_rm(_m);
@@ -1143,17 +1143,17 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			ins.set_reg(_r);
 			Ok(ins)
 		},
-		("lea", Operands(match_data!(Register(_, 64, _, _, _)), match_data!(Immediate(_, _, ..)), None, None)) => {
-			// rm
-			// [['r'], ['m']]
-			let _r = operands.0.unwrap();
-			let _m = operands.1.unwrap();
-			ins.set_rex_w();
-			ins.set_opcode(0x8d);
-			ins.set_rm(_m);
-			ins.set_reg(_r);
-			Ok(ins)
-		},
+		// ("lea", Operands(match_data!(Register(_, 64, _, _, _)), match_data!(Immediate(_, _, ..)), None, None)) => {
+		// 	// rm
+		// 	// [['r'], ['m']]
+		// 	let _r = operands.0.unwrap();
+		// 	let _m = operands.1.unwrap();
+		// 	ins.set_rex_w();
+		// 	ins.set_opcode(0x8d);
+		// 	ins.set_rm(_m);
+		// 	ins.set_reg(_r);
+		// 	Ok(ins)
+		// },
 		("lfs", Operands(match_data!(Register(_, 64, _, _, _)), match_data!(Memory{size:_, ..}), None, None)) => {
 			// rm
 			// [['r'], ['m']]
@@ -1235,7 +1235,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			let _r = operands.0.unwrap();
 			let _m = operands.1.unwrap();
 			ins.set_prefix(0x66);
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0x0f);
 			ins.set_opcode(0x03);
 			ins.set_rm(_m);
@@ -1248,7 +1248,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			let _r = operands.0.unwrap();
 			let _m = operands.1.unwrap();
 			// 32 bit operand
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0x0f);
 			ins.set_opcode(0x03);
 			ins.set_rm(_m);
@@ -1328,7 +1328,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// [['m'], ['r']]
 			let _m = operands.0.unwrap();
 			let _r = operands.1.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0x8c);
 			ins.set_rm(_m);
 			ins.set_reg(_r);
@@ -1350,7 +1350,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// [['r'], ['m']]
 			let _r = operands.0.unwrap();
 			let _m = operands.1.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0x8e);
 			ins.set_rm(_m);
 			ins.set_reg(_r);
@@ -1390,7 +1390,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// [['m'], ['r']]
 			let _m = operands.0.unwrap();
 			let _r = operands.1.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0x0f);
 			ins.set_opcode(0x20);
 			ins.set_rm(_m);
@@ -1402,7 +1402,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// [['r'], ['m']]
 			let _r = operands.0.unwrap();
 			let _m = operands.1.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0x0f);
 			ins.set_opcode(0x22);
 			ins.set_rm(_m);
@@ -1414,7 +1414,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// [['m'], ['r']]
 			let _m = operands.0.unwrap();
 			let _r = operands.1.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0x0f);
 			ins.set_opcode(0x21);
 			ins.set_rm(_m);
@@ -1426,7 +1426,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// [['r'], ['m']]
 			let _r = operands.0.unwrap();
 			let _m = operands.1.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0x0f);
 			ins.set_opcode(0x23);
 			ins.set_rm(_m);
@@ -1483,7 +1483,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// [['r'], ['i']]
 			let _r = operands.0.unwrap();
 			let _i = operands.1.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opecode_with_register(0xb8, _r);
 			ins.set_imm(_i, 32);
 			Ok(ins)
@@ -1816,7 +1816,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// r
 			// [['r']]
 			let _r = operands.0.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opecode_with_register(0x58, _r);
 			Ok(ins)
 		},
@@ -1824,7 +1824,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// m
 			// [['m']]
 			let _m = operands.0.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0x8f);
 			ins.set_rm(_m);
 			ins.set_mod_rm_reg(0);
@@ -1840,7 +1840,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// r
 			// [['r']]
 			let _r = operands.0.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opecode_with_register(0x50, _r);
 			Ok(ins)
 		},
@@ -1848,7 +1848,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// m
 			// [['m']]
 			let _m = operands.0.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0xff);
 			ins.set_rm(_m);
 			ins.set_mod_rm_reg(6);
@@ -1858,7 +1858,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// i
 			// [['i']]
 			let _i = operands.0.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0x6a);
 			ins.set_imm(_i, 8);
 			Ok(ins)
@@ -1867,7 +1867,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// i
 			// [['i']]
 			let _i = operands.0.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0x68);
 			ins.set_imm(_i, 32);
 			Ok(ins)
@@ -1876,7 +1876,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// i
 			// [['i']]
 			let _i = operands.0.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0x6a);
 			ins.set_imm(_i, 8);
 			Ok(ins)
@@ -1885,7 +1885,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// i
 			// [['i']]
 			let _i = operands.0.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0x68);
 			ins.set_imm(_i, 32);
 			Ok(ins)
@@ -1969,7 +1969,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 		},
 		("retq", Operands(None, None, None, None)) => {
 			// void
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0xc3);
 			Ok(ins)
 		},
@@ -1977,7 +1977,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// i
 			// [['i']]
 			let _i = operands.0.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0xc2);
 			ins.set_imm(_i, 16);
 			Ok(ins)
@@ -1999,7 +1999,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 		},
 		("retnq", Operands(None, None, None, None)) => {
 			// void
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0xc3);
 			Ok(ins)
 		},
@@ -2007,7 +2007,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// i
 			// [['i']]
 			let _i = operands.0.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0xc2);
 			ins.set_imm(_i, 16);
 			Ok(ins)
@@ -2424,7 +2424,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// m
 			// [['m']]
 			let _m = operands.0.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0x0f);
 			ins.set_opcode(0x00);
 			ins.set_rm(_m);
@@ -2852,7 +2852,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// i
 			// [['i']]
 			let _i = operands.0.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0x0f);
 			ins.set_opcode(0x80);
 			ins.set_disp(_i);
@@ -3097,7 +3097,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// [['m'], ['r']]
 			let _m = operands.0.unwrap();
 			let _r = operands.1.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			// unimplemented
 			ins.set_opcode(0x0f);
 			ins.set_opcode(0x78);
@@ -3110,7 +3110,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			// [['r'], ['m']]
 			let _r = operands.0.unwrap();
 			let _m = operands.1.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			// unimplemented
 			ins.set_opcode(0x0f);
 			ins.set_opcode(0x79);
@@ -3140,7 +3140,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			let _m = operands.0.unwrap();
 			let _r = operands.1.unwrap();
 			let _i = operands.2.unwrap();
-			ins.set_rex();
+			// ins.set_rex();
 			ins.set_opcode(0x66);
 			ins.set_opcode(0x0f);
 			ins.set_opcode(0x3a);

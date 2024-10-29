@@ -8,21 +8,21 @@ macro_rules! split_bytes {
 pub struct Immediate(pub u64, pub usize, pub bool);
 
 impl Immediate {
-    #[allow(warnings)]
-    fn size_signed(i: i64) -> usize {
-        if i > i8::MIN.into() && i < i8::MAX.into() {
+    pub fn size_signed(i: u64) -> usize {
+        if i < i8::MAX.try_into().unwrap() {
             8
-        } else if i > i16::MIN.into() && i < i16::MAX.into() {
+        } else if i < i16::MAX.try_into().unwrap() {
             16
-        } else if i > i32::MIN.into() && i < i32::MAX.into() {
+        } else if i < i32::MAX.try_into().unwrap() {
             32
-        } else if i > i64::MIN.into() && i < i64::MAX.into() {
+        } else if i < i64::MAX.try_into().unwrap() {
             64
         } else {
             todo!()
         }
     }
-    pub fn size(i: u64) -> usize {
+    pub fn size_unsigned(i: u64) -> usize {
+        println!("{}", u8::MAX);
         if i < u8::MAX.into() {
             8
         } else if i < u16::MAX.into() {
@@ -35,10 +35,12 @@ impl Immediate {
             todo!()
         }
     }
+
     pub fn generate(self) -> Vec<u8> {
         match self.1 {
             8 => {
-                let byte = if self.2 {
+                println!("{:?}", self);
+                let byte = if self.2 && self.0 != 0 {
                     u8::MAX - (self.0 as u8 - 1)
                 } else {
                     self.0 as u8

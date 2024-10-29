@@ -1,4 +1,5 @@
 use data::{Immediate, Register, Data, DataSet, Memory};
+use tokenizer::emit_error;
 use crate::emit_mc;
 
 #[derive(Clone)]
@@ -311,7 +312,10 @@ impl Instruction {
             Data::Immediate(i) => {
                 self._set_imm(i, size);
             }
-            _ => todo!("going to be error {:?}", imm)
+            _ => {
+                emit_error!(imm.location, "going to be error {:?}", imm);
+                todo!();
+            }
         }
     }
     pub fn set_disp(&mut self, imm: DataSet) {
@@ -419,10 +423,10 @@ fn db(bytes: Vec<u8>) -> String {
 }
 
 pub fn nasm(ins: &str, operands: Operands) -> String {
-    // let code = format!("\n; {} {}\n", ins, operands);
-    // match emit_mc(ins, operands) {
-    //     Ok(ins_seq) => code + &db(ins_seq.emit_machine_code()),
-    //     Err(op) => format!("{} {}", ins, op)
-    // }
-    format!("{} {}", ins, operands)
+    let code = format!("\n; {} {}\n", ins, operands);
+    match emit_mc(ins, operands) {
+        Ok(ins_seq) => code + &db(ins_seq.emit_machine_code()),
+        Err(op) => format!("{} {}", ins, op)
+    }
+    // format!("{} {}", ins, operands)
 }

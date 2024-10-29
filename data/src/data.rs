@@ -98,7 +98,7 @@ impl<'a> DataSet<'a> {
             Data::Register(reg) => reg.size(),
             Data::Memory(mem) => mem.size(),
             Data::Label(_) => 32,
-            Data::Immediate(_imm) => 8, // for now
+            Data::Immediate(_imm) => _imm.1,
             _ => 0
         }
     }

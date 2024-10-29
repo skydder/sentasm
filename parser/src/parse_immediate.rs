@@ -9,7 +9,7 @@ pub(crate) fn parse_immediate<'a>(tokenizer: &Tokenizer<'a>) -> Option<(Immediat
         Token::Number(_, _) => {
             let imm = parse_number(&token).unwrap();
             tokenizer.next();
-            Some((Immediate(imm, 0, false), loc))
+            Some((Immediate(imm, Immediate::size_unsigned(imm), false), loc))
         },
         Token::Punctuator("-", _) => {
             let imm = parse_number(&tokenizer.peek2());
@@ -17,7 +17,7 @@ pub(crate) fn parse_immediate<'a>(tokenizer: &Tokenizer<'a>) -> Option<(Immediat
                 let i = imm.unwrap();
                 tokenizer.next();
                 tokenizer.next();
-                Some((Immediate(i as u64, 0, true), loc))
+                Some((Immediate(i as u64, Immediate::size_signed(i), true), loc))
             } else {
                 None
             }

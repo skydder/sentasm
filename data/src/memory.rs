@@ -33,12 +33,13 @@ impl<'a> Memory<'a> {
     pub fn set_scale(&mut self, scale: u8) {
         self.scale = Some(scale);
     }
-
+    
     pub fn set_size(&mut self, size: usize) {
         self.size = size;
     }
 
     pub fn set_disp(&mut self, disp: DataSet<'a>) {
+        self.disp_size = disp.size();
         self.displacement = Some(Box::new(disp));
     }
 

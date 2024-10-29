@@ -28,7 +28,7 @@ prefixes = {
     'o32': '// 32 bit operand',
     'odf': '// default operand',
     'o64': 'ins.set_rex_w();',
-    'o64nw': 'ins.set_rex();',
+    'o64nw': '// ins.set_rex();',
     'a16': '// unimplemented',
     'a32': '// unimplemented',
     'adf': '// unimplemented',
