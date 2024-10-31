@@ -22,7 +22,7 @@ impl Immediate {
         }
     }
     pub fn size_unsigned(i: u64) -> usize {
-        println!("{}", u8::MAX);
+        // println!("{}", u8::MAX);
         if i < u8::MAX.into() {
             8
         } else if i < u16::MAX.into() {
@@ -39,7 +39,7 @@ impl Immediate {
     pub fn generate(self) -> Vec<u8> {
         match self.1 {
             8 => {
-                println!("{:?}", self);
+                // eprintln!("{:?}", self);
                 let byte = if self.2 && self.0 != 0 {
                     u8::MAX - (self.0 as u8 - 1)
                 } else {

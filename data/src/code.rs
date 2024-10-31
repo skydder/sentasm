@@ -20,4 +20,5 @@ pub enum Code<'a> {
     LabelDef(Label<'a>),
     Section(Label<'a>),
     NullStmt,
+    RawNasm(&'a str)
 }

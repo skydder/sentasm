@@ -1,5 +1,3 @@
-use std::process::exit;
-
 use macros::match_data2;
 use tokenizer::{emit_error, Location, Token, Tokenizer};
 use data::{Data, DataSet, Immediate, Memory, Register};
@@ -46,7 +44,6 @@ fn parse_mem_is<'a>(mem: &mut Memory<'a>, tokenizer: &Tokenizer<'a>) {
     if parse_result.is_none() {
         // error
         emit_error!(tokenizer.get_location(), "expected register as index, but could not find it.");
-        exit(1);
     }
     let (reg, s_loc) = parse_result.unwrap();
     mem.set_index(reg);
@@ -60,7 +57,6 @@ fn parse_mem_is<'a>(mem: &mut Memory<'a>, tokenizer: &Tokenizer<'a>) {
             _ => {
                 // error
                 emit_error!(s_loc, "the value of scale should be 1, 2, 4, or 8.");
-                exit(1);
             }
         };
         tokenizer.next();
@@ -93,7 +89,6 @@ fn parse_mem_d<'a>(mem: &mut Memory<'a>, tokenizer: &'a Tokenizer<'a>) {
                 tokenizer.get_location()
             };
             emit_error!(loc, "expected immediate or label for displacement, but found other");
-            exit(1);
         }
     }
 }
@@ -109,7 +104,6 @@ fn parse_mem_size<'a>(mem: &mut Memory<'a>, tokenizer: &Tokenizer<'a>) {
             _ => {
                 // error
                 emit_error!(tokenizer.get_location(), "only size determiner can come here, but other is here");
-                exit(1);
             }
         };
         tokenizer.next();

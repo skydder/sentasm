@@ -1,6 +1,5 @@
 use crate::PUNCTUATOR;
-
-use std::{cell::RefCell, process::exit};
+use std::cell::RefCell;
 use crate::emit_error;
 
 fn is_punctuator(s: &str) -> bool {
@@ -83,12 +82,13 @@ impl<'a> Location<'a> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum Token<'a> {
     Identifier(&'a str, Location<'a>),
     Number(i64, Location<'a>),
     Punctuator(&'a str, Location<'a>), 
     String(&'a str, Location<'a>),
+    RawNasm(&'a str, Location<'a>),
     EOL,
     EOF,
 }
@@ -139,6 +139,7 @@ impl<'a> std::fmt::Display for Token<'a> {
             Token::Punctuator(punc, ..) => write!(f, "{}", punc),
             Token::String(s, ..) => write!(f, "\"{}\"", s),
             Token::Number(num, ..) => write!(f, "{}", num),
+            Token::RawNasm(nasm, ..) => write!(f, "{}", nasm),
         }
     }
 }
@@ -146,6 +147,9 @@ impl<'a> std::fmt::Display for Token<'a> {
 pub struct Tokenizer<'a> {
     stream: &'a Stream<'a>,
     next_location: RefCell<Location<'a>>,
+    peek: RefCell<((Token<'a>, Location<'a>, usize), bool)>,
+    peek2: RefCell<((Token<'a>, Location<'a>, usize), bool)>,
+    peek3: RefCell<((Token<'a>, Location<'a>, usize), bool)>,
 }
 
 impl<'a> Tokenizer<'a> {
@@ -156,13 +160,20 @@ impl<'a> Tokenizer<'a> {
             column: 1,
             nth: 0,
         };
-        Self {
+        let new_one = Self {
             stream: stream,
             next_location: RefCell::new(loc),
-        }
+            peek: RefCell::new(((Token::EOL, loc, 0), false)),
+            peek2: RefCell::new(((Token::EOL, loc, 0), false)),
+            peek3: RefCell::new(((Token::EOL, loc, 0), false)),
+        };
+        new_one.peek();
+        new_one.peek2();
+        new_one.peek3();
+        new_one
     }
 
-    fn peek_at(&self, location: Location<'a>) -> (Token, Location<'a>, usize) {
+    fn peek_at(&self, location: Location<'a>) -> (Token<'a>, Location<'a>, usize) {
         let mut cur_loc = location;
         let (tok, loc) = self.consume_whitespaces_of(cur_loc);
         cur_loc = loc;
@@ -174,7 +185,9 @@ impl<'a> Tokenizer<'a> {
             (token, cur_loc, len)
         } else if let Some((token, len)) = self.peek_string_of(cur_loc) {
             (token, cur_loc, len)
-        } else {
+        } else if let Some((token, len)) = self.peek_raw_nasm_of(cur_loc) {
+            (token, cur_loc, len)
+        }else {
             let start = cur_loc.get_nth();
             let end = self.find_next_punctuator_or_whitespace_from(&cur_loc);
             (Token::Identifier(
@@ -184,71 +197,62 @@ impl<'a> Tokenizer<'a> {
         }
     }
 
-    pub fn peek(&self) -> Token {
-        let (token, loc, _) = self.peek_at(self.get_location());
-        self.set_next_location(loc);
-        token
-    }
-
-    pub fn peek2(&self) -> Token {
-        let (token, loc, len) = self.peek_at(self.get_location());
-        self.set_next_location(loc);
-        match token {
-            Token::EOF => Token::EOF,
-            Token::EOL => {
-                let (token2, _, _) = self.peek_at(loc.slide_by(len).next_line());
-                token2
-            },
-            _ => {
-                let (token2, _, _) = self.peek_at(loc.slide_by(len));
-                token2
-            }           
-        }
-    }
-    pub fn peek3(&self) -> Token {
-        let (token, loc, len) = self.peek_at(self.get_location());
-        self.set_next_location(loc);
-        match token {
-            Token::EOF => Token::EOF,
-            Token::EOL => {
-                let (token2, loc2, len2) = self.peek_at(loc.slide_by(len).next_line());
-                match token2 {
-                    Token::EOF => Token::EOF,
-                    Token::EOL => {
-                        let (token3, _, _) = self.peek_at(loc2.slide_by(len2).next_line());
-                        token3
-                    },
-                    _ => {
-                        let (token3, _, _) = self.peek_at(loc2.slide_by(len2));
-                        token3
-                    }           
-                }
-            },
-            _ => {
-                let (token2, loc2, len2) = self.peek_at(loc.slide_by(len));
-                match token2 {
-                    Token::EOF => Token::EOF,
-                    Token::EOL => {
-                        let (token3, _, _) = self.peek_at(loc2.slide_by(len2).next_line());
-                        token3
-                    },
-                    _ => {
-                        let (token3, _, _) = self.peek_at(loc2.slide_by(len2));
-                        token3
-                    }           
-                }
-            }           
+    pub fn peek(&self) -> Token<'a> {
+        if self.peek.borrow().1 {
+            self.peek.borrow().0.0
+        } else {
+            let peeked = self.peek_at(self.get_location());
+            self.peek.replace((peeked, true));
+            self.set_next_location(peeked.1);
+            peeked.0
         }
     }
 
-    pub fn next(&self) -> Token {
-        let (token, loc, len) = self.peek_at(self.get_location());
+    pub fn peek2(&self) -> Token<'a> {
+        if self.peek2.borrow().1 {
+            self.peek2.borrow().0.0
+        } else {
+            self.peek();
+            let (token, loc, len) = (self.peek.borrow().0.0, self.peek.borrow().0.1, self.peek.borrow().0.2);
+            let peeked = match token {
+                Token::EOF => (token, loc, len),
+                Token::EOL => self.peek_at(loc.slide_by(len).next_line()),
+                _ => self.peek_at(loc.slide_by(len))
+            };
+            
+            self.peek2.replace((peeked, true));
+            peeked.0
+        }
+    }
+    pub fn peek3(&self) -> Token<'a> {
+        if self.peek3.borrow().1 {
+            self.peek3.borrow().0.0
+        } else {
+            self.peek2();
+            let (token, loc, len) = (self.peek2.borrow().0.0, self.peek2.borrow().0.1, self.peek2.borrow().0.2);
+            let peeked = match token {
+                Token::EOF => (token, loc, len),
+                Token::EOL => self.peek_at(loc.slide_by(len).next_line()),
+                _ => self.peek_at(loc.slide_by(len))
+            };
+            
+            self.peek3.replace((peeked, true));
+            peeked.0
+        }
+    }
+
+    pub fn next(&self) -> Token<'a> {
+        let (token, loc, len) = (self.peek.borrow().0.0, self.peek.borrow().0.1, self.peek.borrow().0.2);
         self.set_next_location(loc);
         self.slide_location_by(len);
         if let Token::EOL = token {
             let loc = self.get_location().next_line();
             self.set_next_location(loc);
         }
+        self.peek.replace(((self.peek2.borrow().0.0, self.peek2.borrow().0.1, self.peek2.borrow().0.2), true));
+        self.peek2.replace(((self.peek3.borrow().0.0, self.peek3.borrow().0.1, self.peek3.borrow().0.2), true));
+        self.peek3.borrow_mut().1 = false;
+        self.peek3();
         token
     }
 
@@ -258,7 +262,6 @@ impl<'a> Tokenizer<'a> {
         } else {
             // error
             emit_error!(self.get_location(), "expected '{}', but found '{}'.", punc, self.peek());
-            exit(1);
         }
     }
 
@@ -270,7 +273,6 @@ impl<'a> Tokenizer<'a> {
         } else {
             // error
             emit_error!(self.get_location(), "expected '\\n', but found '{}'.", self.peek());
-            exit(1);
         }
     }
 
@@ -300,11 +302,11 @@ impl<'a> Tokenizer<'a> {
         self.stream.stream.chars().nth(nth)
     }
 
-    fn slice_stream(&self, start: usize, end: usize) -> &str {
+    fn slice_stream(&self, start: usize, end: usize) -> &'a str {
         &self.stream.stream[start..end]
     }
 
-    fn slice_stream_from_nth(&self, nth: usize) -> &str {
+    fn slice_stream_from_nth(&self, nth: usize) -> &'a str {
         &self.stream.stream[nth..]
     }
 
@@ -317,7 +319,7 @@ impl<'a> Tokenizer<'a> {
         self.next_location.replace(location);
     }
 
-    fn consume_whitespaces_of(&self, location: Location<'a>) -> (Option<Token>, Location<'a>) {
+    fn consume_whitespaces_of(&self, location: Location<'a>) -> (Option<Token<'a>>, Location<'a>) {
         let mut loc = location;
         while self
             .get_nth_letter_of_stream(loc.get_nth())
@@ -335,7 +337,7 @@ impl<'a> Tokenizer<'a> {
         self.skip_comment(loc)
     }
 
-    fn skip_comment(&self, location: Location<'a>) -> (Option<Token>, Location<'a>) {
+    fn skip_comment(&self, location: Location<'a>) -> (Option<Token<'a>>, Location<'a>) {
         let mut loc = location;
         if !self.get_nth_letter_of_stream(loc.get_nth()).is_some_and(|c| c == '(') {
             return (None, loc);
@@ -370,7 +372,7 @@ impl<'a> Tokenizer<'a> {
         }
     }
 
-    fn peek_punctuator_of(&self, location: Location<'a>) -> Option<(Token, usize)> {
+    fn peek_punctuator_of(&self, location: Location<'a>) -> Option<(Token<'a>, usize)> {
         for punctuator in PUNCTUATOR {
             if self.stream.stream[location.get_nth()..].starts_with(punctuator) {
                 return Some((Token::Punctuator(&punctuator, location), punctuator.len()));
@@ -391,24 +393,24 @@ impl<'a> Tokenizer<'a> {
         nth
     }
 
-    fn peek_number_of(&self, location: Location<'a>) -> Option<(Token, usize)> {
+    fn peek_number_of(&self, location: Location<'a>) -> Option<(Token<'a>, usize)> {
         if self
             .get_nth_letter_of_stream(location.get_nth())
             .is_some_and(|c| c.is_ascii_hexdigit())
         {
+            let end = self.find_next_punctuator_or_whitespace_from(&location);
             if let Ok(number) = self
-                .slice_stream(location.get_nth(), self.find_next_punctuator_or_whitespace_from(&location))
+                .slice_stream(location.get_nth(), end)
                 .parse::<i64>()
             {
                 let start = location.get_nth();
-                let end = self.find_next_punctuator_or_whitespace_from(&location);
                 return Some((Token::Number(number, location), end - start));
             }
         }
         None
     }
 
-    fn peek_string_of(&self, location: Location<'a>) -> Option<(Token, usize)> {
+    fn peek_string_of(&self, location: Location<'a>) -> Option<(Token<'a>, usize)> {
         let start = location.get_nth();
         if self
             .get_nth_letter_of_stream(start)
@@ -427,9 +429,28 @@ impl<'a> Tokenizer<'a> {
             {
                 // error
                 emit_error!(location, "string-literal cannot be over the line.");
-                exit(1);
             }
             Some((Token::String(self.slice_stream(start + 1, nth), location), (nth - start + 1)))
+        } else {
+            None
+        }
+        
+    }
+
+    fn peek_raw_nasm_of(&self, location: Location<'a>) -> Option<(Token<'a>, usize)> {
+        let start = location.get_nth();
+        if self
+            .get_nth_letter_of_stream(start)
+            .is_some_and(|c| c == '!')
+        {
+            let mut nth = start + 1;
+            while self
+                .get_nth_letter_of_stream(nth)
+                .is_some_and(|c| c != '\n')
+            {
+                nth += 1;
+            }
+            Some((Token::RawNasm(self.slice_stream(start + 1, nth), location), nth - start))
         } else {
             None
         }
@@ -440,7 +461,7 @@ impl<'a> Tokenizer<'a> {
 #[test]
 
 fn test() {
-    let stream = Stream::new("substract 1 from @[ax+rax*1]\n(base+idx*scl)\n \"move test\" substract", "test");
+    let stream = Stream::new("substract 1 from @[ax+rax*1]\n(base+idx*scl)\n \"move test\" substract\n!nasm test\n", "test");
     let tokenizer = Tokenizer::new(&stream);
     eprintln!("peek2 : {:?}", tokenizer.peek2());
     loop {

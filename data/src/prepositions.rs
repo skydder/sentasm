@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, process::exit};
+use std::{cell::RefCell, collections::HashMap};
 use tokenizer::{emit_error, Location};
 use crate::DataSet;
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Copy)]
@@ -26,7 +26,6 @@ impl<'a> PrepositionObject<'a> {
         } else {
             // error
             emit_error!(location, "expected object, but found other");
-            exit(1);
         }
     } 
     fn expand(self) -> (DataSet<'a>, Location<'a>) {

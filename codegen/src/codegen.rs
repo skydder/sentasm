@@ -14,6 +14,7 @@ pub fn codegen(code: Code, asm: &mut String) -> Result<()> {
             "\t{}\n",
             codegen_sentence(sentense)?
         )),
+        Code::RawNasm(nasm) => Ok(format!("\t{}\n", nasm)),
     }?;
     asm.push_str(&line);
     Ok(())
@@ -36,10 +37,8 @@ macro_rules! check_if {
         if let Some(data) = $checkee.map_or_else(|| None, $checker) {
             data
         } else {
-            use std::process::exit;
             // error
             emit_error!($loc, $($msgs), *);
-            exit(1);
         }
     };
 }

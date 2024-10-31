@@ -8,12 +8,11 @@ pub fn _emit_error(location: Location, msg: String) {
     eprintln!("error: {}", msg);
     eprintln!(" --> {}", location);
 }
-
+ 
 #[macro_export]
 macro_rules! emit_error {
     ($loc: expr, $($msgs: expr), *) => {
-        eprintln!("error: {}", format!($($msgs),*));
-        eprintln!(" --> {}", $loc);
-        // _emit_error($loc, format!($($msgs),*))
+        $crate::_emit_error($loc, format!($($msgs),*));
+        ::std::process::exit(1);
     };
 }

@@ -1,4 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, process::exit};
+use std::{cell::RefCell, collections::HashMap};
 
 use tokenizer::{emit_error, Tokenizer};
 use data::{PrepositionObject, PrepositionPhrases, DataSet, Data, Preposition};
@@ -13,7 +13,6 @@ pub(crate) fn parse_prep_phrases<'a>(tokenizer: &'a Tokenizer<'a>, mut data: Has
         } else {
             // error
             emit_error!(location, "expected object after this preposition, but could not find it");
-            exit(1);
         }
         
     }

@@ -124,7 +124,7 @@ impl Instruction {
     pub fn new() -> Self {
         Self { op_code: Vec::new(), prefixes: Vec::new(), rex: None, mod_rm: None, sib: None, disp: None, imm: None }
     }
-
+    #[allow(unused)]
     pub fn set_rex(&mut self) {
         self.rex = Some(self.rex.clone().unwrap_or_else(|| Rex::new()));
     }
@@ -314,7 +314,6 @@ impl Instruction {
             }
             _ => {
                 emit_error!(imm.location, "going to be error {:?}", imm);
-                todo!();
             }
         }
     }

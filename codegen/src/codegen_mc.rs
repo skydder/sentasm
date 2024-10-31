@@ -66,7 +66,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			ins.set_imm(_i, 8);
 			Ok(ins)
 		},
-		("adc", Operands(match_data!(Register(_, 64, 0, _, _)), match_data!(Immediate(..)), None, None)) => {
+		("adc", Operands(match_data!(Register(_, 64, 0, _, _)), match_data!(Immediate(_, _, true)), None, None)) => {
 			// mi
 			// [['m'], ['i']]
 			let _m = operands.0.unwrap();
@@ -87,7 +87,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			ins.set_imm(_i, 32);
 			Ok(ins)
 		},
-		("adc", Operands(match_data!(Register(_, 64, _, _, _)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(..)), None, None)) => {
+		("adc", Operands(match_data!(Register(_, 64, _, _, _)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, _, true)), None, None)) => {
 			// mi
 			// [['m'], ['i']]
 			let _m = operands.0.unwrap();
@@ -171,7 +171,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			ins.set_imm(_i, 8);
 			Ok(ins)
 		},
-		("add", Operands(match_data!(Register(_, 64, 0, _, _)), match_data!(Immediate(..)), None, None)) => {
+		("add", Operands(match_data!(Register(_, 64, 0, _, _)), match_data!(Immediate(_, _, true)), None, None)) => {
 			// mi
 			// [['m'], ['i']]
 			let _m = operands.0.unwrap();
@@ -192,7 +192,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			ins.set_imm(_i, 32);
 			Ok(ins)
 		},
-		("add", Operands(match_data!(Register(_, 64, _, _, _)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(..)), None, None)) => {
+		("add", Operands(match_data!(Register(_, 64, _, _, _)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, _, true)), None, None)) => {
 			// mi
 			// [['m'], ['i']]
 			let _m = operands.0.unwrap();
@@ -276,7 +276,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			ins.set_imm(_i, 8);
 			Ok(ins)
 		},
-		("and", Operands(match_data!(Register(_, 64, 0, _, _)), match_data!(Immediate(..)), None, None)) => {
+		("and", Operands(match_data!(Register(_, 64, 0, _, _)), match_data!(Immediate(_, _, true)), None, None)) => {
 			// mi
 			// [['m'], ['i']]
 			let _m = operands.0.unwrap();
@@ -297,7 +297,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			ins.set_imm(_i, 32);
 			Ok(ins)
 		},
-		("and", Operands(match_data!(Register(_, 64, _, _, _)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(..)), None, None)) => {
+		("and", Operands(match_data!(Register(_, 64, _, _, _)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, _, true)), None, None)) => {
 			// mi
 			// [['m'], ['i']]
 			let _m = operands.0.unwrap();
@@ -658,7 +658,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			ins.set_imm(_i, 8);
 			Ok(ins)
 		},
-		("cmp", Operands(match_data!(Register(_, 64, 0, _, _)), match_data!(Immediate(..)), None, None)) => {
+		("cmp", Operands(match_data!(Register(_, 64, 0, _, _)), match_data!(Immediate(_, _, true)), None, None)) => {
 			// mi
 			// [['m'], ['i']]
 			let _m = operands.0.unwrap();
@@ -679,7 +679,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			ins.set_imm(_i, 32);
 			Ok(ins)
 		},
-		("cmp", Operands(match_data!(Register(_, 64, _, _, _)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(..)), None, None)) => {
+		("cmp", Operands(match_data!(Register(_, 64, _, _, _)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, _, true)), None, None)) => {
 			// mi
 			// [['m'], ['i']]
 			let _m = operands.0.unwrap();
@@ -830,7 +830,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			ins.set_imm(_i, 8);
 			Ok(ins)
 		},
-		("imul", Operands(match_data!(Register(_, 64, _, _, _)), match_data!(Memory{size:_, ..}), match_data!(Immediate(..)), None)) => {
+		("imul", Operands(match_data!(Register(_, 64, _, _, _)), match_data!(Memory{size:_, ..}), match_data!(Immediate(_, _, true)), None)) => {
 			// rmi
 			// [['r'], ['m'], ['i']]
 			let _r = operands.0.unwrap();
@@ -882,7 +882,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			ins.set_imm(_i, 8);
 			Ok(ins)
 		},
-		("imul", Operands(match_data!(Register(_, 64, _, _, _)), match_data!(Register(_, 64, _, _, _)), match_data!(Immediate(..)), None)) => {
+		("imul", Operands(match_data!(Register(_, 64, _, _, _)), match_data!(Register(_, 64, _, _, _)), match_data!(Immediate(_, _, true)), None)) => {
 			// rmi
 			// [['r'], ['m'], ['i']]
 			let _r = operands.0.unwrap();
@@ -934,7 +934,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 		// 	ins.set_imm(_i, 8);
 		// 	Ok(ins)
 		// },
-		// ("imul", Operands(match_data!(Register(_, 64, _, _, _)), match_data!(Immediate(..)), None, None)) => {
+		// ("imul", Operands(match_data!(Register(_, 64, _, _, _)), match_data!(Immediate(_, _, true)), None, None)) => {
 		// 	// r+mi
 		// 	// [['r', 'm'], ['i']]
 		// 	let _r = operands.0.unwrap();
@@ -1765,7 +1765,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			ins.set_imm(_i, 8);
 			Ok(ins)
 		},
-		("or", Operands(match_data!(Register(_, 64, 0, _, _)), match_data!(Immediate(..)), None, None)) => {
+		("or", Operands(match_data!(Register(_, 64, 0, _, _)), match_data!(Immediate(_, _, true)), None, None)) => {
 			// mi
 			// [['m'], ['i']]
 			let _m = operands.0.unwrap();
@@ -1786,7 +1786,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			ins.set_imm(_i, 32);
 			Ok(ins)
 		},
-		("or", Operands(match_data!(Register(_, 64, _, _, _)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(..)), None, None)) => {
+		("or", Operands(match_data!(Register(_, 64, _, _, _)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, _, true)), None, None)) => {
 			// mi
 			// [['m'], ['i']]
 			let _m = operands.0.unwrap();
@@ -1854,7 +1854,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			ins.set_mod_rm_reg(6);
 			Ok(ins)
 		},
-		("push", Operands(match_data!(Immediate(..)), None, None, None)) => {
+		("push", Operands(match_data!(Immediate(_, _, true)), None, None, None)) => {
 			// i
 			// [['i']]
 			let _i = operands.0.unwrap();
@@ -1872,7 +1872,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			ins.set_imm(_i, 32);
 			Ok(ins)
 		},
-		("push", Operands(match_data!(Immediate(..)), None, None, None)) => {
+		("push", Operands(match_data!(Immediate(_, _, true)), None, None, None)) => {
 			// i
 			// [['i']]
 			let _i = operands.0.unwrap();
@@ -2198,7 +2198,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			ins.set_imm(_i, 8);
 			Ok(ins)
 		},
-		("sbb", Operands(match_data!(Register(_, 64, 0, _, _)), match_data!(Immediate(..)), None, None)) => {
+		("sbb", Operands(match_data!(Register(_, 64, 0, _, _)), match_data!(Immediate(_, _, true)), None, None)) => {
 			// mi
 			// [['m'], ['i']]
 			let _m = operands.0.unwrap();
@@ -2219,7 +2219,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			ins.set_imm(_i, 32);
 			Ok(ins)
 		},
-		("sbb", Operands(match_data!(Register(_, 64, _, _, _)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(..)), None, None)) => {
+		("sbb", Operands(match_data!(Register(_, 64, _, _, _)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, _, true)), None, None)) => {
 			// mi
 			// [['m'], ['i']]
 			let _m = operands.0.unwrap();
@@ -2535,7 +2535,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			ins.set_imm(_i, 8);
 			Ok(ins)
 		},
-		("sub", Operands(match_data!(Register(_, 64, 0, _, _)), match_data!(Immediate(..)), None, None)) => {
+		("sub", Operands(match_data!(Register(_, 64, 0, _, _)), match_data!(Immediate(_, _, true)), None, None)) => {
 			// mi
 			// [['m'], ['i']]
 			let _m = operands.0.unwrap();
@@ -2556,7 +2556,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			ins.set_imm(_i, 32);
 			Ok(ins)
 		},
-		("sub", Operands(match_data!(Register(_, 64, _, _, _)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(..)), None, None)) => {
+		("sub", Operands(match_data!(Register(_, 64, _, _, _)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, _, true)), None, None)) => {
 			// mi
 			// [['m'], ['i']]
 			let _m = operands.0.unwrap();
@@ -2777,7 +2777,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			ins.set_imm(_i, 8);
 			Ok(ins)
 		},
-		("xor", Operands(match_data!(Register(_, 64, 0, _, _)), match_data!(Immediate(..)), None, None)) => {
+		("xor", Operands(match_data!(Register(_, 64, 0, _, _)), match_data!(Immediate(_, _, true)), None, None)) => {
 			// mi
 			// [['m'], ['i']]
 			let _m = operands.0.unwrap();
@@ -2798,7 +2798,7 @@ pub fn emit_mc<'a>(ins_name: &str, operands: Operands<'a>) -> Result<Instruction
 			ins.set_imm(_i, 32);
 			Ok(ins)
 		},
-		("xor", Operands(match_data!(Register(_, 64, _, _, _)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(..)), None, None)) => {
+		("xor", Operands(match_data!(Register(_, 64, _, _, _)) | match_data!(Memory{size:64, ..}), match_data!(Immediate(_, _, true)), None, None)) => {
 			// mi
 			// [['m'], ['i']]
 			let _m = operands.0.unwrap();

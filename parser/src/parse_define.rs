@@ -1,5 +1,3 @@
-use std::process::exit;
-
 use tokenizer::{emit_error, Location, Token, Tokenizer};
 use data::{DefItem, Define};
 
@@ -23,7 +21,6 @@ pub(crate) fn parse_define<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<(Define<'
     } else {
         // error
         emit_error!(tokenizer.get_location(), "expected items of define, but found other.");
-        exit(1);
     };
     tokenizer.expect_punctuator("]");
     // eprintln!("{:?}", def);
@@ -39,7 +36,6 @@ fn parse_defitems<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Define> {
         } else {
             // error
             emit_error!(tokenizer.get_location(), "expected item of define, but found other.");
-            exit(1);
         }
     }
     if let Some(last_item) = parse_defitem(tokenizer) {
@@ -47,7 +43,7 @@ fn parse_defitems<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Define> {
     } else {
         // error
         eprintln!("should be error?");
-        exit(1);
+        ::std::process::exit(1);
     }
     Some(Define::new(seq))
 }
@@ -69,7 +65,6 @@ fn parse_defitem<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<DefItem> {
             } else {
                 // error
                 emit_error!(tokenizer.get_location(), "only number can come here, but other is here.");
-                exit(1);
             }
         },
         Token::String(s, ..) => {

@@ -268,7 +268,7 @@ class Operands:
             elif token.startswith('imm'):
                 return 'match_data!(Immediate(_, {1}, ..))'.format(*read_postfix(token[3:]))
             elif token.startswith('sbytedword'):
-                return 'match_data!(Immediate(..))'
+                return 'match_data!(Immediate(_, _, true))'
                 
         def read_postfix(token: str):
             # in the future, support other register 

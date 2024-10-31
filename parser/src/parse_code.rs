@@ -1,7 +1,7 @@
-use std::{collections::HashMap, process::exit};
+use std::collections::HashMap;
 
 use macros::match_data2;
-use tokenizer::{emit_error, Tokenizer};
+use tokenizer::{emit_error, Token, Tokenizer};
 use data::{Code, Data, DataSet, Label, Preposition, PrepositionObject, Sentence};
 
 use crate::{parse_data_set, parse_prep_phrases, parse_verb};
@@ -20,10 +20,12 @@ pub(crate) fn parse_code<'a>(tokenizer: &'a Tokenizer<'a>) -> Code<'a> {
     } else if tokenizer.is_end_of_line() {
         tokenizer.expect_end_of_line();
         Code::NullStmt
+    } else if let Some(nasm) = parse_raw_nasm(tokenizer) {
+        tokenizer.expect_end_of_line();
+        Code::RawNasm(nasm)
     } else {
         // error
         emit_error!(tokenizer.get_location(), "unexpected syntax");
-        exit(1);
     }
 }
 
@@ -43,7 +45,6 @@ fn parse_sentence<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Sentence<'a>> {
             } else {
                 // error
                 emit_error!(location, "expected object after this preposition, but could not find it");
-                exit(1);
             }
         },
         None => (),
@@ -72,7 +73,6 @@ fn parse_section<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Label<'a>> {
                 tokenizer.get_location()
             };
             emit_error!(loc, "only label can come here, but other is here.");
-            exit(1);
         }
     }
 }
@@ -94,7 +94,14 @@ fn parse_labeldef<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<Label<'a>> {
                 tokenizer.get_location()
             };
             emit_error!(loc, "only label can come here, but other is here.");
-            exit(1);
         }
     }
+}
+
+fn parse_raw_nasm<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<&'a str> {
+    if let Token::RawNasm(nasm, ..) = tokenizer.peek() {
+        tokenizer.next();
+        return Some(nasm);
+    }
+    None
 }
