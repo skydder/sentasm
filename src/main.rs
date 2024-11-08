@@ -1,10 +1,8 @@
-use std::{
-    fs, process::exit
-};
+use std::{fs, process::exit};
 
 use codegen::codegen;
-use tokenizer::{Tokenizer, Stream};
 use parser::parser;
+use tokenizer::{Stream, Tokenizer};
 
 fn main() {
     match read_args() {

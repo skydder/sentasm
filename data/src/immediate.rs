@@ -1,6 +1,9 @@
 macro_rules! split_bytes {
     ($bytes: expr, $nth: expr, $type: ty) => {
-        (($bytes >> $nth) as $type, ($bytes - (($bytes >> $nth) << $nth)) as $type)
+        (
+            ($bytes >> $nth) as $type,
+            ($bytes - (($bytes >> $nth) << $nth)) as $type,
+        )
     };
 }
 
@@ -46,16 +49,16 @@ impl Immediate {
                     self.0 as u8
                 };
                 return vec![byte];
-            },
+            }
             16 => {
                 let byte = if self.2 {
                     u16::MAX - (self.0 as u16 - 1)
                 } else {
                     self.0 as u16
                 };
-                let (high, low) =  split_bytes!(byte, 8, u8);
+                let (high, low) = split_bytes!(byte, 8, u8);
                 return vec![low, high];
-            },
+            }
             32 => {
                 let byte = if self.2 {
                     u32::MAX - (self.0 as u32 - 1)
@@ -65,9 +68,9 @@ impl Immediate {
                 let (high, low) = split_bytes!(byte, 16, u16);
                 let (hh, hl) = split_bytes!(high, 8, u8);
                 let (lh, ll) = split_bytes!(low, 8, u8);
-                
+
                 return vec![ll, lh, hl, hh];
-            },
+            }
             64 => {
                 let byte = if self.2 {
                     u64::MAX - (self.0 as u64 - 1)
@@ -82,20 +85,19 @@ impl Immediate {
                 let (hlh, hll) = split_bytes!(hl, 8, u8);
                 let (lhh, lhl) = split_bytes!(lh, 8, u8);
                 let (llh, lll) = split_bytes!(ll, 8, u8);
-                
+
                 return vec![lll, llh, lhl, lhh, hll, hlh, hhl, hhh];
             }
             _ => {
                 todo!()
             }
         }
-        
     }
 }
 
 #[test]
 fn test() {
-    for i in Immediate(0x3c, 64, false).generate(){
+    for i in Immediate(0x3c, 64, false).generate() {
         println!("{:02x}", i)
     }
 }

@@ -26,7 +26,6 @@ pub fn match_data2(args: TokenStream) -> TokenStream {
     match_data2_impl(args)
 }
 
-
 #[proc_macro]
 pub fn gen_nasm(args: TokenStream) -> TokenStream {
     gen_nasm_impl(args)

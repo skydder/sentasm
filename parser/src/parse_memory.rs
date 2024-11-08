@@ -1,6 +1,6 @@
+use data::{Data, DataSet, Immediate, Memory, Register};
 use macros::match_data2;
 use tokenizer::{emit_error, Location, Token, Tokenizer};
-use data::{Data, DataSet, Immediate, Memory, Register};
 
 use crate::{parse_data_set, parse_number, parse_register};
 
@@ -8,19 +8,27 @@ use crate::{parse_data_set, parse_number, parse_register};
 // index = reg
 // scale = 1|2|4|8
 // disp = num
-// mem = '*(' ( ( base ( '+' index ( '*' scale )? )? ( '+' disp )? ')' ) 
+// mem = '*(' ( ( base ( '+' index ( '*' scale )? )? ( '+' disp )? ')' )
 //         | ( index '*' scale '+' )? disp ')' ) )
 
 pub(crate) fn parse_memory<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<(Memory<'a>, Location<'a>)> {
     let token = tokenizer.peek();
     let loc = tokenizer.get_location();
-    
+
     if !token.get_punctuator().is_some_and(|punc| punc == "*(") {
         return None;
     }
     tokenizer.next();
     let mut mem = Memory::new();
-    if tokenizer.peek().get_identifier().is_some_and(|reg| Register::is_reg(reg)) && !tokenizer.peek2().get_punctuator().is_some_and(|punc| punc == "*") {
+    if tokenizer
+        .peek()
+        .get_identifier()
+        .is_some_and(|reg| Register::is_reg(reg))
+        && !tokenizer
+            .peek2()
+            .get_punctuator()
+            .is_some_and(|punc| punc == "*")
+    {
         mem.set_base(parse_register(tokenizer).unwrap().0);
     }
     parse_mem_isd(&mut mem, tokenizer);
@@ -29,11 +37,18 @@ pub(crate) fn parse_memory<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<(Memory<'
 }
 
 fn parse_mem_isd<'a>(mem: &mut Memory<'a>, tokenizer: &'a Tokenizer<'a>) {
-    if tokenizer.peek2().get_identifier().is_some_and(|reg| Register::is_reg(reg)) && tokenizer.peek().get_punctuator().is_some_and(|punc| punc != ")"){
+    if tokenizer
+        .peek2()
+        .get_identifier()
+        .is_some_and(|reg| Register::is_reg(reg))
+        && tokenizer
+            .peek()
+            .get_punctuator()
+            .is_some_and(|punc| punc != ")")
+    {
         parse_mem_is(mem, tokenizer);
         tokenizer.expect_punctuator("+");
         tokenizer.next();
-        
     }
     parse_mem_d(mem, tokenizer);
     parse_mem_size(mem, tokenizer);
@@ -43,7 +58,10 @@ fn parse_mem_is<'a>(mem: &mut Memory<'a>, tokenizer: &Tokenizer<'a>) {
     let parse_result = parse_register(tokenizer);
     if parse_result.is_none() {
         // error
-        emit_error!(tokenizer.get_location(), "expected register as index, but could not find it.");
+        emit_error!(
+            tokenizer.get_location(),
+            "expected register as index, but could not find it."
+        );
     }
     let (reg, s_loc) = parse_result.unwrap();
     mem.set_index(reg);
@@ -76,11 +94,14 @@ fn parse_mem_d<'a>(mem: &mut Memory<'a>, tokenizer: &'a Tokenizer<'a>) {
     }
     match parse_data_set(tokenizer) {
         Some(match_data2!(Immediate, Immediate(i, _, sign2), loc)) => {
-            mem.set_disp(DataSet::new(Data::Immediate(Immediate(i, Immediate::size_signed(i), sign1 || sign2)), loc));
-        },
+            mem.set_disp(DataSet::new(
+                Data::Immediate(Immediate(i, Immediate::size_signed(i), sign1 || sign2)),
+                loc,
+            ));
+        }
         Some(match_data2!(Label, label, loc)) => {
             mem.set_disp(DataSet::new(Data::Label(label), loc));
-        },
+        }
         other => {
             // error
             let loc = if let Some(data) = other {
@@ -88,7 +109,10 @@ fn parse_mem_d<'a>(mem: &mut Memory<'a>, tokenizer: &'a Tokenizer<'a>) {
             } else {
                 tokenizer.get_location()
             };
-            emit_error!(loc, "expected immediate or label for displacement, but found other");
+            emit_error!(
+                loc,
+                "expected immediate or label for displacement, but found other"
+            );
         }
     }
 }
@@ -103,7 +127,10 @@ fn parse_mem_size<'a>(mem: &mut Memory<'a>, tokenizer: &Tokenizer<'a>) {
             Some("64bit") => 64,
             _ => {
                 // error
-                emit_error!(tokenizer.get_location(), "only size determiner can come here, but other is here");
+                emit_error!(
+                    tokenizer.get_location(),
+                    "only size determiner can come here, but other is here"
+                );
             }
         };
         tokenizer.next();

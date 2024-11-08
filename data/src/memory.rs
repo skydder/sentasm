@@ -1,13 +1,13 @@
 use crate::{Data, DataSet, Register};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Memory<'a> {
     pub base: Option<Register<'a>>,
     pub displacement: Option<Box<DataSet<'a>>>,
     pub index: Option<Register<'a>>,
     pub scale: Option<u8>,
     pub size: usize,
-    pub disp_size: usize
+    pub disp_size: usize,
 }
 
 impl<'a> Memory<'a> {
@@ -18,7 +18,7 @@ impl<'a> Memory<'a> {
             index: None,
             scale: None,
             size: 0,
-            disp_size: 0
+            disp_size: 0,
         }
     }
 
@@ -33,7 +33,7 @@ impl<'a> Memory<'a> {
     pub fn set_scale(&mut self, scale: u8) {
         self.scale = Some(scale);
     }
-    
+
     pub fn set_size(&mut self, size: usize) {
         self.size = size;
     }
@@ -89,9 +89,9 @@ impl<'a> std::fmt::Display for Memory<'a> {
             match **disp {
                 DataSet {
                     data: Data::Immediate(i),
-                    location: _
+                    location: _,
                 } => {
-                    if count > 0 && !i.2{
+                    if count > 0 && !i.2 {
                         write!(f, "+")?;
                     } else if i.2 {
                         write!(f, "-")?;
@@ -100,7 +100,7 @@ impl<'a> std::fmt::Display for Memory<'a> {
                 }
                 DataSet {
                     data: Data::Label(l),
-                    location: _
+                    location: _,
                 } => {
                     if count > 0 {
                         write!(f, "+")?;

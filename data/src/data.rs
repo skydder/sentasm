@@ -1,13 +1,13 @@
+use crate::{Define, Immediate, Keyword, Label, Memory, Preposition, Register, Verb};
 use tokenizer::Location;
-use crate::{Memory, Verb, Label, Define, Register, Preposition, Immediate, Keyword};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DataSet<'a> {
     pub data: Data<'a>,
-    pub location: Location<'a>
+    pub location: Location<'a>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Data<'a> {
     Verb(Verb<'a>),
     Register(Register<'a>),
@@ -18,11 +18,10 @@ pub enum Data<'a> {
     LabelDef,
     Section,
     Keyword(Keyword<'a>),
-    Define(Define<'a>)
+    Define(Define<'a>),
 }
 
 impl<'a> DataSet<'a> {
-
     pub fn new(data: Data<'a>, location: Location<'a>) -> Self {
         Self { data, location }
     }
@@ -69,37 +68,37 @@ impl<'a> DataSet<'a> {
     pub fn is_register(&self) -> bool {
         match self.data {
             Data::Register(_) => true,
-            _ => false
+            _ => false,
         }
     }
     pub fn get_register(self) -> Option<Register<'a>> {
         match self.data {
             Data::Register(reg) => Some(reg),
-            _ => None
+            _ => None,
         }
     }
 
     pub fn get_immediate(self) -> Option<Immediate> {
         match self.data {
             Data::Immediate(imm) => Some(imm),
-            _ => None
+            _ => None,
         }
     }
 
     pub fn get_memory(self) -> Option<Memory<'a>> {
         match self.data {
             Data::Memory(mem) => Some(mem),
-            _ => None
+            _ => None,
         }
     }
 
-    pub fn size(&self) -> usize{
+    pub fn size(&self) -> usize {
         match &self.data {
             Data::Register(reg) => reg.size(),
             Data::Memory(mem) => mem.size(),
             Data::Label(_) => 32,
             Data::Immediate(_imm) => _imm.1,
-            _ => 0
+            _ => 0,
         }
     }
 }
@@ -109,7 +108,6 @@ impl<'a> std::fmt::Display for DataSet<'a> {
         write!(f, "{}", self.data)
     }
 }
-
 
 impl<'a> std::fmt::Display for Data<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

@@ -1,7 +1,9 @@
-use data::{REG8, REG16,  REG32, REG64, RegType, Register};
+use data::{RegType, Register, REG16, REG32, REG64, REG8};
 use tokenizer::{Location, Tokenizer};
 
-pub(crate) fn parse_register<'a>(tokenizer: &Tokenizer<'a>) -> Option<(Register<'a>, Location<'a>)> {
+pub(crate) fn parse_register<'a>(
+    tokenizer: &Tokenizer<'a>,
+) -> Option<(Register<'a>, Location<'a>)> {
     let token = tokenizer.peek();
     let loc = tokenizer.get_location();
 
@@ -10,7 +12,7 @@ pub(crate) fn parse_register<'a>(tokenizer: &Tokenizer<'a>) -> Option<(Register<
     }
 
     let reg_name = token.get_identifier().unwrap();
-    
+
     for (i, reg8) in REG8.into_iter().enumerate() {
         if reg_name == *reg8 {
             tokenizer.next();

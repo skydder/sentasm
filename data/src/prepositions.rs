@@ -1,6 +1,6 @@
+use crate::DataSet;
 use std::{cell::RefCell, collections::HashMap};
 use tokenizer::{emit_error, Location};
-use crate::DataSet;
 #[derive(PartialEq, Eq, Hash, Debug, Clone, Copy)]
 pub struct Preposition<'a>(pub &'a str);
 
@@ -13,7 +13,7 @@ impl<'a> std::fmt::Display for Preposition<'a> {
 #[derive(Debug)]
 pub struct PrepositionObject<'a> {
     pub object: DataSet<'a>,
-    pub location: Location<'a>
+    pub location: Location<'a>,
 }
 
 impl<'a> PrepositionObject<'a> {
@@ -21,13 +21,13 @@ impl<'a> PrepositionObject<'a> {
         if let Some(obj) = object.expect_object() {
             Self {
                 object: obj,
-                location: location
+                location: location,
             }
         } else {
             // error
             emit_error!(location, "expected object, but found other");
         }
-    } 
+    }
     fn expand(self) -> (DataSet<'a>, Location<'a>) {
         (self.object, self.location)
     }
@@ -39,10 +39,13 @@ pub struct PrepositionPhrases<'a> {
 }
 
 impl<'a> PrepositionPhrases<'a> {
-    pub fn new(data: RefCell<HashMap<Preposition<'a>, PrepositionObject<'a>>>)  -> Self {
+    pub fn new(data: RefCell<HashMap<Preposition<'a>, PrepositionObject<'a>>>) -> Self {
         Self { data: data }
     }
     pub fn get_object(&self, p: Preposition<'a>) -> Option<(DataSet, Location)> {
-        self.data.borrow_mut().remove(&p).and_then(|po| Some(po.expand()))
+        self.data
+            .borrow_mut()
+            .remove(&p)
+            .and_then(|po| Some(po.expand()))
     }
 }

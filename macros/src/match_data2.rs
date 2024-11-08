@@ -29,12 +29,13 @@ pub(crate) fn match_data2_impl(args: TokenStream) -> TokenStream {
     if data.2.is_some() {
         let loc = &data.2.unwrap();
         quote!(
-            DataSet {data: Data::#name(#pat), location: #loc, ..}   
-        ).into()
+            DataSet {data: Data::#name(#pat), location: #loc, ..}
+        )
+        .into()
     } else {
         quote!(
             DataSet {data: Data::#name(#pat), ..}
-        ).into()
+        )
+        .into()
     }
-    
 }

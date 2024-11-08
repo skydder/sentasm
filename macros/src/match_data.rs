@@ -23,12 +23,8 @@ impl Parse for ParsedData {
 pub(crate) fn match_data_impl(args: TokenStream) -> TokenStream {
     let data = parse_macro_input!(args as ParsedData);
     let name = match &data.0 {
-        Pat::TupleStruct(tup) => {
-            &tup.path
-        },
-        Pat::Struct(structs) => {
-            &structs.path
-        }
+        Pat::TupleStruct(tup) => &tup.path,
+        Pat::Struct(structs) => &structs.path,
         _ => todo!(),
     };
     let pat = &data.0;
@@ -36,11 +32,12 @@ pub(crate) fn match_data_impl(args: TokenStream) -> TokenStream {
         let loc = &data.1.unwrap();
         quote!(
             Some(DataSet {data: Data::#name(#pat), location: #loc, ..})
-        ).into()
+        )
+        .into()
     } else {
         quote!(
             Some(DataSet {data: Data::#name(#pat), ..})
-        ).into()
+        )
+        .into()
     }
-    
 }

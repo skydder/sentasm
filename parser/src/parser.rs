@@ -1,7 +1,10 @@
-use tokenizer::{Token, Tokenizer};
 use data::{Code, Data, DataSet, Label};
+use tokenizer::{Token, Tokenizer};
 
-use crate::{parse_code, parse_define, parse_immediate, parse_keyword, parse_memory, parse_preposition, parse_register, parse_verb};
+use crate::{
+    parse_code, parse_define, parse_immediate, parse_keyword, parse_memory, parse_preposition,
+    parse_register, parse_verb,
+};
 
 pub fn parser<'a>(tokenizer: &'a Tokenizer<'a>) -> Code<'a> {
     parse_code(tokenizer)
@@ -22,13 +25,13 @@ pub(crate) fn parse_data_set<'a>(tokenizer: &'a Tokenizer<'a>) -> Option<DataSet
         Some(DataSet::new(Data::Memory(mem), loc))
     } else if let Some((def, loc)) = parse_define(tokenizer) {
         Some(DataSet::new(Data::Define(def), loc))
-    } else { 
+    } else {
         match tokenizer.peek() {
             Token::Identifier(ident, location) => {
                 tokenizer.next();
                 Some(DataSet::new(Data::Label(Label(ident)), location))
-            },
-            _ => None
+            }
+            _ => None,
         }
     }
 }

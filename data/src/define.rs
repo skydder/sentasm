@@ -1,4 +1,5 @@
 // later to implement float
+#[derive(Clone)]
 pub enum DefItem<'a> {
     Int(i64),
     Str(&'a str),
@@ -13,7 +14,7 @@ impl<'a> std::fmt::Debug for DefItem<'a> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Define<'a> {
     list: Vec<DefItem<'a>>,
 }
@@ -22,7 +23,6 @@ impl<'a> Define<'a> {
     pub fn new(list: Vec<DefItem<'a>>) -> Self {
         Self { list: list }
     }
-
 }
 
 impl<'a> std::fmt::Display for Define<'a> {

@@ -31,7 +31,7 @@ pub fn gen_nasm_impl(args: TokenStream) -> TokenStream {
     let ins = data.0;
     let operands = data.1;
     let mut operands_expression = "{}".to_string();
-    
+
     if operands.len() != 0 {
         for _ in 0..operands.len() - 1 {
             operands_expression.push_str(" {},");
@@ -41,9 +41,9 @@ pub fn gen_nasm_impl(args: TokenStream) -> TokenStream {
         // eprintln!("{}", operands_expression);
         quote! {
             format!(#ins_set, #ins, #(#operands),*)
-        }.into()
+        }
+        .into()
     } else {
         quote! {format!(#ins)}.into()
     }
-    
 }

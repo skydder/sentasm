@@ -147,8 +147,12 @@ class MCEmit:
         seq = self.read_define(self.define)
         code.append(Line(f'// {seq}', 0))
         for (i, types) in enumerate(seq):
-            for ty in types:
-                code.append(Line(f'let _{ty} = operands.{i}.unwrap();', 0))
+            if len(types) > 1:
+                for ty in types[:-1]:
+                    code.append(Line(f'let _{ty} = operands.{i}.clone().unwrap();', 0))
+                code.append(Line(f'let _{types[-1]} = operands.{i}.unwrap();', 0))
+            elif len(types) == 1:
+                code.append(Line(f'let _{types[0]} = operands.{i}.unwrap();', 0))
         return code
 
     def is_prefix(self, candidate):

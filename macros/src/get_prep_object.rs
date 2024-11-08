@@ -3,7 +3,6 @@ use quote::quote;
 use syn::parse::{Parse, ParseStream};
 use syn::{parse_macro_input, Expr, Lit, Token};
 
-
 struct ParsedData(Expr, Lit, Expr);
 
 impl Parse for ParsedData {

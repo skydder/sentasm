@@ -1,7 +1,7 @@
-use tokenizer::{Tokenizer, Location};
-use data::{PSEUDO, VERB, Verb};
+use data::{Verb, PSEUDO, VERB};
+use tokenizer::{Location, Tokenizer};
 
-pub(crate)fn parse_verb<'a>(tokenizer: &Tokenizer<'a>) -> Option<(Verb<'a>, Location<'a>)>{
+pub(crate) fn parse_verb<'a>(tokenizer: &Tokenizer<'a>) -> Option<(Verb<'a>, Location<'a>)> {
     let token = tokenizer.peek();
     let loc = tokenizer.get_location();
 

@@ -1,5 +1,5 @@
+use data::{Keyword, KEYWORD};
 use tokenizer::{Location, Tokenizer};
-use data::{KEYWORD, Keyword};
 
 pub(crate) fn parse_keyword<'a>(tokenizer: &Tokenizer<'a>) -> Option<(Keyword<'a>, Location<'a>)> {
     let token = tokenizer.peek();

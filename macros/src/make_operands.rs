@@ -25,7 +25,7 @@ impl Parse for ParsedData {
 pub fn make_operands_impl(args: TokenStream) -> TokenStream {
     let data = parse_macro_input!(args as ParsedData);
     let operands = data.0;
-    
+
     if operands.len() > 4 {
         panic!("invalid operands");
     }
@@ -39,5 +39,4 @@ pub fn make_operands_impl(args: TokenStream) -> TokenStream {
     }
 
     quote! {Operands(#(#op),*)}.into()
-    
 }

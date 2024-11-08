@@ -21,17 +21,18 @@ pub struct Register<'a>(pub &'a str, pub usize, pub u8, pub bool, pub RegType);
 // todo: add other register
 impl<'a> Register<'a> {
     pub fn is_reg(token: &'a str) -> bool {
-        use crate::data_auto::{REG8, REG16, REG32, REG64};
+        use crate::data_auto::{REG16, REG32, REG64, REG8};
         macro_rules! contains {
             ($REG:expr, $token:expr) => {
-                $REG.iter().find_map(|reg| if *reg == $token {
-                    Some(())
-                } else {
-                    None
-                }).is_some()
+                $REG.iter()
+                    .find_map(|reg| if *reg == $token { Some(()) } else { None })
+                    .is_some()
             };
         }
-        contains!(REG8, token) || contains!(REG16, token) || contains!(REG32, token) || contains!(REG64, token)
+        contains!(REG8, token)
+            || contains!(REG16, token)
+            || contains!(REG32, token)
+            || contains!(REG64, token)
     }
     pub fn is_64(&self) -> bool {
         self.3
