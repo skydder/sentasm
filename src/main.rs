@@ -8,7 +8,7 @@ use parser::parser;
 
 fn main() {
     match read_args() {
-        Ok(file) => compile_file2(&file),
+        Ok(file) => run(&file),
         Err(_) => (),
     }
 }
@@ -22,22 +22,7 @@ fn read_args<'a>() -> Result<String, ()> {
     Ok(path.to_string())
 }
 
-// fn compile_file(file: &str) {
-//     let mut code = String::new();
-//     for (ln, line_result) in BufReader::new(File::open(file).unwrap())
-//         .lines()
-//         .enumerate()
-//     {
-//         let line = line_result.unwrap().clone();
-//         let _tokenizer = Tonkenizer::new(&line, Loc::new(file, ln, 0));
-//         // println!("{:?}", Code::parse(&_tokenizer))
-//         codegen(Code::parse(&_tokenizer).unwrap_or_else(|_| exit(404)), &mut code)
-//         .unwrap_or_else(|_| exit(404));
-//     }
-//     println!("{}", code)
-// }
-
-fn compile_file2(file: &str) {
+fn run(file: &str) {
     let _stream = fs::read_to_string(file).expect("file loading error");
     let stream = Stream::new(&_stream, file);
     let tokenizer = Tokenizer::new(&stream);

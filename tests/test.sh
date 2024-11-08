@@ -6,10 +6,10 @@ run() {
 
 test() {
     expected="$2"
-    run test/test$1.asm > test/target/test1/test$1.S
-    nasm -f elf64 -o test/target/test1/test$1.o test/target/test1/test$1.S
-    ld -o test/target/test1/test$1 test/target/test1/test$1.o -m elf_x86_64
-    ./test/target/test1/test$1
+    run tests/test1/test$1.asm > tests/target/test1/test$1.S
+    nasm -f elf64 -o tests/target/test1/test$1.o tests/target/test1/test$1.S
+    ld -o tests/target/test1/test$1 tests/target/test1/test$1.o -m elf_x86_64
+    ./tests/target/test1/test$1
     actual="$?"
     if [ "$actual" = "$expected" ]; then
         echo "test$1 => Ok($actual)"

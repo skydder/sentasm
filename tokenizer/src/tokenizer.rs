@@ -441,7 +441,7 @@ impl<'a> Tokenizer<'a> {
         let start = location.get_nth();
         if self
             .get_nth_letter_of_stream(start)
-            .is_some_and(|c| c == '!')
+            .is_some_and(|c| c == ';')
         {
             let mut nth = start + 1;
             while self
