@@ -1,6 +1,34 @@
+use std::ops::{Index, IndexMut};
+
 use crate::emit_mc;
 use data::{Data, DataSet, Immediate, Memory, Register};
 use tokenizer::emit_error;
+
+struct Bits<const N: usize> ([bool; N]);
+
+impl<const N: usize> Bits<N> {
+    fn new(value: bool) -> Self {
+        Self([value; N])
+    }
+
+    fn nth(&self, i: usize) -> u8 {
+        self[i] as u8
+    }
+}
+
+impl<const N: usize> Index<usize> for Bits<N> {
+    type Output = bool;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[index]
+    }
+}
+
+impl<const N: usize> IndexMut<usize> for Bits<N> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.0[index]
+    }
+}
 
 #[derive(Clone)]
 struct ModRM {
@@ -482,29 +510,32 @@ struct Vex {
     // 'inverted' extension to the MODRM.rm field or the SIB.base field
     b: bool,
     // specifies the opcode map to use
-    map_select: [bool; 5],
+    map_select: Bits<5>,
     // equivalent with REX.W?
     w: bool,
     // 'inverted' additional operand for the instruction
-    v: [bool; 4],
+    v: Bits<4>,
     // vector length
     l: bool,
     // Specifies an implied mandatory prefix for the opcode
-    pp: [bool; 2],
+    pp: Bits<2>,
 }
 
 #[allow(dead_code)]
 impl Vex {
     fn new() -> Self {
+        let mut map = Bits::<5>::new(false);
+        map[4] = true;
+
         Self {
             r: true,
             x: true,
             b: true,
-            map_select: [false, false, false, false, true],
+            map_select: map,
             w: false,
-            v: [true, true, true, true],
+            v: Bits::<4>::new(true),
             l: false,
-            pp: [false, false],
+            pp: Bits::<2>::new(false),
         }
     }
 
@@ -520,7 +551,7 @@ impl Vex {
         self.b = b;
     }
 
-    fn set_map_select(&mut self, map_select: [bool; 5]) {
+    fn set_map_select(&mut self, map_select: Bits<5>) {
         self.map_select = map_select;
     }
 
@@ -540,9 +571,9 @@ impl Vex {
         self.pp = pp;
     }
 
-    // VEX.~X == 1, VEX.~B == 1, VEX.W/E == 0 and map_select == b00001
     fn get_vex_prefix(&self) -> u8 {
         if self.x && self.b && !self.w && self.map_select == [false, false, false, false, true] {
+            // VEX.~X == 1, VEX.~B == 1, VEX.W/E == 0 and map_select == b00001
             return 0xc5;
         } else {
             return 0xc4;
@@ -551,9 +582,50 @@ impl Vex {
 
     fn encode(self) -> Vec<u8> {
         let mut vex: Vec<u8> = Vec::new();
-        vex.push(self.get_vex_prefix());
-        todo!();
+        match self.get_vex_prefix() {
+            0xc5 => {
+                vex.push(0xc5);
+                let r = (self.r as u8) << 7;
+                let vvvv = {
+                    (self.v[0] as u8) << 6 + (self.v[1] as u8) << 5 + (self.v[2] as u8) << 4 + (self.v[3] as u8) << 3
+                };
+                let l = (self.l as u8) << 2;
+                let pp = {
+                    (self.pp[0] as u8) << 2 + (self.pp[1] as u8)
+                };
+                vex.push(r | vvvv | l | pp);
+            },
+            0xc4 => {
+                vex.push(0xc4);
+                let r = (self.r as u8) << 7;
+                let x = (self.x as u8) << 6;
+                let b = (self.b as u8) << 5;
+                let map_select = {
+                    (self.map_select[0] as u8) << 4 + (self.v[1] as u8) << 3 + (self.v[2] as u8) << 2 + (self.v[3] as u8) << 1 + (self.v[4] as u8)
+                };
+                vex.push(r | x | b | map_select);
+
+                let w = (self.w as u8) << 7;
+                let vvvv = {
+                    (self.v[0] as u8) << 6 + (self.v[1] as u8) << 5 + (self.v[2] as u8) << 4 + (self.v[3] as u8) << 3
+                };
+                let l = (self.l as u8) << 2;
+                let pp = {
+                    (self.pp[0] as u8) << 2 + (self.pp[1] as u8)
+                };
+                vex.push(w | vvvv | l | pp);
+            },
+            _ => {
+                // never happen
+                todo!();
+            }
+        }
         return vex;
     }
+}
 
+#[test]
+fn encoding_test() {
+    let mut new = Vex::new();
+    todo!()
 }
