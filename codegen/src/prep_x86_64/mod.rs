@@ -1,0 +1,13 @@
+mod bits;
+mod mod_rm;
+mod intstruction;
+mod rex;
+mod sib;
+mod vex;
+
+pub use intstruction::{nasm, Instruction, Operands};
+pub(crate) use bits::Bits;
+pub(crate) use mod_rm::ModRM;
+pub(crate) use rex::Rex;
+pub(crate) use sib::SIB;
+// pub(crate) use vex::Vex;
