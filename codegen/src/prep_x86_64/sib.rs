@@ -36,7 +36,7 @@ impl SIB {
         self.base.set_num(base);
     }
 
-    pub(crate) fn generate(self) -> u8 {
+    pub(crate) fn encode(self) -> u8 {
         self.scale.value() << 6 | self.index.value() << 3 | self.base.value()
     }
 }

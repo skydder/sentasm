@@ -10,11 +10,11 @@ pub(crate) struct Vex {
     // 'inverted' extension to the MODRM.rm field or the SIB.base field
     b: Bits<1>,
     // specifies the opcode map to use
-    map_select: Bits<5>,
+    m_mmmm: Bits<5>,
     // equivalent with REX.W?
     w: Bits<1>,
     // 'inverted' additional operand for the instruction
-    v: Bits<4>,
+    vvvv: Bits<4>,
     // vector length
     l: Bits<1>,
     // Specifies an implied mandatory prefix for the opcode
@@ -28,9 +28,9 @@ impl Vex {
             r: Bits::make(1),
             x: Bits::make(1),
             b: Bits::make(1),
-            map_select: Bits::<5>::make(0b00001),
+            m_mmmm: Bits::<5>::make(0b00001),
             w: Bits::make(0),
-            v: Bits::<4>::make(0b1111),
+            vvvv: Bits::<4>::make(0b1111),
             l: Bits::make(0),
             pp: Bits::<2>::make(0b00),
         }
@@ -48,16 +48,16 @@ impl Vex {
         self.b.set_num(b);
     }
 
-    fn set_map_select(&mut self, map_select: u8) {
-        self.map_select.set_num(map_select);
+    fn set_m_mmmm(&mut self, m_mmmm: u8) {
+        self.m_mmmm.set_num(m_mmmm);
     }
 
     fn set_w(&mut self, w: u8) {
         self.w.set_num(w);
     }
 
-    fn set_v(&mut self, v: u8) {
-        self.v.set_num(v);
+    fn set_vvvv(&mut self, vvvv: u8) {
+        self.vvvv.set_num(vvvv);
     }
 
     fn set_l(&mut self, l: u8) {
@@ -69,7 +69,7 @@ impl Vex {
     }
 
     fn get_vex_prefix(&self) -> u8 {
-        if self.x == 1 && self.b == 1 && self.w == 0 && self.map_select == 0b00001 {
+        if self.x == 1 && self.b == 1 && self.w == 0 && self.m_mmmm == 0b00001 {
             // VEX.~X == 1, VEX.~B == 1, VEX.W/E == 0 and map_select == b00001
             return 0xc5;
         } else {
@@ -83,9 +83,9 @@ impl Vex {
             0xc5 => {
                 vex.push(0xc5);
                 let r = self.r.value() << 7;
-                let vvvv = self.v.value() << 3;
+                let vvvv = self.vvvv.value() << 3;
                 let l = self.l.value() << 2;
-                let pp = self.v.value();
+                let pp = self.pp.value();
                 vex.push(r | vvvv | l | pp);
             },
             0xc4 => {
@@ -93,13 +93,13 @@ impl Vex {
                 let r = self.r.value() << 7;
                 let x = self.x.value() << 6;
                 let b = self.b.value() << 5;
-                let map_select = self.map_select.value();
-                vex.push(r | x | b | map_select);
+                let m_mmmm = self.m_mmmm.value();
+                vex.push(r | x | b | m_mmmm);
 
                 let w = self.w.value() << 7;
-                let vvvv = self.v.value() << 3;
+                let vvvv = self.vvvv.value() << 3;
                 let l = self.l.value() << 2;
-                let pp = self.v.value();
+                let pp = self.pp.value();
                 vex.push(w | vvvv | l | pp);
             },
             _ => {
@@ -111,8 +111,64 @@ impl Vex {
     }
 }
 
-#[test]
-fn encoding_test() {
-    let mut new = Vex::new();
-    todo!()
+enum PP {
+    None,
+    Pre66,
+    PreF3,
+    PreF2,
+}
+
+impl PP {
+    fn value(&self) -> u8{
+        match self {
+            PP::None => 0b00,
+            PP::Pre66 => 0b01,
+            PP::PreF3 => 0b10,
+            PP::PreF2 => 0b11,
+        }
+    }
+}
+
+enum VL {
+    L128, // or Scalar
+    L256,
+    L0,
+    L1,
+    LIG,
+}
+
+impl VL {
+    fn value(&self) -> u8 {
+        match self {
+            VL::L128 | VL::L0 => 0b0,
+            VL::L256 | VL::L1 => 0b1,
+            VL::LIG => todo!(),
+        }
+    }
+}
+
+enum W {
+    W0,
+    W1,
+    WIG,
+}
+
+enum MMMMM {
+    M0F = 0b00001,
+    M0F38 = 0b00010,
+    M0F3A = 0b00011,
+}
+
+enum VVVV {
+    NDS,
+    NDD,
+    DDS,
+    None,
+}
+
+fn vex(vvvv: VVVV, vl: VL, pp: PP, m_mmmm: MMMMM, w: W) -> Vex {
+    let mut vex = Vex::new();
+    vex.set_l(vl.value());
+    vex.set_pp(pp.value());
+    todo!();
 }

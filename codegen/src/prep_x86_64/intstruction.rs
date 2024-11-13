@@ -236,18 +236,18 @@ impl Instruction {
         }
     }
 
-    fn emit_machine_code(mut self) -> Vec<u8> {
+    fn encode(mut self) -> Vec<u8> {
         let mut mc: Vec<u8> = Vec::new();
         mc.append(&mut self.prefixes);
         if self.rex.is_some() {
-            mc.push(self.rex.unwrap().generate(true));
+            mc.push(self.rex.unwrap().encode(true));
         }
         mc.append(&mut self.op_code);
         if self.mod_rm.is_some() {
-            mc.push(self.mod_rm.unwrap().generate());
+            mc.push(self.mod_rm.unwrap().encode());
         }
         if self.sib.is_some() {
-            mc.push(self.sib.unwrap().generate());
+            mc.push(self.sib.unwrap().encode());
         }
         if self.disp.is_some() {
             mc.append(&mut self.disp.unwrap().generate());
@@ -345,7 +345,7 @@ fn db(bytes: Vec<u8>) -> String {
 pub fn nasm(ins: &str, operands: Operands) -> String {
     let code = format!("\n; {} {}\n", ins, operands);
     match emit_mc(ins, operands) {
-        Ok(ins_seq) => code + &db(ins_seq.emit_machine_code()),
+        Ok(ins_seq) => code + &db(ins_seq.encode()),
         Err(op) => format!("{} {}", ins, op),
     }
     // format!("{} {}", ins, operands)

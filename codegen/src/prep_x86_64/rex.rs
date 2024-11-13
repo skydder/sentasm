@@ -36,7 +36,7 @@ impl Rex {
         self.rex[3] = b;
     }
 
-    pub fn generate(self, flag: bool) -> u8 {
+    pub fn encode(self, flag: bool) -> u8 {
         let rex = self.rex.value();
         if rex != 0 || flag {
             0x40 | rex

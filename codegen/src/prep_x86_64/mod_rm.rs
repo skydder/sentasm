@@ -28,7 +28,7 @@ impl ModRM {
         self.mode.set_num(mode);
     }
 
-    pub(crate) fn generate(self) -> u8 {
+    pub(crate) fn encode(self) -> u8 {
         self.mode.value() << 6 | self.reg.value() << 3 | self.rm.value()
     }
 }
