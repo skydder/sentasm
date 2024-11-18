@@ -153,10 +153,30 @@ enum W {
     WIG,
 }
 
+impl W {
+    fn value(&self) -> u8 {
+        match self {
+            W::W0 => 0,
+            W::W1 => 1,
+            W::WIG => todo!(),
+        }
+    }
+}
+
 enum MMMMM {
     M0F = 0b00001,
     M0F38 = 0b00010,
     M0F3A = 0b00011,
+}
+
+impl MMMMM {
+    fn value(&self) -> u8 {
+        match self {
+            MMMMM::M0F => 0b00001,
+            MMMMM::M0F38 => 0b00010,
+            MMMMM::M0F3A => 0b00011,
+        }
+    }
 }
 
 enum VVVV {
@@ -166,9 +186,11 @@ enum VVVV {
     None,
 }
 
-fn vex(vvvv: VVVV, vl: VL, pp: PP, m_mmmm: MMMMM, w: W) -> Vex {
+fn vex(l: VL, pp: PP, m_mmmm: MMMMM, w: W) -> Vex {
     let mut vex = Vex::new();
-    vex.set_l(vl.value());
+    vex.set_l(l.value());
     vex.set_pp(pp.value());
-    todo!();
+    vex.set_w(w.value());
+    vex.set_m_mmmm(m_mmmm.value());
+    return vex;
 }
