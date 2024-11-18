@@ -103,6 +103,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "read_ins"
+version = "0.1.0"
+
+[[package]]
 name = "sentasm"
 version = "0.1.0"
 dependencies = [

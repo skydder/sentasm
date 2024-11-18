@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [workspace]
-members = [ "codegen","data", "parser", "tokenizer"]
+members = [ "auto/script/read_ins", "codegen","data", "parser", "tokenizer"]
 
 [dependencies]
 macros = { path = "./macros"}
