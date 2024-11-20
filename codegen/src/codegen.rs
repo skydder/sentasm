@@ -1,3 +1,4 @@
+use data::Verb;
 use ::data::{Sentence, Preposition};
 use macros::get_prep_object;
 use tokenizer::emit_error;
@@ -21,6 +22,17 @@ macro_rules! nasm {
     };
 }
 
+fn codegen(sentence: &Sentence) -> String {
+    match sentence.verb {
+        Verb("adc") => {
+            todo!()
+        },
+        _ => {
+            todo!()
+        }
+    }
+}
+
 fn vt_taking_to(sentence: &Sentence) -> String {
     let _obj = match get_prep_object!(sentence, "obj", sentence.location) {
         (Some(o), loc ) => {
@@ -29,7 +41,6 @@ fn vt_taking_to(sentence: &Sentence) -> String {
         _ => {
             emit_error!(sentence.location, "this verb takes an object.");
         }
-
     };
 
     let _to = match get_prep_object!(sentence, "to", sentence.location) {
@@ -40,7 +51,7 @@ fn vt_taking_to(sentence: &Sentence) -> String {
             emit_error!(sentence.location, "this verb takes an object.");
         }
     };
-
+    sentence.using_all_object();
     nasm!(sentence.verb, _to, _obj)
 }
 
@@ -54,6 +65,7 @@ fn vi_taking_to(sentence: &Sentence) -> String {
         }
     };
 
+    sentence.using_all_object();
     nasm!(sentence.verb, _to)
 }
 
@@ -76,6 +88,7 @@ fn vt_taking_with(sentence: &Sentence) -> String {
         }
     };
 
+    sentence.using_all_object();
     nasm!(sentence.verb, _with, _obj)
 }
 
@@ -89,6 +102,7 @@ fn vi_taking_with(sentence: &Sentence) -> String {
         }
     };
 
+    sentence.using_all_object();
     nasm!(sentence.verb, _with)
 }
 
@@ -111,6 +125,7 @@ fn vt_taking_by(sentence: &Sentence) -> String {
         }
     };
 
+    sentence.using_all_object();
     nasm!(sentence.verb, _by, _obj)
 }
 
@@ -124,5 +139,24 @@ fn vi_taking_by(sentence: &Sentence) -> String {
         }
     };
 
+    sentence.using_all_object();
     nasm!(sentence.verb, _by)
+}
+
+fn vi(sentence: &Sentence) -> String {
+    sentence.using_all_object();
+    nasm!(sentence.verb)
+}
+
+fn vt(sentence: &Sentence) -> String {
+    let _obj = match get_prep_object!(sentence, "obj", sentence.location) {
+        (Some(o), loc ) => {
+            o
+        },
+        _ => {
+            emit_error!(sentence.location, "this verb takes an object.");
+        }
+    };
+    sentence.using_all_object();
+    nasm!(sentence.verb, _obj)
 }

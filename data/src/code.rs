@@ -1,5 +1,5 @@
 use crate::{Label, PrepositionPhrases, Verb};
-use tokenizer::Location;
+use tokenizer::{emit_error, Location};
 
 #[derive(Debug)]
 pub struct Sentence<'a> {
@@ -18,6 +18,12 @@ impl<'a> Sentence<'a> {
             verb: verb,
             location: location,
             preposition_phrases: prep_phrases,
+        }
+    }
+
+    pub fn using_all_object(&self) {
+        if self.preposition_phrases.len() != 0 {
+            emit_error!(self.location, "not all object are used");
         }
     }
 }

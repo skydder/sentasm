@@ -48,4 +48,8 @@ impl<'a> PrepositionPhrases<'a> {
             .remove(&p)
             .and_then(|po| Some(po.expand()))
     }
+
+    pub fn len(&self) -> usize {
+        self.data.borrow().len()
+    }
 }
