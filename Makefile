@@ -13,4 +13,6 @@ test-5cc:tests/test2.sh 5cc prep
 5cc:
 	./tests/clone-5cc.sh
 
-.PHONY: test test-5cc test-all prep
+fizzbuzz:
+	./tests/fizzbuzz/5cc.sh
+.PHONY: test test-5cc test-all prep fizzbuzz
